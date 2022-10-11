@@ -12,5 +12,8 @@ fun Navigation() {
         composable(route = Screen.StartScreen.route) {
             MainMenu(navController = navController)
         }
+        composable(route = Screen.RecordJourneyScreen.route) {
+            RecordChargeScreen(navController = navController)
+        }
     }
 }
