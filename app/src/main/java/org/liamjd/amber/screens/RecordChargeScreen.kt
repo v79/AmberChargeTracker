@@ -1,21 +1,16 @@
 package org.liamjd.amber.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -112,34 +107,28 @@ fun RecordChargeScreen(navController: NavController) {
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    OutlinedTextField(
+                    NumberTextField(
                         value = odometer,
                         onValueChange = { odometer = it },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        label = { Text(stringResource(R.string.screen_recordCharge_odometer)) },
+                        label = R.string.screen_recordCharge_odometer
                     )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        OutlinedTextField(
+                        NumberTextField(
                             modifier = Modifier.weight(1f),
                             value = batteryStartRange,
                             onValueChange = { batteryStartRange = it },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(stringResource(R.string.screen_recordCharge_range)) },
+                            label = R.string.screen_recordCharge_range
                         )
                         Spacer(Modifier.width(10.dp))
-                        OutlinedTextField(
+                        NumberTextField(
                             modifier = Modifier.weight(1f),
                             value = batteryStartPct,
                             onValueChange = { batteryStartPct = it },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(stringResource(R.string.screen_recordCharge_chargePct)) },
+                            label = R.string.screen_recordCharge_chargePct
                         )
                     }
                 }
@@ -162,31 +151,25 @@ fun RecordChargeScreen(navController: NavController) {
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        OutlinedTextField(
+                        NumberTextField(
                             modifier = Modifier.weight(1f),
                             value = batteryEndRange,
                             onValueChange = { batteryEndRange = it },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(stringResource(id = R.string.screen_recordCharge_range)) },
+                            label = R.string.screen_recordCharge_range
                         )
                         Spacer(Modifier.width(10.dp))
-                        OutlinedTextField(
+                        NumberTextField(
                             modifier = Modifier.weight(1f),
                             value = batteryEndPct,
                             onValueChange = { batteryEndPct = it },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(stringResource(R.string.screen_recordCharge_chargePct)) },
+                            label = R.string.screen_recordCharge_chargePct
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(
+                        NumberTextField(
                             value = chargeDuration,
                             onValueChange = { chargeDuration = it },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(stringResource(R.string.screen_recordCharge_duration)) },
+                            label = R.string.screen_recordCharge_duration
                         )
                         Spacer(Modifier.width(10.dp))
                         KWMenu()
@@ -200,7 +183,7 @@ fun RecordChargeScreen(navController: NavController) {
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Column() {
+                Column {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -222,33 +205,26 @@ fun RecordChargeScreen(navController: NavController) {
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OutlinedTextField(
+                        CurrencyTextField(
                             modifier = Modifier.weight(1f),
                             value = minimumFee,
                             onValueChange = { minimumFee = it },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(stringResource(R.string.screen_recordCharge_minFee)) },
+                            label = R.string.screen_recordCharge_minFee
                         )
                         Spacer(Modifier.width(10.dp))
-                        OutlinedTextField(
+                        CurrencyTextField(
                             modifier = Modifier.weight(1f),
                             value = costPerKWH,
                             onValueChange = { costPerKWH = it },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(stringResource(R.string.screen_recordCharge_costPkwh)) },
+                            label = R.string.screen_recordCharge_costPkwh
                         )
                         Spacer(Modifier.width(10.dp))
-                        OutlinedTextField(
+                        CurrencyTextField(
                             modifier = Modifier.weight(1f),
                             value = totalCost,
                             onValueChange = { totalCost = it },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(stringResource(R.string.screen_recordCharge_totalCost)) },
+                            label = R.string.screen_recordCharge_totalCost
                         )
-
                     }
                 }
             }
@@ -262,7 +238,6 @@ fun RecordChargeScreen(navController: NavController) {
                 TextButton(
                     modifier = Modifier.weight(0.2f),
                     onClick = { /*TODO*/ }) {
-
                     Text(text = stringResource(R.string.screen_recordCharge_BUTTON_cancel))
                 }
                 FilledIconButton(
@@ -320,6 +295,50 @@ fun KWMenu() {
                 onClick = { kw = 350; kwMenuExpanded = false })
         }
     }
+}
+
+/**
+ * A number text field is an [OutlinedTextField] refined for just numerical input
+ * TODO: does nothing special yet, other than set the keyboard type
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NumberTextField(
+    modifier: Modifier = Modifier,
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: Int
+) {
+    OutlinedTextField(
+        modifier = modifier,
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        label = { Text(stringResource(label)) },
+    )
+}
+
+/**
+ * A currency text field is an [OutlinedTextField] refined for just numerical input
+ * TODO: does nothing special yet, other than set the keyboard type
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CurrencyTextField(
+    modifier: Modifier = Modifier,
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: Int
+) {
+    OutlinedTextField(
+        modifier = modifier,
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        label = { Text(stringResource(label)) },
+    )
 }
 
 @Preview(showBackground = true)
