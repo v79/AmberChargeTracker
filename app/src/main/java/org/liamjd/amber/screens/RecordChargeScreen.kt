@@ -2,10 +2,12 @@ package org.liamjd.amber.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -25,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +56,15 @@ fun RecordChargeScreen(navController: NavController) {
         var chargeDuration by remember {
             mutableStateOf(30)
         }
+        var minimumFee by remember {
+            mutableStateOf(100)
+        }
+        var costPerKWH by remember {
+            mutableStateOf(15)
+        }
+        var totalCost by remember {
+            mutableStateOf(0)
+        }
 
         Column(
             modifier = Modifier
@@ -72,14 +84,14 @@ fun RecordChargeScreen(navController: NavController) {
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("ID")
+                Text("ID", color = Color.DarkGray)
                 Text("$chargeRecordId")
-                Text("Time")
-                TextButton(onClick = {}) {
-                    Text(
-                        text = chargeTime.format(DateTimeFormatter.ofPattern("yyyy MM dd H:m"))
-                    )
-                }
+                Text("Time", color = Color.DarkGray)
+                Text(
+                    text = chargeTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)),
+                    modifier = Modifier.clickable { }
+                )
+
             }
             // STARTING VALUES
             Row(
@@ -118,6 +130,7 @@ fun RecordChargeScreen(navController: NavController) {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text("Range (mph)") },
                         )
+                        Spacer(Modifier.width(10.dp))
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
                             value = batteryStartPct.toString(),
@@ -144,9 +157,8 @@ fun RecordChargeScreen(navController: NavController) {
                     }
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(4.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
@@ -156,6 +168,7 @@ fun RecordChargeScreen(navController: NavController) {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text("Range (mph)") },
                         )
+                        Spacer(Modifier.width(10.dp))
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
                             value = batteryEndPct.toString(),
@@ -165,7 +178,7 @@ fun RecordChargeScreen(navController: NavController) {
                             label = { Text("Charge Percentage") },
                         )
                     }
-                    Row {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedTextField(
                             value = chargeDuration.toString(),
                             onValueChange = { chargeDuration = Integer.parseInt(it) },
@@ -173,7 +186,87 @@ fun RecordChargeScreen(navController: NavController) {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text("Duration (min)") },
                         )
+                        Spacer(Modifier.width(10.dp))
                         KWMenu()
+                    }
+                }
+            }
+            // COSTS
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column() {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Costs",
+                            fontWeight = FontWeight.Bold
+                        )
+                        TextButton(onClick = { minimumFee = 0; costPerKWH = 0; totalCost = 0 }) {
+                            Text("Reset/Free")
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            modifier = Modifier.weight(1f),
+                            value = minimumFee.toString(),
+                            onValueChange = { minimumFee = Integer.parseInt(it) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            label = { Text("Minimum fee") },
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        OutlinedTextField(
+                            modifier = Modifier.weight(1f),
+                            value = costPerKWH.toString(),
+                            onValueChange = { costPerKWH = Integer.parseInt(it) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            label = { Text("Cost per kw/h") },
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        OutlinedTextField(
+                            modifier = Modifier.weight(1f),
+                            value = totalCost.toString(),
+                            onValueChange = { totalCost = Integer.parseInt(it) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            label = { Text("Total cost") },
+                        )
+
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    modifier = Modifier.weight(0.2f),
+                    onClick = { /*TODO*/ }) {
+
+                    Text(text = "Cancel")
+                }
+                FilledIconButton(
+                    modifier = Modifier.weight(0.8f),
+                    onClick = { /*TODO*/ }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Check, contentDescription = "Save charge record")
+                        Text(text = "Save")
                     }
                 }
             }
@@ -187,24 +280,26 @@ fun RecordChargeScreen(navController: NavController) {
 fun KWMenu() {
     var kw by remember { mutableStateOf(3) }
     var kwMenuExpanded by remember { mutableStateOf(false) }
-    Row(modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly) {
-        Text(text = "Wattage")
-        Text(text = "$kw")
-        IconButton(
-            modifier = Modifier.weight(1f),
-            onClick = { kwMenuExpanded = true }) {
-            Icon(Icons.Default.Menu, contentDescription = "Charger wattage")
-        }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
 
+        OutlinedButton(modifier = Modifier.weight(1f),
+            onClick = { kwMenuExpanded = true }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "$kw kw")
+                Icon(Icons.Default.Menu, contentDescription = "Charger wattage")
+            }
+        }
         DropdownMenu(
             modifier = Modifier.weight(1f),
             expanded = kwMenuExpanded, onDismissRequest = { kwMenuExpanded = false }) {
             DropdownMenuItem(text = { Text("3kw") }, onClick = { kw = 3; kwMenuExpanded = false })
-            DropdownMenuItem(text = { Text("7kw") }, onClick = { kw = 7 ; kwMenuExpanded = false})
+            DropdownMenuItem(text = { Text("7kw") }, onClick = { kw = 7; kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("11kw") },
-                onClick = { kw = 11 ; kwMenuExpanded = false})
+                onClick = { kw = 11; kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("22kw") },
                 onClick = { kw = 22; kwMenuExpanded = false })
@@ -219,10 +314,9 @@ fun KWMenu() {
                 onClick = { kw = 350; kwMenuExpanded = false })
         }
     }
-
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun RecordChargingPreview() {
     RecordChargeScreen(navController = rememberNavController())
