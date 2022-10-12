@@ -41,31 +41,31 @@ fun RecordChargeScreen(navController: NavController) {
             mutableStateOf(LocalDateTime.now())
         }
         var odometer by remember {
-            mutableStateOf(0)
+            mutableStateOf("0")
         }
         var batteryStartRange by remember {
-            mutableStateOf(100)
+            mutableStateOf("100")
         }
         var batteryStartPct by remember {
-            mutableStateOf(50)
+            mutableStateOf("50")
         }
         var batteryEndRange by remember {
-            mutableStateOf(200)
+            mutableStateOf("200")
         }
         var batteryEndPct by remember {
-            mutableStateOf(80)
+            mutableStateOf("80")
         }
         var chargeDuration by remember {
-            mutableStateOf(30)
+            mutableStateOf("30")
         }
         var minimumFee by remember {
-            mutableStateOf(100)
+            mutableStateOf("100")
         }
         var costPerKWH by remember {
-            mutableStateOf(15)
+            mutableStateOf("15")
         }
         var totalCost by remember {
-            mutableStateOf(0)
+            mutableStateOf("0")
         }
 
         Column(
@@ -113,8 +113,8 @@ fun RecordChargeScreen(navController: NavController) {
                         )
                     }
                     OutlinedTextField(
-                        value = odometer.toString(),
-                        onValueChange = { odometer = Integer.parseInt(it) },
+                        value = odometer,
+                        onValueChange = { odometer = it },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         label = { Text(stringResource(R.string.screen_recordCharge_odometer)) },
@@ -126,8 +126,8 @@ fun RecordChargeScreen(navController: NavController) {
                     ) {
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
-                            value = batteryStartRange.toString(),
-                            onValueChange = { batteryStartRange = Integer.parseInt(it) },
+                            value = batteryStartRange,
+                            onValueChange = { batteryStartRange = it },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text(stringResource(R.string.screen_recordCharge_range)) },
@@ -135,8 +135,8 @@ fun RecordChargeScreen(navController: NavController) {
                         Spacer(Modifier.width(10.dp))
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
-                            value = batteryStartPct.toString(),
-                            onValueChange = { batteryStartPct = Integer.parseInt(it) },
+                            value = batteryStartPct,
+                            onValueChange = { batteryStartPct = it },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text(stringResource(R.string.screen_recordCharge_chargePct)) },
@@ -164,8 +164,8 @@ fun RecordChargeScreen(navController: NavController) {
                     ) {
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
-                            value = batteryEndRange.toString(),
-                            onValueChange = { batteryEndRange = Integer.parseInt(it) },
+                            value = batteryEndRange,
+                            onValueChange = { batteryEndRange = it },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text(stringResource(id = R.string.screen_recordCharge_range)) },
@@ -173,8 +173,8 @@ fun RecordChargeScreen(navController: NavController) {
                         Spacer(Modifier.width(10.dp))
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
-                            value = batteryEndPct.toString(),
-                            onValueChange = { batteryEndPct = Integer.parseInt(it) },
+                            value = batteryEndPct,
+                            onValueChange = { batteryEndPct = it },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text(stringResource(R.string.screen_recordCharge_chargePct)) },
@@ -182,8 +182,8 @@ fun RecordChargeScreen(navController: NavController) {
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         OutlinedTextField(
-                            value = chargeDuration.toString(),
-                            onValueChange = { chargeDuration = Integer.parseInt(it) },
+                            value = chargeDuration,
+                            onValueChange = { chargeDuration = it },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text(stringResource(R.string.screen_recordCharge_duration)) },
@@ -210,7 +210,9 @@ fun RecordChargeScreen(navController: NavController) {
                             text = stringResource(R.string.screen_recordCharge_costs),
                             fontWeight = FontWeight.Bold
                         )
-                        TextButton(onClick = { minimumFee = 0; costPerKWH = 0; totalCost = 0 }) {
+                        TextButton(onClick = {
+                            minimumFee = "0"; costPerKWH = "0"; totalCost = "0"
+                        }) {
                             Text(stringResource(R.string.screen_recordCharge_BUTTON_reset))
                         }
                     }
@@ -222,8 +224,8 @@ fun RecordChargeScreen(navController: NavController) {
                     ) {
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
-                            value = minimumFee.toString(),
-                            onValueChange = { minimumFee = Integer.parseInt(it) },
+                            value = minimumFee,
+                            onValueChange = { minimumFee = it },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text(stringResource(R.string.screen_recordCharge_minFee)) },
@@ -231,8 +233,8 @@ fun RecordChargeScreen(navController: NavController) {
                         Spacer(Modifier.width(10.dp))
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
-                            value = costPerKWH.toString(),
-                            onValueChange = { costPerKWH = Integer.parseInt(it) },
+                            value = costPerKWH,
+                            onValueChange = { costPerKWH = it },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text(stringResource(R.string.screen_recordCharge_costPkwh)) },
@@ -240,8 +242,8 @@ fun RecordChargeScreen(navController: NavController) {
                         Spacer(Modifier.width(10.dp))
                         OutlinedTextField(
                             modifier = Modifier.weight(1f),
-                            value = totalCost.toString(),
-                            onValueChange = { totalCost = Integer.parseInt(it) },
+                            value = totalCost,
+                            onValueChange = { totalCost = it },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             label = { Text(stringResource(R.string.screen_recordCharge_totalCost)) },
@@ -267,7 +269,10 @@ fun RecordChargeScreen(navController: NavController) {
                     modifier = Modifier.weight(0.8f),
                     onClick = { /*TODO*/ }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Check, contentDescription = stringResource(R.string.screen_recordCharge_saveDesc))
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = stringResource(R.string.screen_recordCharge_saveDesc)
+                        )
                         Text(text = stringResource(R.string.screen_recordCharge_BUTTON_save))
                     }
                 }
