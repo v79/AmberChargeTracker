@@ -13,15 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -114,7 +110,8 @@ fun RecordChargeScreen(navController: NavController) {
                     }
                     NumberTextField(
                         value = odometer,
-                        onValueChange = { odometer = it },
+                        onValueChange = {
+                            odometer = it },
                         label = R.string.screen_recordCharge_odometer
                     )
                     Row(
@@ -242,7 +239,7 @@ fun RecordChargeScreen(navController: NavController) {
             ) {
                 TextButton(
                     modifier = Modifier.weight(0.2f),
-                    onClick = { /*TODO*/ }) {
+                    onClick = { navController.navigate(Screen.StartScreen.route) }) {
                     Text(text = stringResource(R.string.screen_recordCharge_BUTTON_cancel))
                 }
                 FilledIconButton(
@@ -264,7 +261,7 @@ fun RecordChargeScreen(navController: NavController) {
 @Preview
 @Composable
 fun KWMenu() {
-    var kw by remember { mutableStateOf(3) }
+    var kw by remember { mutableStateOf(22) }
     var kwMenuExpanded by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth(),
