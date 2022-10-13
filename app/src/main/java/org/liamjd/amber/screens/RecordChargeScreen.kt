@@ -242,6 +242,7 @@ fun RecordChargeScreen(navController: NavController) {
                     onClick = { navController.navigate(Screen.StartScreen.route) }) {
                     Text(text = stringResource(R.string.screen_recordCharge_BUTTON_cancel))
                 }
+
                 FilledIconButton(
                     modifier = Modifier.weight(0.8f),
                     onClick = { /*TODO*/ }) {
