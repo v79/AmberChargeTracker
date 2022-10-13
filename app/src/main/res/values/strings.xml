@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Amber Charge Tracker</string>
+    <string name="screen_recordCharge_title">Record Charging Event</string>
+    <string name="screen_recordCharge_ID">ID</string>
+    <string name="screen_recordCharge_time">Time</string>
+    <string name="screen_recordCharge_starting">Starting values</string>
+    <string name="screen_recordCharge_odometer">Odometer (miles)</string>
+    <string name="screen_recordCharge_range">Range (mph)</string>
+    <string name="screen_recordCharge_chargePct">Charge Percentage</string>
+    <string name="screen_recordCharge_ending">Ending values</string>
+    <string name="screen_recordCharge_duration">Duration (min)</string>
+    <string name="screen_recordCharge_costs">Costs</string>
+    <string name="screen_recordCharge_BUTTON_reset">Reset/Free</string>
+    <string name="screen_recordCharge_minFee">Minimum fee</string>
+    <string name="screen_recordCharge_costPkwh">Cost per kw/h</string>
+    <string name="screen_recordCharge_totalCost">Total cost</string>
+    <string name="screen_recordCharge_BUTTON_cancel">Cancel</string>
+    <string name="screen_recordCharge_BUTTON_save">Save</string>
+    <string name="screen_recordCharge_saveDesc">Save charge record</string>
 </resources>
