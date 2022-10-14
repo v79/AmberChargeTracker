@@ -58,6 +58,8 @@ dependencies {
     implementation "androidx.compose.material3:material3:$material3_version"
     implementation 'androidx.navigation:navigation-compose:2.5.2'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1'
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.5.1"
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
 
     // Hilt DI
     implementation "com.google.dagger:hilt-android:2.44"
