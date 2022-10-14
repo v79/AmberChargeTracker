@@ -1,12 +1,8 @@
 package org.liamjd.amber.db.entities
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import org.liamjd.amber.toIntOrZero
 
 
 /*
@@ -44,13 +40,30 @@ val chargeRecordId = 123
  */
 @Entity
 data class ChargeEvent(
-    @PrimaryKey val id: Int,
     val odometer: Int,
     val batteryStartingRange: Int,
     val batteryEndingRange: Int,
     val batteryStartingPct: Int,
     val batteryEndingPct: Int
-)
+) {
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0
+
+    constructor(
+        odometer: String,
+        batteryStartingRange: String,
+        batteryEndingRange: String,
+        batteryStartingPct: String,
+        batteryEndingPct: String
+    ) : this(
+        odometer = odometer.toIntOrZero(),
+        batteryStartingRange = batteryStartingRange.toIntOrZero(),
+        batteryEndingRange = batteryEndingRange.toIntOrZero(),
+        batteryStartingPct = batteryStartingPct.toIntOrZero(),
+        batteryEndingPct = batteryEndingPct.toIntOrZero()
+    )
+}
+
 
 @Dao
 interface ChargeEventDao {

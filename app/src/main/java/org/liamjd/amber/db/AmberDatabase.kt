@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.db.entities.ChargeEventDao
 
-@Database(entities = arrayOf(ChargeEvent::class), version = 1, exportSchema = false)
+@Database(entities = arrayOf(ChargeEvent::class), version = 3, exportSchema = false)
 abstract class AmberDatabase : RoomDatabase() {
 
     abstract fun chargeEventDao(): ChargeEventDao
@@ -26,7 +26,7 @@ abstract class AmberDatabase : RoomDatabase() {
                     AmberDatabase::class.java,
                     "amber_database")
                     .addCallback(AmberDatabaseCallback(scope)
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

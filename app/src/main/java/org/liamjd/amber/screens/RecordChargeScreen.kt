@@ -1,5 +1,6 @@
 package org.liamjd.amber.screens
 
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -21,16 +23,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
+import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
+import org.liamjd.amber.viewModels.ChargeEventViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 @Composable
-fun RecordChargeScreen(navController: NavController) {
+fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewModel) {
 
+    val context = LocalContext.current
     AmberChargeTrackerTheme {
         val chargeRecordId = 123
         var chargeTime by remember {
@@ -111,7 +115,8 @@ fun RecordChargeScreen(navController: NavController) {
                     NumberTextField(
                         value = odometer,
                         onValueChange = {
-                            odometer = it },
+                            odometer = it
+                        },
                         label = R.string.screen_recordCharge_odometer
                     )
                     Row(
@@ -245,7 +250,18 @@ fun RecordChargeScreen(navController: NavController) {
 
                 FilledIconButton(
                     modifier = Modifier.weight(0.8f),
-                    onClick = { /*TODO*/ }) {
+                    onClick = {
+                        Toast.makeText(context, "Attempting to save", Toast.LENGTH_LONG).show()
+                        val chargeEvent = ChargeEvent(
+                            odometer = odometer,
+                            batteryStartingRange = batteryStartRange,
+                            batteryEndingRange = batteryEndRange,
+                            batteryStartingPct = batteryStartPct,
+                            batteryEndingPct = batteryEndPct,
+                        )
+                        viewModel.insert(chargeEvent)
+
+                    }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Default.Check,
@@ -258,6 +274,7 @@ fun RecordChargeScreen(navController: NavController) {
         }
     }
 }
+
 
 @Preview
 @Composable
@@ -317,7 +334,10 @@ fun NumberTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Next
+        ),
         label = { Text(stringResource(label)) },
     )
 }
@@ -347,13 +367,17 @@ fun CurrencyTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Next
+        ),
         label = { Text(stringResource(label)) },
     )
 }
 
+/*
 @Preview(showBackground = true)
 @Composable
 fun RecordChargingPreview() {
     RecordChargeScreen(navController = rememberNavController())
-}
+}*/
