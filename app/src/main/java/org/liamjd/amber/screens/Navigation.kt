@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.viewModels.ChargeEventVMFactory
+import org.liamjd.amber.viewModels.ChargeHistoryViewModelFactory
 
 @Composable
 fun Navigation(application: AmberApplication) {
@@ -21,6 +22,12 @@ fun Navigation(application: AmberApplication) {
             RecordChargeScreen(
                 navController = navController,
                 viewModel(factory = ChargeEventVMFactory(application))
+            )
+        }
+        composable(route = Screen.ChargeHistoryScreen.route) {
+            ChargeHistoryScreen(
+                navController = navController,
+                viewModel(factory = ChargeHistoryViewModelFactory(application))
             )
         }
     }

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
+import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.viewModels.ChargeEventViewModel
 import java.time.LocalDateTime
@@ -73,12 +74,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                 .fillMaxSize()
                 .padding(4.dp)
         ) {
-            Text(
-                text = stringResource(id = R.string.screen_recordCharge_title),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            Heading(text = R.string.screen_recordCharge_title)
             // METADATA
             Row(
                 modifier = Modifier

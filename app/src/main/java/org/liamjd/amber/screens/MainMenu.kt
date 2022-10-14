@@ -66,7 +66,9 @@ fun MainMenu(navController: NavController) {
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text("Charge History")
+                Button(onClick = { navController.navigate(Screen.ChargeHistoryScreen.route) }) {
+                    Text("Charge History")
+                }
                 Text("Journey History")
             }
         }

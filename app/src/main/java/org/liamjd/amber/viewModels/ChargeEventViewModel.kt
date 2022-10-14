@@ -36,6 +36,6 @@ class ChargeEventVMFactory(private val application: AmberApplication) :
             @Suppress("UNCHECKED_CAST")
             return ChargeEventViewModel(application) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
 }

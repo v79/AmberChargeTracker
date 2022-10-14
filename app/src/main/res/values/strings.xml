@@ -17,4 +17,5 @@
     <string name="screen_recordCharge_BUTTON_cancel">Cancel</string>
     <string name="screen_recordCharge_BUTTON_save">Save</string>
     <string name="screen_recordCharge_saveDesc">Save charge record</string>
+    <string name="screen_chargeHistory_title">Charging History</string>
 </resources>
