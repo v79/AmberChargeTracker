@@ -9,11 +9,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.db.entities.ChargeEventDao
+import org.liamjd.amber.db.entities.Vehicle
+import org.liamjd.amber.db.entities.VehicleDao
 
-@Database(entities = arrayOf(ChargeEvent::class), version = 3, exportSchema = false)
+@Database(entities = arrayOf(ChargeEvent::class, Vehicle::class), version = 4, exportSchema = false)
 abstract class AmberDatabase : RoomDatabase() {
 
     abstract fun chargeEventDao(): ChargeEventDao
+    abstract fun vehicleDao(): VehicleDao
 
     companion object {
         @Volatile

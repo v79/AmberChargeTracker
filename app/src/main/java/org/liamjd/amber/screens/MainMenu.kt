@@ -62,12 +62,15 @@ fun MainMenu(navController: NavController) {
             }
             Row(
                 modifier = Modifier
-                    .fillMaxHeight(0.1f)
+                    .fillMaxHeight(0.2f)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(onClick = { navController.navigate(Screen.ChargeHistoryScreen.route) }) {
                     Text("Charge History")
+                }
+                Button(onClick = { navController.navigate(Screen.VehicleDetailsScreen.route)}) {
+                    Text("Vehicles")
                 }
                 Text("Journey History")
             }

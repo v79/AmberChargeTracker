@@ -9,6 +9,7 @@ sealed class Screen(val route: String) {
     object RecordChargingScreen : Screen("record_charge")
     object RecordJourneyScreen : Screen("record_journey")
     object ChargeHistoryScreen: Screen("charging_history")
+    object VehicleDetailsScreen : Screen("vehicle_details")
 
     /**
      * Build a navigation route, appending each argument in the form /route/{arg1}.../{argN}

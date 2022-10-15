@@ -1,10 +1,8 @@
 package org.liamjd.amber.screens
 
 import android.widget.Toast
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
@@ -16,16 +14,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
+import org.liamjd.amber.screens.composables.CurrencyTextField
 import org.liamjd.amber.screens.composables.Heading
+import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.viewModels.ChargeEventViewModel
 import java.time.LocalDateTime
@@ -313,31 +309,6 @@ fun KWMenu() {
     }
 }
 
-/**
- * A number text field is an [OutlinedTextField] refined for just numerical input
- * TODO: does nothing special yet, other than set the keyboard type
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun NumberTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    @StringRes label: Int
-) {
-    OutlinedTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number,
-            imeAction = ImeAction.Next
-        ),
-        label = { Text(stringResource(label)) },
-    )
-}
-
 /* This doesn't even compile!
 class PercentageVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
@@ -345,31 +316,6 @@ class PercentageVisualTransformation : VisualTransformation {
     }
 }
 */
-
-/**
- * A currency text field is an [OutlinedTextField] refined for just numerical input
- * TODO: does nothing special yet, other than set the keyboard type
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CurrencyTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    @StringRes label: Int
-) {
-    OutlinedTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number,
-            imeAction = ImeAction.Next
-        ),
-        label = { Text(stringResource(label)) },
-    )
-}
 
 /*
 @Preview(showBackground = true)
