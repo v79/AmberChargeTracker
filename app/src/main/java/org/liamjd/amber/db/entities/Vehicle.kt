@@ -1,36 +1,38 @@
 package org.liamjd.amber.db.entities
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
-import androidx.room.Update
-import kotlinx.coroutines.flow.Flow
+import androidx.lifecycle.LiveData
+import androidx.room.*
 
 @Entity
-data class Vehicle(val manufacturer: String, val model: String) {
-    @PrimaryKey(autoGenerate = true) var id: Int = 0
+data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int) {
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0
 }
 
 @Dao
 interface VehicleDao {
 
+    // which should be suspend and which should not???
     @Insert
-    suspend fun insert(vehicle: Vehicle)
+    fun insert(vehicle: Vehicle): Long
 
     @Delete
-    suspend fun delete(vehicle: Vehicle)
+    fun delete(vehicle: Vehicle)
 
     @Update
-    suspend fun update(vehicle: Vehicle)
+    fun update(vehicle: Vehicle)
 
     @Query("SELECT * FROM Vehicle where id = :id LIMIT 1")
-    suspend fun getVehicle(id: Int): Vehicle
+    fun getVehicle(id: Long): LiveData<Vehicle?>
 
     @Query("SELECT COUNT(*) FROM Vehicle")
-    suspend fun getVehicleCount(): Int
+    fun getVehicleCount(): LiveData<Int>
+
+    @Query("SELECT MAX(id) FROM Vehicle")
+    suspend fun getMostRecentVehicleId(): Long?
+
+    @Query("SELECT id FROM Vehicle WHERE rowId = :rowId")
+    fun getVehiclePkWithRowId(rowId: Long): Long
 }
 
 data class OdometerReading(@PrimaryKey(autoGenerate = true) val id: Int, val reading: Int)

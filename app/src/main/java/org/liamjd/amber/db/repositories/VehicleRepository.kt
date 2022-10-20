@@ -1,16 +1,21 @@
 package org.liamjd.amber.db.repositories
 
-import androidx.annotation.WorkerThread
-import androidx.lifecycle.asLiveData
-import kotlinx.coroutines.flow.Flow
+import androidx.lifecycle.LiveData
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.entities.VehicleDao
 
+interface VehicleRepositoryIF // TODO
+
 class VehicleRepository(private val vehicleDao: VehicleDao) {
 
-    suspend fun getVehicleById(id: Int): Vehicle = vehicleDao.getVehicle(id)
+    fun getVehicleCount(): LiveData<Int> = vehicleDao.getVehicleCount()
 
-    suspend fun insert(vehicle: Vehicle) = vehicleDao.insert(vehicle)
+    fun getVehicleById(id: Long): LiveData<Vehicle?> = vehicleDao.getVehicle(id)
 
-    suspend fun getVehicleCount(): Int = vehicleDao.getVehicleCount()
+    fun insert(vehicle: Vehicle) = vehicleDao.insert(vehicle)
+
+    fun getVehicleIdFromRowId(rowId: Long): Long = vehicleDao.getVehiclePkWithRowId(rowId)
+
+    suspend fun getMostRecentVehicleId() = vehicleDao.getMostRecentVehicleId()
+
 }

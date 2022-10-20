@@ -1,5 +1,6 @@
 package org.liamjd.amber.screens
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,6 +22,7 @@ import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.screens.composables.NumberTextField
+import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 
@@ -29,14 +31,9 @@ import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetailsViewModel) {
     val context = LocalContext.current
 
-    val totalVehicles by viewModel.getVehicleCount().observeAsState()
-    var entryEnabled by rememberSaveable { mutableStateOf(true) }
+    val totalVehicles by viewModel.vehicleCount.observeAsState()
 
     AmberChargeTrackerTheme {
-        var vehicleManufacturer by remember { mutableStateOf("") }
-        var vehicleModel by remember { mutableStateOf("") }
-        var vehicleOdometerReading by remember { mutableStateOf("") }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -56,56 +53,104 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                     )
                 )
             }
-            if (totalVehicles == 0) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = stringResource(R.string.screen_vehicleDetails_addNew))
-                    OutlinedTextField(
-                        value = vehicleManufacturer,
-                        onValueChange = { vehicleManufacturer = it },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
-                        ),
-                        enabled = entryEnabled,
-                        label = { Text(stringResource(R.string.vehicle_manufacturer)) }
-                    )
-                    OutlinedTextField(value = vehicleModel, onValueChange = { vehicleModel = it },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
-                        ),
-                        enabled = entryEnabled,
-                        label = { Text(stringResource(R.string.vehicle_model)) })
-                    NumberTextField(
-                        value = vehicleOdometerReading,
-                        onValueChange = { vehicleOdometerReading = it },
-                        enabled = entryEnabled,
-                        label = R.string.screen_vehicleDetails_currentOdo
-                    )
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = { /*TODO*/ }) {
-                        FilledIconButton(onClick = {
-                            entryEnabled = false
-                            Toast.makeText(context, "Attempting to save", Toast.LENGTH_LONG).show()
-                            val newVehicle = Vehicle(vehicleManufacturer, vehicleModel)
-                            viewModel.insert(newVehicle)
-                        }) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = stringResource(R.string.screen_vehicleDetails_saveDescription)
-                                )
-                                Text(stringResource(id = R.string.screen_vehicleDetails_saveDescription))
-                            }
-                        }
-                    }
-                }
+            if (totalVehicles == null || totalVehicles == 0) {
+                AddVehicle(context, viewModel)
             } else {
-
+                ShowCurrentVehicle(context, viewModel)
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShowCurrentVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
+    val selectedVehicle = viewModel.selectedVehicle.observeAsState()
+//    var vehicleOdometerReading by remember { mutableStateOf(selectedVehicle.value?.odometerReading.toString()) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row { Text(text = "Current Vehicle ${selectedVehicle.value?.id}") }
+        Row {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text("Manufacturer")
+                    Text("Model")
+                    Text("Odometer")
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text("${selectedVehicle.value?.id} ${selectedVehicle.value?.manufacturer}")
+                    Text("${selectedVehicle.value?.model}")
+                    OutlinedTextField(
+                        value = selectedVehicle.value?.odometerReading.toString(),
+                        onValueChange = { }) // TODO I think need to separate the Entity model from the domain model
+                }
+            }
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
+    var vehicleManufacturer by remember { mutableStateOf("") }
+    var vehicleModel by remember { mutableStateOf("") }
+    var vehicleOdometerReading by remember { mutableStateOf("") }
+    var entryEnabled by rememberSaveable { mutableStateOf(true) }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(text = stringResource(R.string.screen_vehicleDetails_addNew))
+        OutlinedTextField(
+            value = vehicleManufacturer,
+            onValueChange = { vehicleManufacturer = it },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            enabled = entryEnabled,
+            label = { Text(stringResource(R.string.vehicle_manufacturer)) }
+        )
+        OutlinedTextField(value = vehicleModel, onValueChange = { vehicleModel = it },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            enabled = entryEnabled,
+            label = { Text(stringResource(R.string.vehicle_model)) })
+        NumberTextField(
+            value = vehicleOdometerReading,
+            onValueChange = { vehicleOdometerReading = it },
+            enabled = entryEnabled,
+            label = R.string.screen_vehicleDetails_currentOdo
+        )
+
+        FilledIconButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+            entryEnabled = false
+            Toast.makeText(context, "Attempting to save", Toast.LENGTH_LONG).show()
+            val newVehicle =
+                Vehicle(vehicleManufacturer, vehicleModel, vehicleOdometerReading.toIntOrZero())
+            viewModel.insert(newVehicle)
+        }) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = stringResource(R.string.screen_vehicleDetails_saveDescription)
+                )
+                Text(stringResource(id = R.string.screen_vehicleDetails_saveDescription))
+            }
+        }
+
     }
 }
