@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CONFIG">org.liamjd.amber.prefs</string>
+    <string name="CONFIG_selected_vehicle_id">org.liamjd.amber.SELECTED_VEHICLE</string>
+</resources>

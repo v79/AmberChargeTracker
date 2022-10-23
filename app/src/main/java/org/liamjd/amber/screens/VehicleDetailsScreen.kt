@@ -26,7 +26,6 @@ import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetailsViewModel) {
     val context = LocalContext.current
@@ -134,12 +133,16 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
         FilledIconButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-            entryEnabled = false
-            Toast.makeText(context, "Attempting to save", Toast.LENGTH_LONG).show()
-            val newVehicle =
-                Vehicle(vehicleManufacturer, vehicleModel, vehicleOdometerReading.toIntOrZero())
-            viewModel.insert(newVehicle)
-        }) {
+                entryEnabled = false
+                Toast.makeText(context, "Attempting to save", Toast.LENGTH_LONG).show()
+                val newVehicle =
+                    Vehicle(
+                        vehicleManufacturer,
+                        vehicleModel,
+                        vehicleOdometerReading.toIntOrZero(),
+                    )
+                viewModel.insert(newVehicle)
+            }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround

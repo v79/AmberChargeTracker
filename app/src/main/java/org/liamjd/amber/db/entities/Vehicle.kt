@@ -6,7 +6,7 @@ import androidx.room.*
 @Entity
 data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int) {
     @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
+    var id: Long = 0
 }
 
 @Dao
@@ -33,6 +33,13 @@ interface VehicleDao {
 
     @Query("SELECT id FROM Vehicle WHERE rowId = :rowId")
     fun getVehiclePkWithRowId(rowId: Long): Long
+
+    @Query("SELECT odometerReading FROM Vehicle WHERE id = :id")
+    suspend fun getCurrentOdometer(id: Long): Int
+
+    @Query("UPDATE Vehicle SET odometerReading = :odometer WHERE id = :vehicleId")
+    suspend fun updateOdometer(vehicleId: Long, odometer: Int)
+
 }
 
 data class OdometerReading(@PrimaryKey(autoGenerate = true) val id: Int, val reading: Int)
