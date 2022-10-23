@@ -1,6 +1,8 @@
 package org.liamjd.amber.viewModels
 
 import android.util.Log
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,17 +12,24 @@ import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.db.repositories.ChargeEventRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
+import org.liamjd.amber.screens.Screen
+import org.liamjd.amber.screens.state.UIState
 
 class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
 
     private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
     private val vehicleRepository: VehicleRepository = application.vehicleRepo
     private val _selectedVehicle = application.getConfigLong(R.string.CONFIG_selected_vehicle_id)
+    private val _uiState = mutableStateOf<UIState>(UIState.Loading)
+    val uiState: State<UIState>
+        get() = _uiState
 
     val odo = liveData {
         val initOdo = vehicleRepository.getCurrentOdometer(_selectedVehicle)
         Log.e("ChargeEventViewModel","Getting a LIVEDATA version of odo meter via emit $initOdo")
         emit(initOdo)
+        delay(1_000L)
+        _uiState.value = UIState.Active
     }
 
     /**
@@ -35,6 +44,7 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
             Log.i("ChargeEventViewModel","Updating odometer reading for vehicle ${chargeEvent.vehicleId} from $vehicleCurrentOdo to ${chargeEvent.odometer}")
             vehicleRepository.updateOdometer(chargeEvent.vehicleId,chargeEvent.odometer)
         }
+        _uiState.value = UIState.Navigating(Screen.ChargeHistoryScreen)
     }
 
 }
