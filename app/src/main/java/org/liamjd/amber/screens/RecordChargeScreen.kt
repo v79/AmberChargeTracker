@@ -46,7 +46,6 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
         if (initOdo.value == null) {
             Text("Loading")
         } else {
-            val chargeRecordId = 123
             var chargeTime by remember {
                 mutableStateOf(LocalDateTime.now())
             }
@@ -91,11 +90,6 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        stringResource(id = R.string.screen_recordCharge_ID),
-                        color = Color.DarkGray
-                    )
-                    Text("$chargeRecordId")
-                    Text(
                         stringResource(id = R.string.screen_recordCharge_time),
                         color = Color.DarkGray
                     )
@@ -107,7 +101,6 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                         ),
                         modifier = Modifier.clickable { }
                     )
-
                 }
                 // STARTING VALUES
                 Row(
