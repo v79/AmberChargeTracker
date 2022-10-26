@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -12,7 +13,8 @@ import org.liamjd.amber.db.entities.ChargeEventDao
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.entities.VehicleDao
 
-@Database(entities = arrayOf(ChargeEvent::class, Vehicle::class), version = 6, exportSchema = false)
+@Database(entities = arrayOf(ChargeEvent::class, Vehicle::class), version = 8, exportSchema = false)
+@TypeConverters(DBConverters::class)
 abstract class AmberDatabase : RoomDatabase() {
 
     abstract fun chargeEventDao(): ChargeEventDao

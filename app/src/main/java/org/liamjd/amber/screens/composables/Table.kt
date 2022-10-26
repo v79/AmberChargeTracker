@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
-
 /**
  * From https://github.com/AlexZhukovich/ComposePlayground/tree/main/app/src/main/java/com/alexzh/composeplayground/ui/demo/grid
  * The horizontally scrollable table with header and content.

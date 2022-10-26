@@ -26,4 +26,9 @@
     <string name="screen_vehicleDetails_addNew">Add new vehicle</string>
     <string name="screen_vehicleDetails_vehicleCount">%d vehicles registered</string>
     <string name="screen_vehicleDetails_saveDescription">Save vehicle and set as default</string>
+    <string name="screen_chargeHistory_dateTime">Time</string>
+    <string name="screen_chargeHistory_from">From</string>
+    <string name="screen_chargeHistory_to">To</string>
+    <string name="screen_chargeHistory_costs">Costs</string>
+
 </resources>

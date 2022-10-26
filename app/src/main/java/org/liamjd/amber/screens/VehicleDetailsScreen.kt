@@ -24,6 +24,7 @@ import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
+import org.liamjd.amber.ui.theme.md_theme_light_onSurface
 import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 
 @Composable
@@ -113,6 +114,7 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                 imeAction = ImeAction.Next
             ),
             enabled = entryEnabled,
+            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
             label = { Text(stringResource(R.string.vehicle_manufacturer)) }
         )
         OutlinedTextField(value = vehicleModel, onValueChange = { vehicleModel = it },
@@ -122,6 +124,7 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                 imeAction = ImeAction.Next
             ),
             enabled = entryEnabled,
+            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
             label = { Text(stringResource(R.string.vehicle_model)) })
         NumberTextField(
             value = vehicleOdometerReading,

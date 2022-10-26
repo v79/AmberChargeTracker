@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -15,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import org.liamjd.amber.R
+import org.liamjd.amber.ui.theme.md_theme_light_onSurface
 
 @Composable
 @Preview
@@ -49,6 +51,7 @@ fun NumberTextField(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Next
         ),
+        colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
         enabled = enabled,
         label = { Text(stringResource(label)) },
     )
@@ -76,6 +79,7 @@ fun CurrencyTextField(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Next
         ),
+        colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
         enabled = enabled,
         label = { Text(stringResource(label)) },
     )

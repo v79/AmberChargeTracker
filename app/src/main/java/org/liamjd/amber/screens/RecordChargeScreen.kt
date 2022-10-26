@@ -61,7 +61,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                 }
             }
             else -> {
-                var chargeTime by remember {
+                val chargeDateTime by remember {
                     mutableStateOf(LocalDateTime.now())
                 }
                 var odometer by remember { mutableStateOf(initOdo.value.toString()) }
@@ -109,7 +109,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                             color = Color.DarkGray
                         )
                         Text(
-                            text = chargeTime.format(
+                            text = chargeDateTime.format(
                                 DateTimeFormatter.ofLocalizedDateTime(
                                     FormatStyle.MEDIUM
                                 )
@@ -290,7 +290,8 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     batteryEndingRange = batteryEndRange,
                                     batteryStartingPct = batteryStartPct,
                                     batteryEndingPct = batteryEndPct,
-                                    vehicleId = selectedVehicleId
+                                    vehicleId = selectedVehicleId,
+                                    totalCost = totalCost.toIntOrZero()
                                 )
                                 viewModel.insert(chargeEvent)
 
