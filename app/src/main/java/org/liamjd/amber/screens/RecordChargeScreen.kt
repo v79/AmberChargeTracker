@@ -41,6 +41,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
     val initOdo = viewModel.odo.observeAsState()
     Log.e("RecordChargeScreen", "initOdo has been set to ${initOdo.value}")
     val context = LocalContext.current
+    val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving } }
 
     AmberChargeTrackerTheme {
 
@@ -138,6 +139,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                 onValueChange = {
                                     odometer = it
                                 },
+                                enabled = inputEnabled,
                                 label = R.string.screen_recordCharge_odometer
                             )
                             Row(
@@ -149,6 +151,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     modifier = Modifier.weight(1f),
                                     value = batteryStartRange,
                                     onValueChange = { batteryStartRange = it },
+                                    enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_range
                                 )
                                 Spacer(Modifier.width(10.dp))
@@ -156,6 +159,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     modifier = Modifier.weight(1f),
                                     value = batteryStartPct,
                                     onValueChange = { batteryStartPct = it },
+                                    enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_chargePct
                                 )
                             }
@@ -183,6 +187,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     modifier = Modifier.weight(1f),
                                     value = batteryEndRange,
                                     onValueChange = { batteryEndRange = it },
+                                    enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_range
                                 )
                                 Spacer(Modifier.width(10.dp))
@@ -190,6 +195,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     modifier = Modifier.weight(1f),
                                     value = batteryEndPct,
                                     onValueChange = { batteryEndPct = it },
+                                    enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_chargePct
                                 )
                             }
@@ -197,6 +203,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                 NumberTextField(
                                     value = chargeDuration,
                                     onValueChange = { chargeDuration = it },
+                                    enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_duration
                                 )
                                 Spacer(Modifier.width(10.dp))
@@ -237,6 +244,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     modifier = Modifier.weight(1f),
                                     value = minimumFee,
                                     onValueChange = { minimumFee = it },
+                                    enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_minFee
                                 )
                                 Spacer(Modifier.width(10.dp))
@@ -244,6 +252,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     modifier = Modifier.weight(1f),
                                     value = costPerKWH,
                                     onValueChange = { costPerKWH = it },
+                                    enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_costPkwh
                                 )
                                 Spacer(Modifier.width(10.dp))
@@ -251,6 +260,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     modifier = Modifier.weight(1f),
                                     value = totalCost,
                                     onValueChange = { totalCost = it },
+                                    enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_totalCost
                                 )
                             }

@@ -63,6 +63,7 @@ fun NumberTextField(
 fun CurrencyTextField(
     modifier: Modifier = Modifier,
     value: String,
+    enabled: Boolean = true,
     onValueChange: (String) -> Unit,
     @StringRes label: Int
 ) {
@@ -75,6 +76,7 @@ fun CurrencyTextField(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Next
         ),
+        enabled = enabled,
         label = { Text(stringResource(label)) },
     )
 }

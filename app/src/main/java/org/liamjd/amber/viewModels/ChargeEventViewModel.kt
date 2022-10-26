@@ -28,7 +28,6 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
         val initOdo = vehicleRepository.getCurrentOdometer(_selectedVehicle)
         Log.e("ChargeEventViewModel","Getting a LIVEDATA version of odo meter via emit $initOdo")
         emit(initOdo)
-        delay(1_000L)
         _uiState.value = UIState.Active
     }
 
@@ -38,6 +37,7 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
      * update the value on the vehicle too
      */
     fun insert(chargeEvent: ChargeEvent) = viewModelScope.launch {
+        _uiState.value = UIState.Saving
         chargeEventRepository.insert(chargeEvent)
         val vehicleCurrentOdo = vehicleRepository.getCurrentOdometer(chargeEvent.vehicleId)
         if(chargeEvent.odometer > vehicleCurrentOdo) {

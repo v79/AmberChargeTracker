@@ -21,4 +21,9 @@ sealed class UIState {
      * @param nextScreen the screen you are navigating to
      */
     class Navigating(val nextScreen: Screen, val backScreen: Screen? = Screen.StartScreen) : UIState()
+
+    /**
+     * Use the Saving state when you want to block user input briefly
+     */
+    object Saving: UIState()
 }
