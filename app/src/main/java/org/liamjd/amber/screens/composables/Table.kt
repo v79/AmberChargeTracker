@@ -40,7 +40,7 @@ fun <T> Table(
     data: List<T>,
     modifier: Modifier = Modifier,
     headerCellContent: @Composable (index: Int) -> Unit,
-    cellContent: @Composable (index: Int, item: T) -> Unit,
+    cellContent: @Composable (index: Int, item: T) -> Unit
 ) {
     Surface(
         modifier = modifier

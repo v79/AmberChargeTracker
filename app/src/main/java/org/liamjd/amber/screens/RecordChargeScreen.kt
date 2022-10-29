@@ -326,7 +326,7 @@ fun KWMenu() {
             onClick = { kwMenuExpanded = true }) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "$kw kw")
-                Icon(Icons.Default.Menu, contentDescription = "Charger wattage")
+                Icon(imageVector = Icons.Default.Menu, contentDescription = "Charger wattage")
             }
         }
         DropdownMenu(

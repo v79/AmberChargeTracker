@@ -80,7 +80,7 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 //    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     testImplementation("androidx.room:room-testing:2.4.3")
-//    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    debugImplementation("androidx.compose.ui:ui-tooling")
 //    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
 
 }

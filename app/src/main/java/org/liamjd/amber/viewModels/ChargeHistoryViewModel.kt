@@ -10,7 +10,9 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
 
     private val repository: ChargeEventRepository = application.chargeEventRepo
 
-    public val allEvents = repository.allChargeEvents.asLiveData()
+    val allEvents = repository.allChargeEvents.asLiveData()
+
+    fun getEventsWithin(days: Int) = repository.getEventsWithin(days).asLiveData()
 }
 
 class ChargeHistoryViewModelFactory(private val application: AmberApplication) : ViewModelProvider.NewInstanceFactory() {

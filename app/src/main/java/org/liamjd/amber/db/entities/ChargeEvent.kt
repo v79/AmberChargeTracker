@@ -1,6 +1,7 @@
 package org.liamjd.amber.db.entities
 
 import androidx.room.*
+import androidx.sqlite.db.SupportSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import org.liamjd.amber.toIntOrZero
 import java.time.LocalDateTime
@@ -51,6 +52,9 @@ interface ChargeEventDao {
     @Query("DELETE FROM ChargeEvent")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM ChargeEvent")
+    @Query("SELECT * FROM ChargeEvent ORDER BY dateTime DESC")
     fun getAll(): Flow<List<ChargeEvent>>
+
+    @RawQuery(observedEntities = [ChargeEvent::class])
+    fun getEventsWithin(query: SupportSQLiteQuery): Flow<List<ChargeEvent>>
 }

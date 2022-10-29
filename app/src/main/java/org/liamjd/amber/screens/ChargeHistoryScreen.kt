@@ -2,9 +2,10 @@ package org.liamjd.amber.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -12,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +31,11 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryViewModel) {
     val context = LocalContext.current
+    var timePeriod by remember {
+        mutableStateOf(0)
+    }
+
+    val filter = viewModel.getEventsWithin(timePeriod).observeAsState()
 
     Column(
         modifier = Modifier
@@ -37,8 +44,12 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
     ) {
         Heading(text = R.string.screen_chargeHistory_title)
         // filters
-        Row {
-            Text("filters go here")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(0.dp)
+        ) {
+            TimeFilterMenu(timePeriod, onSelection = { timePeriod = it })
         }
         // table data
         Row(
@@ -46,13 +57,47 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                 .fillMaxWidth()
                 .padding(0.dp)
         ) {
-            ChargeHistoryTable(viewModel.allEvents.observeAsState(initial = emptyList()))
+            ChargeHistoryTable(filter)
         }
     }
 }
 
+@Preview
 @Composable
-fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>>) {
+fun TimeFilterMenu(timePeriod: Int = 0, onSelection: (Int) -> Unit = {}) {
+    var timeFilterExpanded by remember { mutableStateOf(false) }
+    val label = if (timePeriod in 1..90) {
+        stringResource(id = R.string.screen_chargeHistory_timeFilterDays, timePeriod)
+    } else {
+        stringResource(R.string.screen_chargeHistory_filterAllTime)
+    }
+    OutlinedButton(
+        modifier = Modifier
+            .width(170.dp)
+            .padding(8.dp),
+        onClick = { timeFilterExpanded = true }) {
+
+        Text(text = label)
+        Icon(imageVector = Icons.Default.Menu, contentDescription = "Choose time period")
+    }
+    DropdownMenu(expanded = timeFilterExpanded, onDismissRequest = { timeFilterExpanded = false }) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.screen_chargeHistory_filterAllTime)) },
+            onClick = { timeFilterExpanded = false; onSelection.invoke(0) })
+        DropdownMenuItem(
+            text = { Text(stringResource(id = R.string.screen_chargeHistory_timeFilterDays, 7)) },
+            onClick = { timeFilterExpanded = false; onSelection.invoke(7) })
+        DropdownMenuItem(
+            text = { Text(stringResource(id = R.string.screen_chargeHistory_timeFilterDays, 30)) },
+            onClick = { timeFilterExpanded = false; onSelection.invoke(30) })
+        DropdownMenuItem(
+            text = { Text(stringResource(id = R.string.screen_chargeHistory_timeFilterDays, 90)) },
+            onClick = { timeFilterExpanded = false; onSelection.invoke(90) })
+    }
+}
+
+@Composable
+fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>?>) {
     val now = LocalDateTime.now()
     val cellWidth: (Int) -> Dp = { index ->
         when (index) {
@@ -69,7 +114,7 @@ fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>>) {
             0 -> stringResource(R.string.screen_chargeHistory_dateTime)
             1 -> stringResource(R.string.screen_chargeHistory_from)
             2 -> stringResource(R.string.screen_chargeHistory_to)
-            4 -> stringResource(R.string.screen_chargeHistory_costs)
+            3 -> stringResource(R.string.screen_chargeHistory_costs)
             else -> ""
         }
         Text(
@@ -117,7 +162,7 @@ fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>>) {
     Table(
         columnCount = 4,
         cellWidth = cellWidth,
-        data = chargeEvents.value,
+        data = chargeEvents.value ?: emptyList<ChargeEvent>(),
         headerCellContent = headerCellTitle,
         cellContent = cellText
     )
