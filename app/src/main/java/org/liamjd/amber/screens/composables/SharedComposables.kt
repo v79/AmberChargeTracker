@@ -38,23 +38,25 @@ fun Heading(@StringRes text: Int = R.string.app_name) {
 @Composable
 fun NumberTextField(
     modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
+    field: Field,
     enabled: Boolean = true,
-    @StringRes label: Int
+    onValueChange: (String) -> Unit,
+    @StringRes label: Int? = null
 ) {
     OutlinedTextField(
         modifier = modifier,
-        value = value,
+        value = field.value.value,
         onValueChange = onValueChange,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Next
         ),
+        isError = !field.valid,
         colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
         enabled = enabled,
-        label = { Text(stringResource(label)) },
+        label = label?.let { { Text(stringResource(it)) } },
+        supportingText = { Text(field.message) }
     )
 }
 
@@ -67,14 +69,13 @@ fun NumberTextField(
 fun CurrencyTextField(
     modifier: Modifier = Modifier,
     field: Field,
-    value: String,
     enabled: Boolean = true,
     onValueChange: (String) -> Unit,
-    @StringRes label: Int
+    @StringRes label: Int? = null
 ) {
     OutlinedTextField(
         modifier = modifier,
-        value = value,
+        value = field.value.value,
         onValueChange = onValueChange,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -84,7 +85,7 @@ fun CurrencyTextField(
         isError = !field.valid,
         colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
         enabled = enabled,
-        label = { Text(stringResource(label)) },
+        label = label?.let { { Text(stringResource(it)) } },
         supportingText = { Text(field.message) }
     )
 }

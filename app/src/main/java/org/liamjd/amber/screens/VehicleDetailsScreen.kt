@@ -22,6 +22,7 @@ import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.screens.composables.NumberTextField
+import org.liamjd.amber.screens.state.rememberFieldState
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.ui.theme.md_theme_light_onSurface
@@ -66,7 +67,6 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
 @Composable
 fun ShowCurrentVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
     val selectedVehicle = viewModel.selectedVehicle.observeAsState()
-//    var vehicleOdometerReading by remember { mutableStateOf(selectedVehicle.value?.odometerReading.toString()) }
     Column(modifier = Modifier.fillMaxWidth()) {
         Row { Text(text = "Current Vehicle ${selectedVehicle.value?.id}") }
         Row {
@@ -100,7 +100,7 @@ fun ShowCurrentVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
 fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
     var vehicleManufacturer by remember { mutableStateOf("") }
     var vehicleModel by remember { mutableStateOf("") }
-    var vehicleOdometerReading by remember { mutableStateOf("") }
+    val vehicleOdometerReading = rememberFieldState("")
     var entryEnabled by rememberSaveable { mutableStateOf(true) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -127,8 +127,8 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
             colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
             label = { Text(stringResource(R.string.vehicle_model)) })
         NumberTextField(
-            value = vehicleOdometerReading,
-            onValueChange = { vehicleOdometerReading = it },
+            field = vehicleOdometerReading,
+            onValueChange = { vehicleOdometerReading.onFieldUpdate(it) },
             enabled = entryEnabled,
             label = R.string.screen_vehicleDetails_currentOdo
         )
@@ -142,7 +142,7 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                     Vehicle(
                         vehicleManufacturer,
                         vehicleModel,
-                        vehicleOdometerReading.toIntOrZero(),
+                        vehicleOdometerReading.computed.toIntOrZero(),
                     )
                 viewModel.insert(newVehicle)
             }) {
