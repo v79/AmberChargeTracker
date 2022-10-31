@@ -25,7 +25,9 @@ import org.liamjd.amber.getConfigLong
 import org.liamjd.amber.screens.composables.CurrencyTextField
 import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.screens.composables.NumberTextField
+import org.liamjd.amber.screens.state.Field
 import org.liamjd.amber.screens.state.UIState
+import org.liamjd.amber.screens.validators.CurrencyValidator
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.viewModels.ChargeEventViewModel
@@ -45,13 +47,13 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
 
     AmberChargeTrackerTheme {
 
-        when(viewModel.uiState.value) {
+        when (viewModel.uiState.value) {
             is UIState.Loading -> {
                 Text("Loading")
             }
             is UIState.Navigating -> {
                 // because navigating is a "side effect", we wrap it in a LaunchedEffect. It seems.
-                LaunchedEffect(key1 = viewModel.uiState.value,) {
+                LaunchedEffect(key1 = viewModel.uiState.value) {
                     val next = (viewModel.uiState.value as UIState.Navigating)
                     navController.navigate(next.nextScreen.route) {
                         next.backScreen?.let {
@@ -82,14 +84,15 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                     mutableStateOf("30")
                 }
                 var minimumFee by remember {
-                    mutableStateOf("100")
+                    mutableStateOf(Field(mutableStateOf("1.00"), validator = CurrencyValidator))
                 }
                 var costPerKWH by remember {
-                    mutableStateOf("15")
+                    mutableStateOf(Field(mutableStateOf("0.15"), validator = CurrencyValidator))
                 }
-                var totalCost by remember {
-                    mutableStateOf("0")
+                val totalCost by remember {
+                    mutableStateOf(Field(mutableStateOf("1.01"), validator = CurrencyValidator))
                 }
+                var kw by remember { mutableStateOf(22) }
 
                 Column(
                     modifier = Modifier
@@ -207,7 +210,7 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     label = R.string.screen_recordCharge_duration
                                 )
                                 Spacer(Modifier.width(10.dp))
-                                KWMenu()
+                                KWMenu(kw, onSelection = { kw = it })
                             }
                         }
                     }
@@ -229,7 +232,8 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     fontWeight = FontWeight.Bold
                                 )
                                 TextButton(onClick = {
-                                    minimumFee = "0"; costPerKWH = "0"; totalCost = "0"
+                                    minimumFee.value.value = "0.00"; costPerKWH.value.value =
+                                    "0.00"; totalCost.value.value = "0.00"
                                 }) {
                                     Text(stringResource(R.string.screen_recordCharge_BUTTON_reset))
                                 }
@@ -242,24 +246,27 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                             ) {
                                 CurrencyTextField(
                                     modifier = Modifier.weight(1f),
-                                    value = minimumFee,
-                                    onValueChange = { minimumFee = it },
+                                    field = minimumFee,
+                                    value = minimumFee.value.value,
+                                    onValueChange = { minimumFee.onFieldUpdate(it) },
                                     enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_minFee
                                 )
                                 Spacer(Modifier.width(10.dp))
                                 CurrencyTextField(
                                     modifier = Modifier.weight(1f),
-                                    value = costPerKWH,
-                                    onValueChange = { costPerKWH = it },
+                                    field = costPerKWH,
+                                    value = costPerKWH.value.value,
+                                    onValueChange = { costPerKWH.onFieldUpdate(it) },
                                     enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_costPkwh
                                 )
                                 Spacer(Modifier.width(10.dp))
                                 CurrencyTextField(
                                     modifier = Modifier.weight(1f),
-                                    value = totalCost,
-                                    onValueChange = { totalCost = it },
+                                    field = totalCost,
+                                    value = totalCost.value.value,
+                                    onValueChange = { totalCost.onFieldUpdate(it) },
                                     enabled = inputEnabled,
                                     label = R.string.screen_recordCharge_totalCost
                                 )
@@ -291,7 +298,8 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
                                     batteryStartingPct = batteryStartPct,
                                     batteryEndingPct = batteryEndPct,
                                     vehicleId = selectedVehicleId,
-                                    totalCost = totalCost.toIntOrZero()
+                                    kilowatt = kw.toFloat(),
+                                    totalCost = totalCost.value.value.toIntOrZero()
                                 )
                                 viewModel.insert(chargeEvent)
 
@@ -311,11 +319,19 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
     }
 }
 
+fun extractCostFromInput(input: String): Int {
+    val components = input.split(".")
+    if (components.size > 2) {
+        Log.e("RecordCharge", "Unable to convert $input to pennies as there are two many '.'")
+        return 0
+    }
+    return 0
+}
 
 @Preview
 @Composable
-fun KWMenu() {
-    var kw by remember { mutableStateOf(22) }
+fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
+
     var kwMenuExpanded by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -332,23 +348,27 @@ fun KWMenu() {
         DropdownMenu(
             modifier = Modifier.weight(1f),
             expanded = kwMenuExpanded, onDismissRequest = { kwMenuExpanded = false }) {
-            DropdownMenuItem(text = { Text("3kw") }, onClick = { kw = 3; kwMenuExpanded = false })
-            DropdownMenuItem(text = { Text("7kw") }, onClick = { kw = 7; kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("3kw") },
+                onClick = { onSelection.invoke(3); kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("7kw") },
+                onClick = { onSelection.invoke(7); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("11kw") },
-                onClick = { kw = 11; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(11); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("22kw") },
-                onClick = { kw = 22; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(22); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("50kw") },
-                onClick = { kw = 55; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(50); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("100kw") },
-                onClick = { kw = 150; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(150); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("350kw") },
-                onClick = { kw = 350; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(350); kwMenuExpanded = false })
         }
     }
 }

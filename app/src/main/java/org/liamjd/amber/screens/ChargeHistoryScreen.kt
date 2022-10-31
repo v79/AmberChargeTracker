@@ -146,7 +146,7 @@ fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>?>) {
                 "${item.batteryEndingPct}%\n${item.batteryEndingRange}mi"
             }
             3 -> {
-                "£${item.totalCost}\n"
+                "£${item.totalCost}\n@ ${item.kilowatt}kw"
             }
             else -> ""
         }

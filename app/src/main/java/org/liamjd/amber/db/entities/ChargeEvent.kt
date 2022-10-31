@@ -15,6 +15,7 @@ data class ChargeEvent(
     val batteryEndingPct: Int,
     val vehicleId: Long,
     val dateTime: LocalDateTime,
+    val kilowatt: Float,
     val totalCost: Int // in pence
 ) {
     @PrimaryKey(autoGenerate = true)
@@ -27,6 +28,7 @@ data class ChargeEvent(
         batteryStartingPct: String,
         batteryEndingPct: String,
         vehicleId: Long,
+        kilowatt: Float,
         totalCost: Int
     ) : this(
         odometer = odometer,
@@ -36,6 +38,7 @@ data class ChargeEvent(
         batteryEndingPct = batteryEndingPct.toIntOrZero(),
         vehicleId = vehicleId,
         dateTime = LocalDateTime.now(),
+        kilowatt = kilowatt,
         totalCost = totalCost
     )
 }

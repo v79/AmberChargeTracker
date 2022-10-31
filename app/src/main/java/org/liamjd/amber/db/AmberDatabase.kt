@@ -1,10 +1,7 @@
 package org.liamjd.amber.db
 
 import android.content.Context
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
+import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -13,7 +10,9 @@ import org.liamjd.amber.db.entities.ChargeEventDao
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.entities.VehicleDao
 
-@Database(entities = arrayOf(ChargeEvent::class, Vehicle::class), version = 8, exportSchema = false)
+@Database(
+    entities = [ChargeEvent::class, Vehicle::class], version = 10, exportSchema = true
+)
 @TypeConverters(DBConverters::class)
 abstract class AmberDatabase : RoomDatabase() {
 
@@ -24,14 +23,16 @@ abstract class AmberDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AmberDatabase? = null
 
-        fun getDatabase(context: Context, scope: CoroutineScope) : AmberDatabase {
+        fun getDatabase(context: Context, scope: CoroutineScope): AmberDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AmberDatabase::class.java,
-                    "amber_database")
-                    .addCallback(AmberDatabaseCallback(scope)
-                ).fallbackToDestructiveMigration().build()
+                    "amber_database"
+                )
+                    .addCallback(
+                        AmberDatabaseCallback(scope)
+                    ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

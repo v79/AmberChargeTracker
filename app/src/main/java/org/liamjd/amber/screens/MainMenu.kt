@@ -1,6 +1,5 @@
 package org.liamjd.amber.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -74,7 +73,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     ) {
                         Text(text = "Record Charge")
                     }
-                    Button(enabled = hasVehicles.value,
+                    Button(enabled = false,
                         onClick = { /*TODO*/ }) {
                         Text("Record Journey")
                     }

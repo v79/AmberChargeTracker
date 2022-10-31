@@ -5,8 +5,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
@@ -26,10 +24,10 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
 
     val odo = liveData {
         val initOdo = vehicleRepository.getCurrentOdometer(_selectedVehicle)
-        Log.e("ChargeEventViewModel","Getting a LIVEDATA version of odo meter via emit $initOdo")
         emit(initOdo)
         _uiState.value = UIState.Active
     }
+
 
     /**
      * Launching a new coroutine to insert data in a non-blocking way
@@ -40,9 +38,12 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
         _uiState.value = UIState.Saving
         chargeEventRepository.insert(chargeEvent)
         val vehicleCurrentOdo = vehicleRepository.getCurrentOdometer(chargeEvent.vehicleId)
-        if(chargeEvent.odometer > vehicleCurrentOdo) {
-            Log.i("ChargeEventViewModel","Updating odometer reading for vehicle ${chargeEvent.vehicleId} from $vehicleCurrentOdo to ${chargeEvent.odometer}")
-            vehicleRepository.updateOdometer(chargeEvent.vehicleId,chargeEvent.odometer)
+        if (chargeEvent.odometer > vehicleCurrentOdo) {
+            Log.i(
+                "ChargeEventViewModel",
+                "Updating odometer reading for vehicle ${chargeEvent.vehicleId} from $vehicleCurrentOdo to ${chargeEvent.odometer}"
+            )
+            vehicleRepository.updateOdometer(chargeEvent.vehicleId, chargeEvent.odometer)
         }
         _uiState.value = UIState.Navigating(Screen.ChargeHistoryScreen)
     }
@@ -63,3 +64,18 @@ class ChargeEventVMFactory(private val application: AmberApplication) :
         throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
 }
+
+//data class ChargeEventVM(
+//    val chargeDateTime: LocalDateTime = LocalDateTime.now(),
+//    var odometer: String = "",
+//    var batteryStartRange: String = "100",
+//    var batteryStartPct: String = "50",
+//    var batteryEndRange: String = "200",
+//    var batteryEndPct: String = "80",
+//    var chargeDuration: String = "30",
+//    var minimumFee: String = "1.00",
+//    var costPerKWH: String = "0.15",
+//    var totalCost: String = "0",
+//    var kw: Int = 22,
+//    var hasError: Boolean = false
+//)
