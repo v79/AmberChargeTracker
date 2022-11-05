@@ -6,6 +6,7 @@ package org.liamjd.amber.screens
  */
 sealed class Screen(val route: String) {
     object StartScreen : Screen("start")
+    object StartChargingScreen : Screen("start_charge")
     object RecordChargingScreen : Screen("record_charge")
     object RecordJourneyScreen : Screen("record_journey")
     object ChargeHistoryScreen: Screen("charging_history")

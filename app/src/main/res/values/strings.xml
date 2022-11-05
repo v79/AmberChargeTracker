@@ -6,7 +6,7 @@
     <string name="screen_recordCharge_time">Time</string>
     <string name="screen_recordCharge_starting">Starting values</string>
     <string name="screen_recordCharge_odometer">Odometer (miles)</string>
-    <string name="screen_recordCharge_range">Range (mph)</string>
+    <string name="screen_recordCharge_range">Range (miles)</string>
     <string name="screen_recordCharge_chargePct">Charge Percentage</string>
     <string name="screen_recordCharge_ending">Ending values</string>
     <string name="screen_recordCharge_duration">Duration (min)</string>

@@ -5,7 +5,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.flow.MutableStateFlow
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.viewModels.ChargeEventVMFactory
 import org.liamjd.amber.viewModels.ChargeHistoryViewModelFactory
@@ -40,6 +39,12 @@ fun Navigation(application: AmberApplication) {
             VehicleDetailsScreen(
                 navController = navController,
                 viewModel(factory = VehicleDetailsViewModelFactory(application))
+            )
+        }
+        composable(route = Screen.StartChargingScreen.route) {
+            ChargingScreen(
+                navController = navController,
+                viewModel(factory = ChargeEventVMFactory(application))
             )
         }
     }
