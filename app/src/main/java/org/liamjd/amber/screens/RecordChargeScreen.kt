@@ -1,256 +1,326 @@
 package org.liamjd.amber.screens
 
-import androidx.annotation.StringRes
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
+import org.liamjd.amber.db.entities.ChargeEvent
+import org.liamjd.amber.getConfigLong
+import org.liamjd.amber.screens.composables.CurrencyTextField
+import org.liamjd.amber.screens.composables.Heading
+import org.liamjd.amber.screens.composables.NumberTextField
+import org.liamjd.amber.screens.state.UIState
+import org.liamjd.amber.screens.state.rememberFieldState
+import org.liamjd.amber.screens.validators.CurrencyValidator
+import org.liamjd.amber.screens.validators.PercentageValidator
+import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
+import org.liamjd.amber.viewModels.ChargeEventViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 @Composable
-fun RecordChargeScreen(navController: NavController) {
+fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewModel) {
+
+    val preferences = navController.context.getSharedPreferences(stringResource(R.string.CONFIG), 0)
+    val selectedVehicleId = navController.getConfigLong(R.string.CONFIG_selected_vehicle_id)
+    val initOdo = viewModel.odo.observeAsState()
+    Log.e("RecordChargeScreen", "initOdo has been set to ${initOdo.value}")
+    val context = LocalContext.current
+    val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving } }
 
     AmberChargeTrackerTheme {
-        val chargeRecordId = 123
-        var chargeTime by remember {
-            mutableStateOf(LocalDateTime.now())
-        }
-        var odometer by remember {
-            mutableStateOf("0")
-        }
-        var batteryStartRange by remember {
-            mutableStateOf("100")
-        }
-        var batteryStartPct by remember {
-            mutableStateOf("50")
-        }
-        var batteryEndRange by remember {
-            mutableStateOf("200")
-        }
-        var batteryEndPct by remember {
-            mutableStateOf("80")
-        }
-        var chargeDuration by remember {
-            mutableStateOf("30")
-        }
-        var minimumFee by remember {
-            mutableStateOf("100")
-        }
-        var costPerKWH by remember {
-            mutableStateOf("15")
-        }
-        var totalCost by remember {
-            mutableStateOf("0")
-        }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(4.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.screen_recordCharge_title),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-            // METADATA
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(stringResource(id = R.string.screen_recordCharge_ID), color = Color.DarkGray)
-                Text("$chargeRecordId")
-                Text(stringResource(id = R.string.screen_recordCharge_time), color = Color.DarkGray)
-                Text(
-                    text = chargeTime.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)),
-                    modifier = Modifier.clickable { }
-                )
-
+        when (viewModel.uiState.value) {
+            is UIState.Loading -> {
+                Text("Loading")
             }
-            // STARTING VALUES
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Column {
+            is UIState.Navigating -> {
+                // because navigating is a "side effect", we wrap it in a LaunchedEffect. It seems.
+                LaunchedEffect(key1 = viewModel.uiState.value) {
+                    val next = (viewModel.uiState.value as UIState.Navigating)
+                    navController.navigate(next.nextScreen.route) {
+                        next.backScreen?.let {
+                            popUpTo(it.route)
+                        }
+                    }
+                }
+            }
+            else -> {
+                val chargeDateTime by remember {
+                    mutableStateOf(LocalDateTime.now())
+                }
+                val odometer = rememberFieldState(initialValue = initOdo.value.toString())
+                val batteryStartRange = rememberFieldState(initialValue = "100")
+                val batteryStartPct =
+                    rememberFieldState(initialValue = "50", validator = PercentageValidator)
+                val batteryEndRange = rememberFieldState(initialValue = "200")
+                val batteryEndPct =
+                    rememberFieldState(initialValue = "80", validator = PercentageValidator)
+                val chargeDuration = rememberFieldState(initialValue = "30")
+                val minimumFee =
+                    rememberFieldState(initialValue = "1.00", validator = CurrencyValidator)
+                val costPerKWH =
+                    rememberFieldState(initialValue = "0.15", validator = CurrencyValidator)
+                val totalCost =
+                    rememberFieldState(initialValue = "1.01", validator = CurrencyValidator)
+                var kw by remember { mutableStateOf(22) }
+                var saveDisabled by remember { mutableStateOf(false) }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(4.dp)
+                ) {
+                    Heading(text = R.string.screen_recordCharge_title)
+                    // METADATA
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(4.dp)
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = stringResource(id = R.string.screen_recordCharge_starting),
-                            fontWeight = FontWeight.Bold
+                            stringResource(id = R.string.screen_recordCharge_time),
+                            color = Color.DarkGray
+                        )
+                        Text(
+                            text = chargeDateTime.format(
+                                DateTimeFormatter.ofLocalizedDateTime(
+                                    FormatStyle.MEDIUM
+                                )
+                            ),
+                            modifier = Modifier.clickable { }
                         )
                     }
-                    NumberTextField(
-                        value = odometer,
-                        onValueChange = {
-                            odometer = it },
-                        label = R.string.screen_recordCharge_odometer
-                    )
+                    // STARTING VALUES
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                            .fillMaxWidth()
+                            .padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        NumberTextField(
-                            modifier = Modifier.weight(1f),
-                            value = batteryStartRange,
-                            onValueChange = { batteryStartRange = it },
-                            label = R.string.screen_recordCharge_range
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        NumberTextField(
-                            modifier = Modifier.weight(1f),
-                            value = batteryStartPct,
-                            onValueChange = { batteryStartPct = it },
-                            label = R.string.screen_recordCharge_chargePct
-                        )
-                    }
-                }
-            }
-            // END VALUES
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Column {
-                    Row {
-                        Text(
-                            text = stringResource(R.string.screen_recordCharge_ending),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ) {
-                        NumberTextField(
-                            modifier = Modifier.weight(1f),
-                            value = batteryEndRange,
-                            onValueChange = { batteryEndRange = it },
-                            label = R.string.screen_recordCharge_range
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        NumberTextField(
-                            modifier = Modifier.weight(1f),
-                            value = batteryEndPct,
-                            onValueChange = { batteryEndPct = it },
-                            label = R.string.screen_recordCharge_chargePct
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        NumberTextField(
-                            value = chargeDuration,
-                            onValueChange = { chargeDuration = it },
-                            label = R.string.screen_recordCharge_duration
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        KWMenu()
-                    }
-                }
-            }
-            // COSTS
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.screen_recordCharge_costs),
-                            fontWeight = FontWeight.Bold
-                        )
-                        TextButton(onClick = {
-                            minimumFee = "0"; costPerKWH = "0"; totalCost = "0"
-                        }) {
-                            Text(stringResource(R.string.screen_recordCharge_BUTTON_reset))
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.screen_recordCharge_starting),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            NumberTextField(
+                                field = odometer,
+                                onValueChange = {
+                                    odometer.onFieldUpdate(it)
+                                },
+                                enabled = inputEnabled,
+                                label = R.string.screen_recordCharge_odometer
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                NumberTextField(
+                                    modifier = Modifier.weight(1f),
+                                    field = batteryStartRange,
+                                    onValueChange = {
+                                        batteryStartRange.onFieldUpdate(
+                                            it,
+                                            after = { saveDisabled = !batteryStartRange.valid })
+                                    },
+                                    enabled = inputEnabled,
+                                    label = R.string.screen_recordCharge_range
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                NumberTextField(
+                                    modifier = Modifier.weight(1f),
+                                    field = batteryStartPct,
+                                    onValueChange = {
+                                        batteryStartPct.onFieldUpdate(
+                                            it,
+                                            after = { saveDisabled = !batteryStartPct.valid })
+                                    },
+                                    enabled = inputEnabled,
+                                    label = R.string.screen_recordCharge_chargePct
+                                )
+                            }
                         }
                     }
+                    // END VALUES
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column {
+                            Row {
+                                Text(
+                                    text = stringResource(R.string.screen_recordCharge_ending),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                NumberTextField(
+                                    modifier = Modifier.weight(1f),
+                                    field = batteryEndRange,
+                                    onValueChange = {
+                                        batteryEndRange.onFieldUpdate(
+                                            it,
+                                            after = { saveDisabled = !batteryEndRange.valid })
+                                    },
+                                    enabled = inputEnabled,
+                                    label = R.string.screen_recordCharge_range
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                NumberTextField(
+                                    field = batteryEndPct,
+                                    modifier = Modifier.weight(1f),
+                                    onValueChange = {
+                                        batteryEndPct.onFieldUpdate(
+                                            it,
+                                            after = { saveDisabled = !batteryEndPct.valid })
+                                    },
+                                    enabled = inputEnabled,
+                                    label = R.string.screen_recordCharge_chargePct
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                NumberTextField(
+                                    field = chargeDuration,
+                                    onValueChange = {
+                                        chargeDuration.onFieldUpdate(
+                                            it,
+                                            after = { saveDisabled = !chargeDuration.valid })
+                                    },
+                                    enabled = inputEnabled,
+                                    label = R.string.screen_recordCharge_duration
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                KWMenu(kw, onSelection = { kw = it })
+                            }
+                        }
+                    }
+                    // COSTS
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.screen_recordCharge_costs),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                TextButton(onClick = {
+                                    minimumFee.resetValue("0.00"); costPerKWH.resetValue(
+                                    "0.00"
+                                ); totalCost.resetValue("0.00")
+                                }) {
+                                    Text(stringResource(R.string.screen_recordCharge_BUTTON_reset))
+                                }
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceAround,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CurrencyTextField(
+                                    modifier = Modifier.weight(1f),
+                                    field = minimumFee,
+                                    onValueChange = { minimumFee.onFieldUpdate(it) },
+                                    enabled = inputEnabled,
+                                    label = R.string.screen_recordCharge_minFee
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                CurrencyTextField(
+                                    modifier = Modifier.weight(1f),
+                                    field = costPerKWH,
+                                    onValueChange = { costPerKWH.onFieldUpdate(it) },
+                                    enabled = inputEnabled,
+                                    label = R.string.screen_recordCharge_costPkwh
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                CurrencyTextField(
+                                    modifier = Modifier.weight(1f),
+                                    field = totalCost,
+                                    onValueChange = { totalCost.onFieldUpdate(it) },
+                                    enabled = inputEnabled,
+                                    label = R.string.screen_recordCharge_totalCost
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
+                        horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CurrencyTextField(
-                            modifier = Modifier.weight(1f),
-                            value = minimumFee,
-                            onValueChange = { minimumFee = it },
-                            label = R.string.screen_recordCharge_minFee
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        CurrencyTextField(
-                            modifier = Modifier.weight(1f),
-                            value = costPerKWH,
-                            onValueChange = { costPerKWH = it },
-                            label = R.string.screen_recordCharge_costPkwh
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        CurrencyTextField(
-                            modifier = Modifier.weight(1f),
-                            value = totalCost,
-                            onValueChange = { totalCost = it },
-                            label = R.string.screen_recordCharge_totalCost
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(
-                    modifier = Modifier.weight(0.2f),
-                    onClick = { navController.navigate(Screen.StartScreen.route) }) {
-                    Text(text = stringResource(R.string.screen_recordCharge_BUTTON_cancel))
-                }
-                FilledIconButton(
-                    modifier = Modifier.weight(0.8f),
-                    onClick = { /*TODO*/ }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Check,
-                            contentDescription = stringResource(R.string.screen_recordCharge_saveDesc)
-                        )
-                        Text(text = stringResource(R.string.screen_recordCharge_BUTTON_save))
+                        TextButton(
+                            modifier = Modifier.weight(0.2f),
+                            onClick = { navController.navigate(Screen.StartScreen.route) }) {
+                            Text(text = stringResource(R.string.screen_recordCharge_BUTTON_cancel))
+                        }
+
+                        FilledIconButton(
+                            modifier = Modifier.weight(0.8f),
+                            enabled = !saveDisabled,
+                            onClick = {
+                                Toast.makeText(context, "Attempting to save", Toast.LENGTH_LONG)
+                                    .show()
+                                val chargeEvent = ChargeEvent(
+                                    odometer = odometer.computed.toIntOrZero(),
+                                    batteryStartingRange = batteryStartRange.computed,
+                                    batteryEndingRange = batteryEndRange.computed,
+                                    batteryStartingPct = batteryStartPct.computed,
+                                    batteryEndingPct = batteryEndPct.computed,
+                                    vehicleId = selectedVehicleId,
+                                    kilowatt = kw.toFloat(),
+                                    totalCost = totalCost.computed.toIntOrZero()
+                                )
+                                viewModel.insert(chargeEvent)
+
+                            }) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = stringResource(R.string.screen_recordCharge_saveDesc)
+                                )
+                                Text(text = stringResource(R.string.screen_recordCharge_BUTTON_save))
+                            }
+                        }
                     }
                 }
             }
@@ -258,10 +328,19 @@ fun RecordChargeScreen(navController: NavController) {
     }
 }
 
+fun extractCostFromInput(input: String): Int {
+    val components = input.split(".")
+    if (components.size > 2) {
+        Log.e("RecordCharge", "Unable to convert $input to pennies as there are two many '.'")
+        return 0
+    }
+    return 0
+}
+
 @Preview
 @Composable
-fun KWMenu() {
-    var kw by remember { mutableStateOf(22) }
+fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
+
     var kwMenuExpanded by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -272,53 +351,35 @@ fun KWMenu() {
             onClick = { kwMenuExpanded = true }) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "$kw kw")
-                Icon(Icons.Default.Menu, contentDescription = "Charger wattage")
+                Icon(imageVector = Icons.Default.Menu, contentDescription = "Charger wattage")
             }
         }
         DropdownMenu(
             modifier = Modifier.weight(1f),
             expanded = kwMenuExpanded, onDismissRequest = { kwMenuExpanded = false }) {
-            DropdownMenuItem(text = { Text("3kw") }, onClick = { kw = 3; kwMenuExpanded = false })
-            DropdownMenuItem(text = { Text("7kw") }, onClick = { kw = 7; kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("3kw") },
+                onClick = { onSelection.invoke(3); kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("7kw") },
+                onClick = { onSelection.invoke(7); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("11kw") },
-                onClick = { kw = 11; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(11); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("22kw") },
-                onClick = { kw = 22; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(22); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("50kw") },
-                onClick = { kw = 55; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(50); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("100kw") },
-                onClick = { kw = 150; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(150); kwMenuExpanded = false })
             DropdownMenuItem(
                 text = { Text("350kw") },
-                onClick = { kw = 350; kwMenuExpanded = false })
+                onClick = { onSelection.invoke(350); kwMenuExpanded = false })
         }
     }
-}
-
-/**
- * A number text field is an [OutlinedTextField] refined for just numerical input
- * TODO: does nothing special yet, other than set the keyboard type
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun NumberTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    @StringRes label: Int
-) {
-    OutlinedTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-        label = { Text(stringResource(label)) },
-    )
 }
 
 /* This doesn't even compile!
@@ -329,30 +390,9 @@ class PercentageVisualTransformation : VisualTransformation {
 }
 */
 
-/**
- * A currency text field is an [OutlinedTextField] refined for just numerical input
- * TODO: does nothing special yet, other than set the keyboard type
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CurrencyTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    @StringRes label: Int
-) {
-    OutlinedTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-        label = { Text(stringResource(label)) },
-    )
-}
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun RecordChargingPreview() {
     RecordChargeScreen(navController = rememberNavController())
-}
+}*/

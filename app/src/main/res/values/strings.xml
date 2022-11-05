@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Amber Charge Tracker</string>
+    <string name="app_title_electric">Amber Electric</string>
     <string name="screen_recordCharge_title">Record Charging Event</string>
     <string name="screen_recordCharge_ID">ID</string>
     <string name="screen_recordCharge_time">Time</string>
@@ -17,4 +18,18 @@
     <string name="screen_recordCharge_BUTTON_cancel">Cancel</string>
     <string name="screen_recordCharge_BUTTON_save">Save</string>
     <string name="screen_recordCharge_saveDesc">Save charge record</string>
+    <string name="screen_chargeHistory_title">Charging History</string>
+    <string name="screen_vehicleDetails_title">Vehicle Details</string>
+    <string name="screen_vehicleDetails_currentOdo">Current Odometer (mi)</string>
+    <string name="vehicle_manufacturer">Manufacturer</string>
+    <string name="vehicle_model">Model</string>
+    <string name="screen_vehicleDetails_addNew">Add new vehicle</string>
+    <string name="screen_vehicleDetails_vehicleCount">%d vehicles registered</string>
+    <string name="screen_vehicleDetails_saveDescription">Save vehicle and set as default</string>
+    <string name="screen_chargeHistory_dateTime">Time</string>
+    <string name="screen_chargeHistory_from">From</string>
+    <string name="screen_chargeHistory_to">To</string>
+    <string name="screen_chargeHistory_costs">Costs</string>
+    <string name="screen_chargeHistory_timeFilterDays">Past %d days</string>
+    <string name="screen_chargeHistory_filterAllTime">All time</string>
 </resources>
