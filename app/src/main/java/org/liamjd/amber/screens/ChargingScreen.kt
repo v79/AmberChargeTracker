@@ -52,6 +52,8 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
     val initOdo = viewModel.odo.observeAsState()
     val context = LocalContext.current
     val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving } }
+    val startModel = viewModel.startModel.observeAsState()
+    val endModel = viewModel.endModel.observeAsState()
 
     AmberChargeTrackerTheme {
         when (viewModel.uiState.value) {

@@ -34,7 +34,7 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
     var chargingStatus by mutableStateOf(RecordChargingStatus.NOT_STARTED)
     var chargingSeconds = mutableStateOf(0)
 
-    var startModel by mutableStateOf(
+    var startModel = MutableLiveData(
         StartingChargeEventModel(
             LocalDateTime.now(),
             odo.value ?: 0,
@@ -42,7 +42,7 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
             0
         )
     )
-    var endModel by mutableStateOf(EndingChargeEventModel(LocalDateTime.now(), 0, 0, 0f, 0))
+    var endModel = MutableLiveData(EndingChargeEventModel(LocalDateTime.now(), 0, 0, 0f, 0))
 
     /**
      * Launching a new coroutine to insert data in a non-blocking way
