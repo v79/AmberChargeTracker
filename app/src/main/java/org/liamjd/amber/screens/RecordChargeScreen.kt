@@ -45,7 +45,6 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
     Log.e("RecordChargeScreen", "initOdo has been set to ${initOdo.value}")
     val context = LocalContext.current
     val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving } }
-
     AmberChargeTrackerTheme {
 
         when (viewModel.uiState.value) {
@@ -342,12 +341,9 @@ fun extractCostFromInput(input: String): Int {
 fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
 
     var kwMenuExpanded by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
 
-        OutlinedButton(modifier = Modifier.weight(1f),
+    Box {
+        OutlinedButton(
             onClick = { kwMenuExpanded = true }) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "$kw kw")
@@ -355,7 +351,6 @@ fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
             }
         }
         DropdownMenu(
-            modifier = Modifier.weight(1f),
             expanded = kwMenuExpanded, onDismissRequest = { kwMenuExpanded = false }) {
             DropdownMenuItem(
                 text = { Text("3kw") },

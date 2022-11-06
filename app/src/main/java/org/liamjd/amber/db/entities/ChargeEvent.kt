@@ -9,14 +9,15 @@ import java.time.LocalDateTime
 @Entity
 data class ChargeEvent(
     val odometer: Int,
+    val startDateTime: LocalDateTime,
+    val endDateTime: LocalDateTime?,
     val batteryStartingRange: Int,
-    val batteryEndingRange: Int,
+    val batteryEndingRange: Int?,
     val batteryStartingPct: Int,
-    val batteryEndingPct: Int,
+    val batteryEndingPct: Int?,
     val vehicleId: Long,
-    val dateTime: LocalDateTime,
-    val kilowatt: Float,
-    val totalCost: Int // in pence
+    val kilowatt: Float?,
+    val totalCost: Int? // in pence
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0
@@ -37,7 +38,8 @@ data class ChargeEvent(
         batteryStartingPct = batteryStartingPct.toIntOrZero(),
         batteryEndingPct = batteryEndingPct.toIntOrZero(),
         vehicleId = vehicleId,
-        dateTime = LocalDateTime.now(),
+        startDateTime = LocalDateTime.now(),
+        endDateTime = LocalDateTime.now(),
         kilowatt = kilowatt,
         totalCost = totalCost
     )
@@ -49,13 +51,32 @@ interface ChargeEventDao {
     @Insert
     suspend fun insert(chargeEvent: ChargeEvent)
 
+    @Query("INSERT INTO ChargeEvent (vehicleId, odometer, startDateTime, batteryStartingPct, batteryStartingRange) VALUES (:vehicleId, :startOdo, :startTime, :startBatteryPct, :startBatterRange)")
+    suspend fun startChargeRecord(
+        vehicleId: Long,
+        startOdo: Int,
+        startTime: LocalDateTime,
+        startBatteryPct: Int,
+        startBatterRange: Int
+    ): Long
+
+    @Query("UPDATE ChargeEvent SET endDateTime = :endDateTime, batteryEndingRange = :batteryEndingRange, batteryEndingPct = :batteryEndingPct, kilowatt = :kilowatt, totalCost = :totalCost WHERE id = :id")
+    suspend fun updateChargeRecord(
+        id: Long,
+        endDateTime: LocalDateTime,
+        batteryEndingPct: Int,
+        batteryEndingRange: Int,
+        kilowatt: Float,
+        totalCost: Int
+    )
+
     @Delete
     suspend fun delete(chargeEvent: ChargeEvent)
 
     @Query("DELETE FROM ChargeEvent")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM ChargeEvent ORDER BY dateTime DESC")
+    @Query("SELECT * FROM ChargeEvent ORDER BY startDateTime DESC")
     fun getAll(): Flow<List<ChargeEvent>>
 
     @RawQuery(observedEntities = [ChargeEvent::class])

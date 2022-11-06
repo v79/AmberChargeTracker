@@ -132,10 +132,10 @@ fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>?>) {
     val cellText: @Composable (Int, ChargeEvent) -> Unit = { index, item ->
         val value = when (index) {
             0 -> {
-                val output = if (ChronoUnit.DAYS.between(item.dateTime, now) > 7L) {
-                    item.dateTime.toLocalString()
+                val output = if (ChronoUnit.DAYS.between(item.startDateTime, now) > 7L) {
+                    item.startDateTime.toLocalString()
                 } else {
-                    item.dateTime.format(DateTimeFormatter.ofPattern("EEEE HH:mm"))
+                    item.startDateTime.format(DateTimeFormatter.ofPattern("EEEE HH:mm"))
                 }
                 output.replace(" ", "\n")
             }

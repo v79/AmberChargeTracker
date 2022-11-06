@@ -21,7 +21,7 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
 
     suspend fun getCurrentOdometer(vehicleId: Long): Int {
         val value = vehicleDao.getCurrentOdometer(vehicleId)
-        Log.e("VehicleRepository","DAO has returned value $value for id $vehicleId")
+        Log.e("VehicleRepository", "DAO has returned odometer $value for id $vehicleId")
         return value
     }
 

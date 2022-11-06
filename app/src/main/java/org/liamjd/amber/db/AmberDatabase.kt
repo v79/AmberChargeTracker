@@ -11,7 +11,7 @@ import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.entities.VehicleDao
 
 @Database(
-    entities = [ChargeEvent::class, Vehicle::class], version = 10, exportSchema = true
+    entities = [ChargeEvent::class, Vehicle::class], version = 12, exportSchema = true
 )
 @TypeConverters(DBConverters::class)
 abstract class AmberDatabase : RoomDatabase() {
@@ -44,6 +44,7 @@ abstract class AmberDatabase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 scope.launch {
+                    database.vehicleDao().insert(Vehicle("Volkswagen", "iD.3", 275))
                     // populate database with fake data? Or other data setup tasks
                 }
             }

@@ -29,4 +29,30 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
     suspend fun insert(chargeEvent: ChargeEvent) {
         dao.insert(chargeEvent)
     }
+
+    suspend fun startChargeEvent(
+        vehicleId: Long, startOdo: Int,
+        startTime: LocalDateTime,
+        startBatteryPct: Int,
+        startBatteryRange: Int
+    ): Long {
+        return dao.startChargeRecord(
+            vehicleId,
+            startOdo,
+            startTime,
+            startBatteryPct,
+            startBatteryRange
+        )
+    }
+
+    suspend fun completeChargeEvent(
+        id: Long,
+        endTime: LocalDateTime,
+        endBatteryPct: Int,
+        endBatteryRange: Int,
+        kw: Float,
+        cost: Int
+    ) {
+        dao.updateChargeRecord(id, endTime, endBatteryPct, endBatteryRange, kw, cost)
+    }
 }

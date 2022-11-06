@@ -15,6 +15,9 @@ import java.time.LocalDateTime
 
 class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
 
+    private val preferences = application.applicationContext.getSharedPreferences(
+        application.applicationContext.resources.getString(R.string.CONFIG), 0
+    )
     private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
     private val vehicleRepository: VehicleRepository = application.vehicleRepo
     private val _selectedVehicle = application.getConfigLong(R.string.CONFIG_selected_vehicle_id)
@@ -28,15 +31,25 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
         _uiState.value = UIState.Active
     }
 
-    val chargingStatus = mutableStateOf(RecordChargingStatus.NOT_STARTED)
-    private var chargeStartTime = LocalDateTime.now()
-    private var chargeEndTime = LocalDateTime.now()
+    var chargingStatus by mutableStateOf(RecordChargingStatus.NOT_STARTED)
+    var chargingSeconds = mutableStateOf(0)
+
+    var startModel by mutableStateOf(
+        StartingChargeEventModel(
+            LocalDateTime.now(),
+            odo.value ?: 0,
+            0,
+            0
+        )
+    )
+    var endModel by mutableStateOf(EndingChargeEventModel(LocalDateTime.now(), 0, 0, 0f, 0))
 
     /**
      * Launching a new coroutine to insert data in a non-blocking way
      * Inserts a new ChargeEvent record, and if the new odometer reading is higher than that stored for the vehicle,
      * update the value on the vehicle too
      */
+    @Deprecated("for old model", replaceWith = ReplaceWith("saveCharge"))
     fun insert(chargeEvent: ChargeEvent) = viewModelScope.launch {
         _uiState.value = UIState.Saving
         chargeEventRepository.insert(chargeEvent)
@@ -57,9 +70,32 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
      * - save the interim charging event to the database
      * - display timer
      */
-    fun startCharging() {
-        chargingStatus.value = RecordChargingStatus.CHARGING
-        chargeStartTime = LocalDateTime.now()
+    fun startCharging(startModel: StartingChargeEventModel) {
+        chargingStatus = RecordChargingStatus.CHARGING
+
+        viewModelScope.launch {
+            _uiState.value = UIState.Saving
+            val vehicleCurrentOdo = vehicleRepository.getCurrentOdometer(_selectedVehicle)
+//            if (startModel.odometer > vehicleCurrentOdo) {
+            Log.i(
+                "ChargeEventViewModel",
+                "Updating odometer reading for vehicle $_selectedVehicle from $vehicleCurrentOdo to ${startModel.odometer}"
+            )
+            vehicleRepository.updateOdometer(_selectedVehicle, startModel.odometer)
+//            }
+            val eventId = chargeEventRepository.startChargeEvent(
+                vehicleId = _selectedVehicle,
+                startOdo = startModel.odometer,
+                startTime = startModel.dateTime,
+                startBatteryPct = startModel.percentage,
+                startBatteryRange = startModel.range
+            )
+            with(preferences.edit()) {
+                putLong("org.liamjd.amber.CURRENT_CHARGE_EVENT", eventId)
+                apply()
+            }
+            _uiState.value = UIState.Active
+        }
     }
 
     /**
@@ -69,26 +105,47 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
      * - set chargingEnded to true
      */
     fun stopCharging() {
-        chargingStatus.value = RecordChargingStatus.FINISHED
-        chargeEndTime = LocalDateTime.now()
+        chargingStatus = RecordChargingStatus.FINISHED
+    }
+
+    /**
+     * Save the final charge event into the database
+     */
+    fun saveCharge(endModel: EndingChargeEventModel) = viewModelScope.launch {
+        _uiState.value = UIState.Saving
+        viewModelScope.launch {
+            val currentEvent = preferences.getLong("org.liamjd.amber.CURRENT_CHARGE_EVENT", -1)
+            if (currentEvent == -1L) {
+                Log.e(
+                    "ChargeEventViewModel",
+                    "stopCharging found invalid CURRENT_CHARGE_EVENT value in SharedPreferences"
+                )
+                return@launch
+            }
+            chargeEventRepository.completeChargeEvent(
+                id = currentEvent,
+                endTime = endModel.dateTime,
+                endBatteryPct = endModel.percentage,
+                endBatteryRange = endModel.range,
+                kw = endModel.kw,
+                cost = endModel.cost
+            )
+            with(preferences.edit()) {
+                putLong("org.liamjd.amber.CURRENT_CHARGE_EVENT", -1)
+                apply()
+            }
+        }
+
+
+        _uiState.value = UIState.Navigating(Screen.ChargeHistoryScreen)
     }
 }
 
 enum class RecordChargingStatus {
-    NOT_STARTED {
-        override fun isActive(): Boolean = false
-    },
-    CHARGING {
-        override fun isActive(): Boolean = true
-    },
-    FINISHED {
-        override fun isActive(): Boolean = true
-    },
-    CANCELLED {
-        override fun isActive(): Boolean = false
-    };
-
-    abstract fun isActive(): Boolean
+    NOT_STARTED,
+    CHARGING,
+    FINISHED,
+    CANCELLED;
 }
 
 
@@ -106,6 +163,21 @@ class ChargeEventVMFactory(private val application: AmberApplication) :
         throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
 }
+
+data class StartingChargeEventModel(
+    val dateTime: LocalDateTime,
+    val odometer: Int,
+    val range: Int,
+    val percentage: Int
+)
+
+data class EndingChargeEventModel(
+    val dateTime: LocalDateTime,
+    val range: Int,
+    val percentage: Int,
+    val kw: Float,
+    val cost: Int,
+)
 
 //data class ChargeEventVM(
 //    val chargeDateTime: LocalDateTime = LocalDateTime.now(),
