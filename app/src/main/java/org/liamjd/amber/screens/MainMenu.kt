@@ -54,7 +54,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                 ) {
                     Button(
                         enabled = hasVehicles.value,
-                        onClick = { navController.navigate(Screen.RecordJourneyScreen.route) }
+                        onClick = { navController.navigate(Screen.StartChargingScreen.route) }
 
                     ) {
                         Text(text = "Record Charge")

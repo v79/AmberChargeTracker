@@ -23,12 +23,12 @@ fun Navigation(application: AmberApplication) {
                 viewModel(factory = MainMenuViewModelFactory(application))
             )
         }
-        composable(route = Screen.RecordJourneyScreen.route) {
+        /*composable(route = Screen.RecordJourneyScreen.route) {
             RecordChargeScreen(
                 navController = navController,
                 viewModel(factory = ChargeEventVMFactory(application))
             )
-        }
+        }*/
         composable(route = Screen.ChargeHistoryScreen.route) {
             ChargeHistoryScreen(
                 navController = navController,

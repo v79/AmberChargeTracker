@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -33,7 +34,6 @@ import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.screens.state.UIState
 import org.liamjd.amber.screens.state.rememberFieldState
 import org.liamjd.amber.screens.validators.CurrencyValidator
-import org.liamjd.amber.screens.validators.PercentageValidator
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.ui.theme.md_theme_light_disabledButtonBackground
@@ -72,12 +72,17 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                 }
             }
             else -> {
-                val odometer = rememberFieldState(initialValue = initOdo.value.toString())
-                val batteryStartPct =
-                    rememberFieldState(initialValue = "50", validator = PercentageValidator)
-                val batteryStartRange = rememberFieldState(initialValue = "100")
-                val batteryEndPct = rememberFieldState("100", validator = PercentageValidator)
-                val batteryEndRange = rememberFieldState(initialValue = "200")
+//                val odometer = rememberFieldState(initialValue = initOdo.value.toString())
+                val odometer = remember { mutableStateOf(initOdo.value.toString()) }
+//                val batteryStartPct =
+//                    rememberFieldState(initialValue = "50", validator = PercentageValidator)
+                val batteryStartPct = remember { mutableStateOf("50") }
+//                val batteryStartRange = rememberFieldState(initialValue = "100")
+                val batteryStartRange = remember { mutableStateOf("100") }
+//                val batteryEndPct = rememberFieldState("100", validator = PercentageValidator)
+//                val batteryEndRange = rememberFieldState(initialValue = "200")
+                val batteryEndPct = remember { mutableStateOf("80") }
+                val batteryEndRange = remember { mutableStateOf("200") }
                 val minimumFee =
                     rememberFieldState(initialValue = "1.00", validator = CurrencyValidator)
                 val costPerKWH =
@@ -104,23 +109,24 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         NumberTextField(
-                            field = odometer, onValueChange = { odometer.onFieldUpdate(it) },
+                            value = odometer.value, onValueChange = { odometer.value = it },
                             enabled = inputEnabled,
                             label = R.string.screen_recordCharge_odometer,
                             modifier = Modifier.weight(0.3f)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         NumberTextField(
-                            field = batteryStartPct,
-                            onValueChange = { batteryStartPct.onFieldUpdate(it) },
+                            value = batteryStartPct.value,
+                            onValueChange = { batteryStartPct.value = it },
                             enabled = inputEnabled,
                             label = R.string.screen_recordCharge_chargePct,
                             modifier = Modifier.weight(0.3f)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
+
                         NumberTextField(
-                            field = batteryStartRange,
-                            onValueChange = { batteryStartRange.onFieldUpdate(it) },
+                            value = batteryStartRange.value,
+                            onValueChange = { batteryStartRange.value = it },
                             enabled = inputEnabled,
                             label = R.string.screen_recordCharge_range,
                             modifier = Modifier.weight(0.3f)
@@ -137,9 +143,9 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                                 viewModel.startCharging(
                                     StartingChargeEventModel(
                                         LocalDateTime.now(),
-                                        odometer.value.value.toIntOrZero(),
-                                        batteryStartRange.computed.toIntOrZero(),
-                                        batteryStartPct.computed.toIntOrZero()
+                                        odometer.value.toIntOrZero(),
+                                        batteryStartRange.value.toIntOrZero(),
+                                        batteryStartPct.value.toIntOrZero()
                                     )
                                 )
                             } else {
@@ -175,16 +181,16 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             NumberTextField(
-                                field = batteryEndPct,
-                                onValueChange = { batteryEndPct.onFieldUpdate(it) },
+                                value = batteryEndPct.value,
+                                onValueChange = { batteryEndPct.value = it },
                                 enabled = inputEnabled,
                                 label = R.string.screen_recordCharge_chargePct,
                                 modifier = Modifier.weight(0.3f)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             NumberTextField(
-                                field = batteryEndRange,
-                                onValueChange = { batteryEndRange.onFieldUpdate(it) },
+                                value = batteryEndRange.value,
+                                onValueChange = { batteryEndRange.value = it },
                                 enabled = inputEnabled,
                                 label = R.string.screen_recordCharge_range,
                                 modifier = Modifier.weight(0.3f)
@@ -269,8 +275,8 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                                         .show()
                                     val chargeEvent = EndingChargeEventModel(
                                         LocalDateTime.now(),
-                                        batteryEndRange.computed.toIntOrZero(),
-                                        batteryEndPct.computed.toIntOrZero(),
+                                        batteryEndRange.value.toIntOrZero(),
+                                        batteryEndPct.value.toIntOrZero(),
                                         kw.toFloat(),
                                         totalCost.computed.toIntOrZero()
                                     )
@@ -387,3 +393,44 @@ fun formatTime(time: Int): String {
 }
 
 fun Number.leadingZero(): String = this.toString().padStart(2, '0')
+
+@Preview
+@Composable
+fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
+
+    var kwMenuExpanded by remember { mutableStateOf(false) }
+
+    Box {
+        OutlinedButton(
+            onClick = { kwMenuExpanded = true }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "$kw kw")
+                Icon(imageVector = Icons.Default.Menu, contentDescription = "Charger wattage")
+            }
+        }
+        DropdownMenu(
+            expanded = kwMenuExpanded, onDismissRequest = { kwMenuExpanded = false }) {
+            DropdownMenuItem(
+                text = { Text("3kw") },
+                onClick = { onSelection.invoke(3); kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("7kw") },
+                onClick = { onSelection.invoke(7); kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("11kw") },
+                onClick = { onSelection.invoke(11); kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("22kw") },
+                onClick = { onSelection.invoke(22); kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("50kw") },
+                onClick = { onSelection.invoke(50); kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("100kw") },
+                onClick = { onSelection.invoke(150); kwMenuExpanded = false })
+            DropdownMenuItem(
+                text = { Text("350kw") },
+                onClick = { onSelection.invoke(350); kwMenuExpanded = false })
+        }
+    }
+}

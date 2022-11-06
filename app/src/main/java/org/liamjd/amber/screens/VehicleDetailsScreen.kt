@@ -21,7 +21,6 @@ import androidx.navigation.NavController
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.screens.composables.Heading
-import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.screens.state.rememberFieldState
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
@@ -126,12 +125,12 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
             enabled = entryEnabled,
             colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
             label = { Text(stringResource(R.string.vehicle_model)) })
-        NumberTextField(
+        /*NumberTextField(
             field = vehicleOdometerReading,
             onValueChange = { vehicleOdometerReading.onFieldUpdate(it) },
             enabled = entryEnabled,
             label = R.string.screen_vehicleDetails_currentOdo
-        )
+        )*/
 
         FilledIconButton(
             modifier = Modifier.fillMaxWidth(),
