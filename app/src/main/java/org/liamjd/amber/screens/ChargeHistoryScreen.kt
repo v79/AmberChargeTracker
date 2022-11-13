@@ -151,7 +151,7 @@ fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>?>) {
             else -> ""
         }
         Text(
-            text = value.toString(),
+            text = value,
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(8.dp),

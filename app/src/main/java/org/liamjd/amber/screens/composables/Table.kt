@@ -106,22 +106,21 @@ fun DemoScrollableTable_RowAndColumn() {
         )
     }
     val cellText: @Composable (Int, Person) -> Unit = { index, item ->
-        val value = when (index) {
-            0 -> item.name
-            1 -> item.age.toString()
-            2 -> if (item.hasDrivingLicence) "YES" else "NO"
-            3 -> item.email
-            else -> ""
-        }
-
-        Text(
-            text = value,
-            fontSize = 20.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(16.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+            val value = when (index) {
+                0 -> item.name
+                1 -> item.age.toString()
+                2 -> if (item.hasDrivingLicence) "YES" else "NO"
+                3 -> item.email
+                else -> ""
+            }
+            Text(
+                text = value,
+                fontSize = 20.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(16.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
     }
 
     Table(

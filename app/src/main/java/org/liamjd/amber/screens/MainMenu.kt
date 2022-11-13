@@ -93,7 +93,9 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     .align(Alignment.End),
                 horizontalArrangement = Arrangement.End
             ) {
-                StartChargeFab(navController)
+                if (hasVehicles.value) {
+                    StartChargeFab(navController)
+                }
             }
         }
     }

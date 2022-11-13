@@ -1,6 +1,7 @@
 package org.liamjd.amber
 
 import android.app.Application
+import android.content.Context
 import androidx.annotation.StringRes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -26,7 +27,7 @@ class AmberApplication : Application() {
         return this.applicationContext.getSharedPreferences(
             this.applicationContext.resources.getString(
                 R.string.CONFIG
-            ), 0
+            ), Context.MODE_PRIVATE
         ).getLong(this.applicationContext.resources.getString(key),-1L)
     }
 

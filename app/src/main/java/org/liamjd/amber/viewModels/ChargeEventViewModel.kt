@@ -44,6 +44,12 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
     )
     var endModel = MutableLiveData(EndingChargeEventModel(LocalDateTime.now(), 0, 0, 0f, 0))
 
+    init {
+        if(_selectedVehicle == -1L) {
+            Log.e("ChargeEventViewModel init","Selected vehicle is $_selectedVehicle - no shared preferences found?")
+        }
+    }
+
     /**
      * Launching a new coroutine to insert data in a non-blocking way
      * Inserts a new ChargeEvent record, and if the new odometer reading is higher than that stored for the vehicle,
