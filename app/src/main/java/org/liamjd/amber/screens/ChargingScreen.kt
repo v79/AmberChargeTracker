@@ -72,23 +72,14 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                 }
             }
             else -> {
-//                val odometer = rememberFieldState(initialValue = initOdo.value.toString())
                 val odometer = remember { mutableStateOf(initOdo.value.toString()) }
-//                val batteryStartPct =
-//                    rememberFieldState(initialValue = "50", validator = PercentageValidator)
                 val batteryStartPct = remember { mutableStateOf("50") }
-//                val batteryStartRange = rememberFieldState(initialValue = "100")
                 val batteryStartRange = remember { mutableStateOf("100") }
-//                val batteryEndPct = rememberFieldState("100", validator = PercentageValidator)
-//                val batteryEndRange = rememberFieldState(initialValue = "200")
                 val batteryEndPct = remember { mutableStateOf("80") }
                 val batteryEndRange = remember { mutableStateOf("200") }
-                val minimumFee =
-                    rememberFieldState(initialValue = "1.00", validator = CurrencyValidator)
-                val costPerKWH =
-                    rememberFieldState(initialValue = "0.15", validator = CurrencyValidator)
-                val totalCost =
-                    rememberFieldState(initialValue = "1.01", validator = CurrencyValidator)
+                val minimumFee = remember { mutableStateOf("1.00") }
+                val costPerKWH = remember { mutableStateOf("0.15") }
+                val totalCost = remember { mutableStateOf("1.50") }
                 var kw by remember { mutableStateOf(22) }
 
                 Column(
@@ -123,7 +114,6 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                             modifier = Modifier.weight(0.3f)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-
                         NumberTextField(
                             value = batteryStartRange.value,
                             onValueChange = { batteryStartRange.value = it },
@@ -215,9 +205,9 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                                         fontWeight = FontWeight.Bold
                                     )
                                     TextButton(onClick = {
-                                        minimumFee.resetValue("0.00"); costPerKWH.resetValue(
-                                        "0.00"
-                                    ); totalCost.resetValue("0.00")
+                                        minimumFee.value = "0.00"
+                                        costPerKWH.value = "0.00"
+                                        totalCost.value = "0.00"
                                     }) {
                                         Text(stringResource(R.string.screen_recordCharge_BUTTON_reset))
                                     }
@@ -231,24 +221,24 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                                 ) {
                                     CurrencyTextField(
                                         modifier = Modifier.weight(1f),
-                                        field = minimumFee,
-                                        onValueChange = { minimumFee.onFieldUpdate(it) },
+                                        value = minimumFee.value,
+                                        onValueChange = { minimumFee.value = it },
                                         enabled = inputEnabled,
                                         label = R.string.screen_recordCharge_minFee
                                     )
                                     Spacer(Modifier.width(10.dp))
                                     CurrencyTextField(
                                         modifier = Modifier.weight(1f),
-                                        field = costPerKWH,
-                                        onValueChange = { costPerKWH.onFieldUpdate(it) },
+                                        value = costPerKWH.value,
+                                        onValueChange = { costPerKWH.value = it },
                                         enabled = inputEnabled,
                                         label = R.string.screen_recordCharge_costPkwh
                                     )
                                     Spacer(Modifier.width(10.dp))
                                     CurrencyTextField(
                                         modifier = Modifier.weight(1f),
-                                        field = totalCost,
-                                        onValueChange = { totalCost.onFieldUpdate(it) },
+                                        value = totalCost.value,
+                                        onValueChange = { totalCost.value = it },
                                         enabled = inputEnabled,
                                         label = R.string.screen_recordCharge_totalCost
                                     )
@@ -278,7 +268,7 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                                         batteryEndRange.value.toIntOrZero(),
                                         batteryEndPct.value.toIntOrZero(),
                                         kw.toFloat(),
-                                        totalCost.computed.toIntOrZero()
+                                        totalCost.value.toIntOrZero() // this can't work yet because input is "1.50" and this function won't do rounding
                                     )
                                     viewModel.saveCharge(chargeEvent)
 
@@ -299,6 +289,7 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
     }
 }
 
+@Preview
 @Composable
 fun BigRoundChargingButton(
     status: RecordChargingStatus = RecordChargingStatus.NOT_STARTED,

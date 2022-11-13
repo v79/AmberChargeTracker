@@ -72,25 +72,25 @@ fun NumberTextField(
 @Composable
 fun CurrencyTextField(
     modifier: Modifier = Modifier,
-    field: Field,
+    value: String = "",
     enabled: Boolean = true,
     onValueChange: (String) -> Unit,
     @StringRes label: Int? = null
 ) {
     OutlinedTextField(
         modifier = modifier,
-        value = field.value.value,
+        value = value,
         onValueChange = onValueChange,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Next
         ),
-        isError = !field.valid,
+        isError = false, // needs validator
         colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
         enabled = enabled,
         label = label?.let { { Text(stringResource(it)) } },
-        supportingText = { Text(field.message) }
+//        supportingText = { Text(field.message) }
     )
 }
 
