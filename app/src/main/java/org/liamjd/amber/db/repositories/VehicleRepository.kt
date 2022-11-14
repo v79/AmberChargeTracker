@@ -11,7 +11,7 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
 
     fun getVehicleCount(): LiveData<Int> = vehicleDao.getVehicleCount()
 
-    fun getVehicleById(id: Long): LiveData<Vehicle?> = vehicleDao.getVehicle(id)
+    fun getVehicleById(id: Long): LiveData<Vehicle> = vehicleDao.getVehicle(id)
 
     fun insert(vehicle: Vehicle) = vehicleDao.insert(vehicle)
 
@@ -21,7 +21,7 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
 
     suspend fun getCurrentOdometer(vehicleId: Long): Int {
         val value = vehicleDao.getCurrentOdometer(vehicleId)
-        Log.e("VehicleRepository","DAO has returned value $value for id $vehicleId")
+        Log.i("VehicleRepository", "DAO has returned odometer $value for id $vehicleId")
         return value
     }
 

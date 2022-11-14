@@ -1,21 +1,28 @@
 package org.liamjd.amber.viewModels
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.R
+import org.liamjd.amber.db.entities.Setting
+import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.entities.Vehicle
+import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
 
-class VehicleDetailsViewModel(application: AmberApplication) : ViewModel() {
+class VehicleDetailsViewModel(private val application: AmberApplication) : ViewModel() {
 
     private val repository: VehicleRepository = application.vehicleRepo
-    private val preferences = application.applicationContext.getSharedPreferences(
-        application.applicationContext.resources.getString(R.string.CONFIG), 0
-    )
-    lateinit var selectedVehicle: LiveData<Vehicle?>
+    private val settingsRepository: SettingsRepository = application.settingsRepo
 
+    private val preferences = application.applicationContext.getSharedPreferences(
+        application.applicationContext.resources.getString(R.string.CONFIG), Context.MODE_PRIVATE
+    )
+
+    lateinit var selectedVehicle: LiveData<Vehicle>
     private var _selectedVehicleId: MutableLiveData<Long> = MutableLiveData<Long>()
 
 
@@ -26,13 +33,13 @@ class VehicleDetailsViewModel(application: AmberApplication) : ViewModel() {
                 _selectedVehicleId.postValue(it)
                 selectedVehicle = repository.getVehicleById(it)
             }
-        }
-        _selectedVehicleId.postValue(
-            preferences.getLong(
-                application.resources.getString(R.string.CONFIG_selected_vehicle_id),
-                -1L
+
+            _selectedVehicleId.postValue(
+                settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue ?: -1L
             )
-        )
+
+        }
+
     }
 
     var vehicleCount: LiveData<Int> = repository.getVehicleCount()
@@ -45,10 +52,11 @@ class VehicleDetailsViewModel(application: AmberApplication) : ViewModel() {
             val primaryKey = repository.insert(vehicle)
             _selectedVehicleId.postValue(primaryKey)
             selectedVehicle = repository.getVehicleById(primaryKey)
-            with(preferences.edit()) {
-                putLong("org.liamjd.amber.SELECTED_VEHICLE", primaryKey)
-                apply()
-            }
+            settingsRepository.insert(Setting(SettingsKey.SELECTED_VEHICLE, lValue = primaryKey))
+            Log.i(
+                "VehicleDetailsViewModel",
+                "Saved selectedVehicle ID = $primaryKey to Settings ${SettingsKey.SELECTED_VEHICLE.keyString}"
+            )
         }
     }
 

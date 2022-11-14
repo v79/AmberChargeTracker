@@ -5,19 +5,17 @@ import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.liamjd.amber.db.entities.ChargeEvent
-import org.liamjd.amber.db.entities.ChargeEventDao
-import org.liamjd.amber.db.entities.Vehicle
-import org.liamjd.amber.db.entities.VehicleDao
+import org.liamjd.amber.db.entities.*
 
 @Database(
-    entities = [ChargeEvent::class, Vehicle::class], version = 10, exportSchema = true
+    entities = [ChargeEvent::class, Vehicle::class, Setting::class], version = 14, exportSchema = true
 )
 @TypeConverters(DBConverters::class)
 abstract class AmberDatabase : RoomDatabase() {
 
     abstract fun chargeEventDao(): ChargeEventDao
     abstract fun vehicleDao(): VehicleDao
+    abstract fun settingsDao() : SettingsDao
 
     companion object {
         @Volatile
@@ -44,6 +42,7 @@ abstract class AmberDatabase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 scope.launch {
+                    database.vehicleDao().insert(Vehicle("Volkswagen", "iD.3", 275))
                     // populate database with fake data? Or other data setup tasks
                 }
             }

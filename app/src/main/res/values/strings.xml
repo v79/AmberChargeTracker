@@ -6,7 +6,7 @@
     <string name="screen_recordCharge_time">Time</string>
     <string name="screen_recordCharge_starting">Starting values</string>
     <string name="screen_recordCharge_odometer">Odometer (miles)</string>
-    <string name="screen_recordCharge_range">Range (mph)</string>
+    <string name="screen_recordCharge_range">Range (miles)</string>
     <string name="screen_recordCharge_chargePct">Charge Percentage</string>
     <string name="screen_recordCharge_ending">Ending values</string>
     <string name="screen_recordCharge_duration">Duration (min)</string>
@@ -32,4 +32,9 @@
     <string name="screen_chargeHistory_costs">Costs</string>
     <string name="screen_chargeHistory_timeFilterDays">Past %d days</string>
     <string name="screen_chargeHistory_filterAllTime">All time</string>
+    <string name="screen_VehicleDetails_toast_saving">Attempting to save</string>
+    <string name="screen_menu_RecordHistoricalCharge">Record Historical Charge</string>
+    <string name="screen_menu_Vehicles">Vehicles</string>
+    <string name="screen_menu_ChargeHistory">Charge History</string>
+    <string name="screen_menu_fab_RecordCharge_desc">Record charge</string>
 </resources>

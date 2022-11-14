@@ -1,41 +1,6 @@
 package org.liamjd.amber.screens
 
-import android.util.Log
-import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import org.liamjd.amber.R
-import org.liamjd.amber.db.entities.ChargeEvent
-import org.liamjd.amber.getConfigLong
-import org.liamjd.amber.screens.composables.CurrencyTextField
-import org.liamjd.amber.screens.composables.Heading
-import org.liamjd.amber.screens.composables.NumberTextField
-import org.liamjd.amber.screens.state.UIState
-import org.liamjd.amber.screens.state.rememberFieldState
-import org.liamjd.amber.screens.validators.CurrencyValidator
-import org.liamjd.amber.screens.validators.PercentageValidator
-import org.liamjd.amber.toIntOrZero
-import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
-import org.liamjd.amber.viewModels.ChargeEventViewModel
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-
+/*
 @Composable
 fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewModel) {
 
@@ -45,7 +10,6 @@ fun RecordChargeScreen(navController: NavController, viewModel: ChargeEventViewM
     Log.e("RecordChargeScreen", "initOdo has been set to ${initOdo.value}")
     val context = LocalContext.current
     val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving } }
-
     AmberChargeTrackerTheme {
 
         when (viewModel.uiState.value) {
@@ -342,12 +306,9 @@ fun extractCostFromInput(input: String): Int {
 fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
 
     var kwMenuExpanded by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
 
-        OutlinedButton(modifier = Modifier.weight(1f),
+    Box {
+        OutlinedButton(
             onClick = { kwMenuExpanded = true }) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "$kw kw")
@@ -355,7 +316,6 @@ fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
             }
         }
         DropdownMenu(
-            modifier = Modifier.weight(1f),
             expanded = kwMenuExpanded, onDismissRequest = { kwMenuExpanded = false }) {
             DropdownMenuItem(
                 text = { Text("3kw") },
@@ -396,3 +356,6 @@ class PercentageVisualTransformation : VisualTransformation {
 fun RecordChargingPreview() {
     RecordChargeScreen(navController = rememberNavController())
 }*/
+
+
+ */

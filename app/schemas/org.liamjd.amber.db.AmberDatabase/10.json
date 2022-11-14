@@ -2,15 +2,27 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "e3a01da9b12c56adea6784584d7db8cd",
+    "identityHash": "e6edeee3376a466a98882be27dfc71a7",
     "entities": [
       {
         "tableName": "ChargeEvent",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`odometer` INTEGER NOT NULL, `batteryStartingRange` INTEGER NOT NULL, `batteryEndingRange` INTEGER NOT NULL, `batteryStartingPct` INTEGER NOT NULL, `batteryEndingPct` INTEGER NOT NULL, `vehicleId` INTEGER NOT NULL, `dateTime` INTEGER NOT NULL, `kilowatt` REAL NOT NULL, `totalCost` INTEGER NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`odometer` INTEGER NOT NULL, `startDateTime` INTEGER NOT NULL, `endDateTime` INTEGER NOT NULL, `batteryStartingRange` INTEGER NOT NULL, `batteryEndingRange` INTEGER, `batteryStartingPct` INTEGER NOT NULL, `batteryEndingPct` INTEGER, `vehicleId` INTEGER NOT NULL, `kilowatt` REAL, `totalCost` INTEGER, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
         "fields": [
           {
             "fieldPath": "odometer",
             "columnName": "odometer",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startDateTime",
+            "columnName": "startDateTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endDateTime",
+            "columnName": "endDateTime",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -24,7 +36,7 @@
             "fieldPath": "batteryEndingRange",
             "columnName": "batteryEndingRange",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "batteryStartingPct",
@@ -36,7 +48,7 @@
             "fieldPath": "batteryEndingPct",
             "columnName": "batteryEndingPct",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "vehicleId",
@@ -45,22 +57,16 @@
             "notNull": true
           },
           {
-            "fieldPath": "dateTime",
-            "columnName": "dateTime",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
             "fieldPath": "kilowatt",
             "columnName": "kilowatt",
             "affinity": "REAL",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "totalCost",
             "columnName": "totalCost",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "id",
@@ -120,7 +126,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e3a01da9b12c56adea6784584d7db8cd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e6edeee3376a466a98882be27dfc71a7')"
     ]
   }
 }
