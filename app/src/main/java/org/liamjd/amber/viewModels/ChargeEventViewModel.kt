@@ -1,5 +1,6 @@
 package org.liamjd.amber.viewModels
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.*
@@ -7,7 +8,10 @@ import kotlinx.coroutines.*
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
+import org.liamjd.amber.db.entities.Setting
+import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.repositories.ChargeEventRepository
+import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
 import org.liamjd.amber.screens.Screen
 import org.liamjd.amber.screens.state.UIState
@@ -16,20 +20,22 @@ import java.time.LocalDateTime
 class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
 
     private val preferences = application.applicationContext.getSharedPreferences(
-        application.applicationContext.resources.getString(R.string.CONFIG), 0
+        application.applicationContext.resources.getString(R.string.CONFIG), Context.MODE_PRIVATE
     )
     private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
     private val vehicleRepository: VehicleRepository = application.vehicleRepo
-    private val _selectedVehicle = application.getConfigLong(R.string.CONFIG_selected_vehicle_id)
+    private val settingsRepository: SettingsRepository = application.settingsRepo
+
+
+    private var _selectedVehicle = mutableStateOf(-1L)
+    val selectedVehicle: Long
+        get() = _selectedVehicle.value
+
     private val _uiState = mutableStateOf<UIState>(UIState.Loading)
     val uiState: State<UIState>
         get() = _uiState
 
-    val odo = liveData {
-        val initOdo = vehicleRepository.getCurrentOdometer(_selectedVehicle)
-        emit(initOdo)
-        _uiState.value = UIState.Active
-    }
+    val odo = mutableStateOf(0)
 
     var chargingStatus by mutableStateOf(RecordChargingStatus.NOT_STARTED)
     var chargingSeconds = mutableStateOf(0)
@@ -37,16 +43,36 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
     var startModel = MutableLiveData(
         StartingChargeEventModel(
             LocalDateTime.now(),
-            odo.value ?: 0,
+            odo.value,
             0,
             0
         )
     )
     var endModel = MutableLiveData(EndingChargeEventModel(LocalDateTime.now(), 0, 0, 0f, 0))
 
+
+    /**
+     * On init, fetch the currently selected vehicle from the database
+     * It should have a value and not be -1 because we shouldn't be able to get to this screen if it is -1
+     */
     init {
-        if(_selectedVehicle == -1L) {
-            Log.e("ChargeEventViewModel init","Selected vehicle is $_selectedVehicle - no shared preferences found?")
+        viewModelScope.launch {
+            _selectedVehicle.value =
+                settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue ?: -1
+            Log.e(
+                "ChargeEventViewModel init",
+                "Selected vehicle is ${_selectedVehicle.value}"
+            )
+
+            if (_selectedVehicle.value == -1L) {
+                Log.e(
+                    "ChargeEventViewModel init",
+                    "Selected vehicle is -1, error in database?"
+                )
+            } else {
+                odo.value = vehicleRepository.getCurrentOdometer(selectedVehicle)
+            }
+            _uiState.value = UIState.Active
         }
     }
 
@@ -81,25 +107,22 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
 
         viewModelScope.launch {
             _uiState.value = UIState.Saving
-            val vehicleCurrentOdo = vehicleRepository.getCurrentOdometer(_selectedVehicle)
+            val vehicleCurrentOdo = vehicleRepository.getCurrentOdometer(selectedVehicle)
 //            if (startModel.odometer > vehicleCurrentOdo) {
             Log.i(
                 "ChargeEventViewModel",
                 "Updating odometer reading for vehicle $_selectedVehicle from $vehicleCurrentOdo to ${startModel.odometer}"
             )
-            vehicleRepository.updateOdometer(_selectedVehicle, startModel.odometer)
+            vehicleRepository.updateOdometer(selectedVehicle, startModel.odometer)
 //            }
             val eventId = chargeEventRepository.startChargeEvent(
-                vehicleId = _selectedVehicle,
+                vehicleId = selectedVehicle,
                 startOdo = startModel.odometer,
                 startTime = startModel.dateTime,
                 startBatteryPct = startModel.percentage,
                 startBatteryRange = startModel.range
             )
-            with(preferences.edit()) {
-                putLong("org.liamjd.amber.CURRENT_CHARGE_EVENT", eventId)
-                apply()
-            }
+            settingsRepository.update(Setting(SettingsKey.CURRENT_CHARGE_EVENT, lValue = eventId))
             _uiState.value = UIState.Active
         }
     }
@@ -119,15 +142,16 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
      */
     fun saveCharge(endModel: EndingChargeEventModel) = viewModelScope.launch {
         _uiState.value = UIState.Saving
-        viewModelScope.launch {
-            val currentEvent = preferences.getLong("org.liamjd.amber.CURRENT_CHARGE_EVENT", -1)
-            if (currentEvent == -1L) {
-                Log.e(
-                    "ChargeEventViewModel",
-                    "stopCharging found invalid CURRENT_CHARGE_EVENT value in SharedPreferences"
-                )
-                return@launch
-            }
+
+        val currentEvent: Long? =
+            settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
+        if (currentEvent == null) {
+            Log.e(
+                "ChargeEventViewModel",
+                "stopCharging found invalid CURRENT_CHARGE_EVENT value in database"
+            )
+            return@launch
+        } else {
             chargeEventRepository.completeChargeEvent(
                 id = currentEvent,
                 endTime = endModel.dateTime,
@@ -136,13 +160,8 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
                 kw = endModel.kw,
                 cost = endModel.cost
             )
-            with(preferences.edit()) {
-                putLong("org.liamjd.amber.CURRENT_CHARGE_EVENT", -1)
-                apply()
-            }
+            settingsRepository.clear(SettingsKey.CURRENT_CHARGE_EVENT)
         }
-
-
         _uiState.value = UIState.Navigating(Screen.ChargeHistoryScreen)
     }
 }
@@ -169,6 +188,12 @@ class ChargeEventVMFactory(private val application: AmberApplication) :
         throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
 }
+
+data class ChargeEventModel(
+    val batteryStartPct: MutableState<String>,
+    val batteryStartRange: MutableState<String>
+)
+
 
 data class StartingChargeEventModel(
     val dateTime: LocalDateTime,

@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.liamjd.amber.db.AmberDatabase
 import org.liamjd.amber.db.repositories.ChargeEventRepository
+import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
 
 class AmberApplication : Application() {
@@ -17,6 +18,7 @@ class AmberApplication : Application() {
     private val database by lazy { AmberDatabase.getDatabase(this, applicationScope) }
     val chargeEventRepo by lazy { ChargeEventRepository(database.chargeEventDao()) }
     val vehicleRepo by lazy { VehicleRepository(database.vehicleDao()) }
+    val settingsRepo by lazy { SettingsRepository(database.settingsDao())}
 
     /**
      * Get a Long value from the shared preferences with the given key
@@ -28,7 +30,7 @@ class AmberApplication : Application() {
             this.applicationContext.resources.getString(
                 R.string.CONFIG
             ), Context.MODE_PRIVATE
-        ).getLong(this.applicationContext.resources.getString(key),-1L)
+        ).getLong(this.applicationContext.resources.getString(key), -1L)
     }
 
 }

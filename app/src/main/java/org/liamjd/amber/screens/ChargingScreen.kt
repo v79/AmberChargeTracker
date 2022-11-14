@@ -39,17 +39,13 @@ import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.ui.theme.md_theme_light_disabledButtonBackground
 import org.liamjd.amber.ui.theme.md_theme_light_startButtonBackground
 import org.liamjd.amber.ui.theme.md_theme_light_stopButtonBackground
-import org.liamjd.amber.viewModels.ChargeEventViewModel
-import org.liamjd.amber.viewModels.EndingChargeEventModel
-import org.liamjd.amber.viewModels.RecordChargingStatus
-import org.liamjd.amber.viewModels.StartingChargeEventModel
+import org.liamjd.amber.viewModels.*
 import java.time.LocalDateTime
 
 @Composable
 fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel) {
 
-    val selectedVehicleId = navController.getConfigLong(R.string.CONFIG_selected_vehicle_id)
-    val initOdo = viewModel.odo.observeAsState()
+    val initOdo = viewModel.odo
     val context = LocalContext.current
     val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving } }
     val startModel = viewModel.startModel.observeAsState()
@@ -73,8 +69,11 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
             }
             else -> {
                 val odometer = remember { mutableStateOf(initOdo.value.toString()) }
-                val batteryStartPct = remember { mutableStateOf("50") }
+           /*     val batteryStartPct = remember { mutableStateOf("50") }*/
                 val batteryStartRange = remember { mutableStateOf("100") }
+
+                val batteryStart = remember { mutableStateOf(ChargeEventModel(mutableStateOf("50"), mutableStateOf("100"))) }
+
                 val batteryEndPct = remember { mutableStateOf("80") }
                 val batteryEndRange = remember { mutableStateOf("200") }
                 val minimumFee = remember { mutableStateOf("1.00") }
@@ -107,8 +106,8 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         NumberTextField(
-                            value = batteryStartPct.value,
-                            onValueChange = { batteryStartPct.value = it },
+                            value = batteryStart.value.batteryStartPct.value,
+                            onValueChange = { batteryStart.value.batteryStartPct.value = it },
                             enabled = inputEnabled,
                             label = R.string.screen_recordCharge_chargePct,
                             modifier = Modifier.weight(0.3f)
@@ -135,7 +134,8 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                                         LocalDateTime.now(),
                                         odometer.value.toIntOrZero(),
                                         batteryStartRange.value.toIntOrZero(),
-                                        batteryStartPct.value.toIntOrZero()
+                                        batteryStart.value.batteryStartPct.value.toIntOrZero()
+//                                        batteryStartPct.value.toIntOrZero()
                                     )
                                 )
                             } else {

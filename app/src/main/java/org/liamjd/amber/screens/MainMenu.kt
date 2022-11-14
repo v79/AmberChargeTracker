@@ -21,18 +21,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
-import org.liamjd.amber.getConfigLong
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.viewModels.MainMenuViewModel
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
-    var selectedVehicleId by remember {
-        mutableStateOf(
-            navController.getConfigLong(R.string.CONFIG_selected_vehicle_id)
-        )
-    }
     val vehicleCount by viewModel.vehicleCount.observeAsState()
+    val activeChargeEvent = viewModel.activeChargeEvent
     val hasVehicles =
         remember { derivedStateOf { vehicleCount != null && vehicleCount!! > 0 } }
 
@@ -52,16 +49,20 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxSize()
                 ) {
+                    activeChargeEvent.value?.let { event ->
+                       val timeSoFar = ChronoUnit.SECONDS.between(event.startDateTime,LocalDateTime.now())
+                      TimerDisplay(isActive = true, startingSeconds = timeSoFar.toInt())
+                   }
                     Button(
-                        enabled = hasVehicles.value,
+                        enabled = false,
                         onClick = { navController.navigate(Screen.StartChargingScreen.route) }
 
                     ) {
-                        Text(text = "Record Charge")
+                        Text(text = stringResource(R.string.screen_menu_RecordHistoricalCharge))
                     }
                     Button(
                         onClick = { navController.navigate(Screen.VehicleDetailsScreen.route) }) {
-                        Text("Vehicles")
+                        Text(stringResource(R.string.screen_menu_Vehicles))
                     }
                     Button(enabled = false,
                         onClick = { /*TODO*/ }) {
@@ -78,12 +79,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                 Button(
                     enabled = hasVehicles.value,
                     onClick = { navController.navigate(Screen.ChargeHistoryScreen.route) }) {
-                    Text("Charge History")
-                }
-                Button(
-                    enabled = false,
-                    onClick = {}) {
-                    Text("Charge History")
+                    Text(stringResource(R.string.screen_menu_ChargeHistory))
                 }
             }
             Row(
@@ -105,7 +101,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
 @Composable
 fun StartChargeFab(navController: NavController = rememberNavController()) {
     FloatingActionButton(onClick = { navController.navigate(Screen.StartChargingScreen.route) }) {
-        Icon(painterResource(id = R.drawable.ic_baseline_ev_station_24), "Record charge")
+        Icon(painterResource(id = R.drawable.ic_baseline_ev_station_24), stringResource(R.string.screen_menu_fab_RecordCharge_desc))
     }
 }
 

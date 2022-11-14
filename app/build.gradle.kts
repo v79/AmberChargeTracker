@@ -78,12 +78,13 @@ dependencies {
 
     // room DB
     implementation("androidx.room:room-ktx:2.4.3")
+    implementation("androidx.room:room-common:2.4.3")
     kapt("androidx.room:room-compiler:2.4.3")
 
     //testing
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.4")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
 //    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     testImplementation("androidx.room:room-testing:2.4.3")
     debugImplementation("androidx.compose.ui:ui-tooling")

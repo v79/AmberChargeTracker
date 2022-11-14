@@ -30,6 +30,8 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         dao.insert(chargeEvent)
     }
 
+    suspend fun getChargeEventWithId(id: Long): ChargeEvent? = dao.getChargeEventWithId(id)
+
     suspend fun startChargeEvent(
         vehicleId: Long, startOdo: Int,
         startTime: LocalDateTime,

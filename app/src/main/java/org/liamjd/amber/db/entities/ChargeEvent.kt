@@ -81,4 +81,7 @@ interface ChargeEventDao {
 
     @RawQuery(observedEntities = [ChargeEvent::class])
     fun getEventsWithin(query: SupportSQLiteQuery): Flow<List<ChargeEvent>>
+
+    @Query("SELECT * FROM ChargeEvent WHERE id = :id")
+    suspend fun getChargeEventWithId(id: Long): ChargeEvent?
 }
