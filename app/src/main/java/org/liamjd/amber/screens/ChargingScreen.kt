@@ -68,11 +68,9 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                 }
             }
             else -> {
-                val odometer = remember { mutableStateOf(initOdo.value.toString()) }
-           /*     val batteryStartPct = remember { mutableStateOf("50") }*/
-                val batteryStartRange = remember { mutableStateOf("100") }
-
-                val batteryStart = remember { mutableStateOf(ChargeEventModel(mutableStateOf("50"), mutableStateOf("100"))) }
+                val odometer = remember { mutableStateOf(startModel.value?.odometer.toString()) }
+                val batteryStartRange = remember { mutableStateOf(startModel.value?.range.toString()) }
+                val batteryStartPct = remember { mutableStateOf(startModel.value?.percentage.toString()) }
 
                 val batteryEndPct = remember { mutableStateOf("80") }
                 val batteryEndRange = remember { mutableStateOf("200") }
@@ -106,8 +104,8 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         NumberTextField(
-                            value = batteryStart.value.batteryStartPct.value,
-                            onValueChange = { batteryStart.value.batteryStartPct.value = it },
+                            value = batteryStartPct.value,
+                            onValueChange = { batteryStartPct.value = it },
                             enabled = inputEnabled,
                             label = R.string.screen_recordCharge_chargePct,
                             modifier = Modifier.weight(0.3f)
@@ -134,8 +132,7 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                                         LocalDateTime.now(),
                                         odometer.value.toIntOrZero(),
                                         batteryStartRange.value.toIntOrZero(),
-                                        batteryStart.value.batteryStartPct.value.toIntOrZero()
-//                                        batteryStartPct.value.toIntOrZero()
+                                        batteryStartPct.value.toIntOrZero()
                                     )
                                 )
                             } else {
@@ -333,7 +330,7 @@ fun BigRoundChargingButton(
 @OptIn(ExperimentalUnitApi::class)
 @Preview
 @Composable
-fun TimerDisplay(isActive: Boolean = false, startingSeconds: Int = 7653) {
+fun TimerDisplay(isActive: Boolean = false, startingSeconds: Long = 7653L) {
     var timeTakenSeconds by remember {
         mutableStateOf(startingSeconds)
     }
@@ -374,7 +371,7 @@ fun TimerDisplay(isActive: Boolean = false, startingSeconds: Int = 7653) {
  * @param time number of seconds
  * @return string in format "hh:mm:ss"
  */
-fun formatTime(time: Int): String {
+fun formatTime(time: Long): String {
     val hours: Double = time / 3600.0
     val wholeHours: Int = hours.toInt()
     val minutes: Double = (hours - wholeHours) * 60

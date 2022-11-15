@@ -1,5 +1,6 @@
 package org.liamjd.amber.viewModels
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
@@ -42,6 +43,11 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
                 _activeChargeEvent.value = chargeEventRepository.getChargeEventWithId(activeChargeId)
             }
         }
+    }
+
+    fun abortCharging() {
+        Log.e("ChargeEventViewModel","Abort Charging not written yet")
+        TODO("Abort charging not written yet")
     }
 
 }

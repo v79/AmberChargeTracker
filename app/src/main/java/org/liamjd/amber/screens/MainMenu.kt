@@ -2,10 +2,7 @@ package org.liamjd.amber.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -23,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.viewModels.MainMenuViewModel
+import org.liamjd.amber.viewModels.RecordChargingStatus
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
@@ -50,9 +48,16 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     activeChargeEvent.value?.let { event ->
-                       val timeSoFar = ChronoUnit.SECONDS.between(event.startDateTime,LocalDateTime.now())
-                      TimerDisplay(isActive = true, startingSeconds = timeSoFar.toInt())
-                   }
+                        val timeSoFar =
+                            ChronoUnit.SECONDS.between(event.startDateTime, LocalDateTime.now())
+                        TimerDisplay(isActive = true, startingSeconds = timeSoFar)
+                        BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
+                            navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
+                        }
+                        TextButton(onClick = { viewModel.abortCharging() }) {
+                            Text(text = "Abort")
+                        }
+                    }
                     Button(
                         enabled = false,
                         onClick = { navController.navigate(Screen.StartChargingScreen.route) }
@@ -89,7 +94,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     .align(Alignment.End),
                 horizontalArrangement = Arrangement.End
             ) {
-                if (hasVehicles.value) {
+                if (hasVehicles.value && activeChargeEvent.value == null) {
                     StartChargeFab(navController)
                 }
             }
@@ -101,7 +106,10 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
 @Composable
 fun StartChargeFab(navController: NavController = rememberNavController()) {
     FloatingActionButton(onClick = { navController.navigate(Screen.StartChargingScreen.route) }) {
-        Icon(painterResource(id = R.drawable.ic_baseline_ev_station_24), stringResource(R.string.screen_menu_fab_RecordCharge_desc))
+        Icon(
+            painterResource(id = R.drawable.ic_baseline_ev_station_24),
+            stringResource(R.string.screen_menu_fab_RecordCharge_desc)
+        )
     }
 }
 

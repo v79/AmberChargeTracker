@@ -16,8 +16,11 @@ import org.liamjd.amber.db.repositories.VehicleRepository
 import org.liamjd.amber.screens.Screen
 import org.liamjd.amber.screens.state.UIState
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
-class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
+class ChargeEventViewModel(application: AmberApplication, private val activeChargeId: Long?) :
+    ViewModel() {
 
     private val preferences = application.applicationContext.getSharedPreferences(
         application.applicationContext.resources.getString(R.string.CONFIG), Context.MODE_PRIVATE
@@ -38,7 +41,7 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
     val odo = mutableStateOf(0)
 
     var chargingStatus by mutableStateOf(RecordChargingStatus.NOT_STARTED)
-    var chargingSeconds = mutableStateOf(0)
+    var chargingSeconds = mutableStateOf(0L)
 
     var startModel = MutableLiveData(
         StartingChargeEventModel(
@@ -56,10 +59,13 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
      * It should have a value and not be -1 because we shouldn't be able to get to this screen if it is -1
      */
     init {
+
+        Log.i("ChargeEventViewModel", "Arrived with Active Charge ID = $activeChargeId")
+
         viewModelScope.launch {
             _selectedVehicle.value =
                 settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue ?: -1
-            Log.e(
+            Log.i(
                 "ChargeEventViewModel init",
                 "Selected vehicle is ${_selectedVehicle.value}"
             )
@@ -72,6 +78,30 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
             } else {
                 odo.value = vehicleRepository.getCurrentOdometer(selectedVehicle)
             }
+
+            if (activeChargeId != null) {
+                val existingEvent = chargeEventRepository.getChargeEventWithId(activeChargeId)
+                checkNotNull(existingEvent) { "Could not find active charging event with ID $activeChargeId, which is wrong" }
+                Log.i("ChargeEventViewModel init", existingEvent.toString())
+                startModel.value = StartingChargeEventModel(
+                    dateTime = existingEvent.startDateTime,
+                    existingEvent.odometer,
+                    existingEvent.batteryStartingRange,
+                    existingEvent.batteryStartingPct
+                )
+                chargingStatus = RecordChargingStatus.CHARGING
+                val nowSeconds = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                chargingSeconds.value =
+                    nowSeconds - existingEvent.startDateTime.toEpochSecond(ZoneOffset.UTC)
+            } else {
+                startModel.value = StartingChargeEventModel(
+                    dateTime = LocalDateTime.now(),
+                    odometer = odo.value,
+                    range = 50,
+                    percentage = 25
+                )
+            }
+
             _uiState.value = UIState.Active
         }
     }
@@ -178,12 +208,16 @@ enum class RecordChargingStatus {
  * Because the ViewModel has a dependency on the repository, and I am not using Hilt for DI, I need this factory
  * https://developer.android.com/topic/libraries/architecture/viewmodel#kotlin
  */
-class ChargeEventVMFactory(private val application: AmberApplication) :
+class ChargeEventVMFactory(
+    private val application: AmberApplication,
+    private val activeChargeId: String?
+) :
     ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        val chargeId = activeChargeId?.toLongOrNull()
         if (modelClass.isAssignableFrom(ChargeEventViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ChargeEventViewModel(application) as T
+            return ChargeEventViewModel(application, chargeId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
