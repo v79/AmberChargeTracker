@@ -20,7 +20,7 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         val xDaysAgoAsLong = xDaysAgo.toEpochSecond(ZoneOffset.UTC)
         return dao.getEventsWithin(
             SimpleSQLiteQuery(
-                "SELECT * FROM ChargeEvent WHERE dateTime > ? ORDER BY dateTime DESC",
+                "SELECT * FROM ChargeEvent WHERE startDateTime > ? ORDER BY startDateTime DESC",
                 arrayOf(xDaysAgoAsLong)
             )
         )
