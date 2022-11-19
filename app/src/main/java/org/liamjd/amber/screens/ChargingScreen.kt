@@ -47,7 +47,7 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
 
     val initOdo = viewModel.odo
     val context = LocalContext.current
-    val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving } }
+    val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving && viewModel.chargingStatus != RecordChargingStatus.CHARGING } }
     val startModel = viewModel.startModel.observeAsState()
     val endModel = viewModel.endModel.observeAsState()
 
@@ -258,7 +258,7 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                             FilledIconButton(
                                 modifier = Modifier.weight(0.8f),
                                 onClick = {
-                                    Toast.makeText(context, "Attempting to save", Toast.LENGTH_LONG)
+                                    Toast.makeText(context, context.getText(R.string.toast_attemptingToSave), Toast.LENGTH_LONG)
                                         .show()
                                     val chargeEvent = EndingChargeEventModel(
                                         LocalDateTime.now(),

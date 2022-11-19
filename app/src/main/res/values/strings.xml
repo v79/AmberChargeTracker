@@ -37,4 +37,5 @@
     <string name="screen_menu_Vehicles">Vehicles</string>
     <string name="screen_menu_ChargeHistory">Charge History</string>
     <string name="screen_menu_fab_RecordCharge_desc">Record charge</string>
+    <string name="toast_attemptingToSave">Attempting to save</string>
 </resources>

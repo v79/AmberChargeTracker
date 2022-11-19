@@ -243,18 +243,3 @@ data class EndingChargeEventModel(
     val kw: Float,
     val cost: Int,
 )
-
-//data class ChargeEventVM(
-//    val chargeDateTime: LocalDateTime = LocalDateTime.now(),
-//    var odometer: String = "",
-//    var batteryStartRange: String = "100",
-//    var batteryStartPct: String = "50",
-//    var batteryEndRange: String = "200",
-//    var batteryEndPct: String = "80",
-//    var chargeDuration: String = "30",
-//    var minimumFee: String = "1.00",
-//    var costPerKWH: String = "0.15",
-//    var totalCost: String = "0",
-//    var kw: Int = 22,
-//    var hasError: Boolean = false
-//)

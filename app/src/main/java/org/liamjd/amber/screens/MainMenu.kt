@@ -33,7 +33,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
     Log.i("MainMenu comp", "activeChargeEvent: $activeChargeEvent")
     val hasVehicles =
         remember { derivedStateOf { vehicleCount != null && vehicleCount!! > 0 } }
-    val isCharging = remember { derivedStateOf { activeChargeEvent?.endDateTime == null } }
+    val isCharging = remember { derivedStateOf { activeChargeEvent != null && activeChargeEvent?.endDateTime == null } }
 
     AmberChargeTrackerTheme {
         Column(
@@ -100,7 +100,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     .align(Alignment.End),
                 horizontalArrangement = Arrangement.End
             ) {
-                if (hasVehicles.value && activeChargeEvent == null) {
+                if (hasVehicles.value && !isCharging.value) {
                     StartChargeFab(navController)
                 }
             }
