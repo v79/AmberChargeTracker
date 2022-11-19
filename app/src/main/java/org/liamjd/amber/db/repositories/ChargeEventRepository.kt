@@ -1,5 +1,6 @@
 package org.liamjd.amber.db.repositories
 
+import androidx.lifecycle.LiveData
 import androidx.sqlite.db.SimpleSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import org.liamjd.amber.db.entities.ChargeEvent
@@ -30,7 +31,9 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         dao.insert(chargeEvent)
     }
 
-    suspend fun getChargeEventWithId(id: Long): ChargeEvent? = dao.getChargeEventWithId(id)
+    fun getLiveChargeEventWithId(id: Long): LiveData<ChargeEvent?> = dao.getChargeEventWithId(id)
+
+    suspend fun getChargeEventWithId(id: Long) = dao.getExistingChargeEventWithId(id)
 
     suspend fun startChargeEvent(
         vehicleId: Long, startOdo: Int,

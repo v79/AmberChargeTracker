@@ -1,5 +1,6 @@
 package org.liamjd.amber.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -27,9 +28,12 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
     val vehicleCount by viewModel.vehicleCount.observeAsState()
-    val activeChargeEvent = viewModel.activeChargeEvent
+    Log.i("MainMenu comp", "vehicleCount: $vehicleCount")
+    val activeChargeEvent by viewModel.activeChargeEvent.observeAsState()
+    Log.i("MainMenu comp", "activeChargeEvent: $activeChargeEvent")
     val hasVehicles =
         remember { derivedStateOf { vehicleCount != null && vehicleCount!! > 0 } }
+    val isCharging = remember { derivedStateOf { activeChargeEvent?.endDateTime == null } }
 
     AmberChargeTrackerTheme {
         Column(
@@ -47,15 +51,17 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    activeChargeEvent.value?.let { event ->
-                        val timeSoFar =
-                            ChronoUnit.SECONDS.between(event.startDateTime, LocalDateTime.now())
-                        TimerDisplay(isActive = true, startingSeconds = timeSoFar)
-                        BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
-                            navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
-                        }
-                        TextButton(onClick = { viewModel.abortCharging() }) {
-                            Text(text = "Abort")
+                    if (isCharging.value) {
+                        activeChargeEvent?.let { event ->
+                            val timeSoFar =
+                                ChronoUnit.SECONDS.between(event.startDateTime, LocalDateTime.now())
+                            TimerDisplay(isActive = true, startingSeconds = timeSoFar)
+                            BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
+                                navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
+                            }
+                            TextButton(onClick = { viewModel.abortCharging() }) {
+                                Text(text = "Abort")
+                            }
                         }
                     }
                     Button(
@@ -94,7 +100,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     .align(Alignment.End),
                 horizontalArrangement = Arrangement.End
             ) {
-                if (hasVehicles.value && activeChargeEvent.value == null) {
+                if (hasVehicles.value && activeChargeEvent == null) {
                     StartChargeFab(navController)
                 }
             }

@@ -1,5 +1,6 @@
 package org.liamjd.amber.db.entities
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteQuery
 import kotlinx.coroutines.flow.Flow
@@ -82,6 +83,15 @@ interface ChargeEventDao {
     @RawQuery(observedEntities = [ChargeEvent::class])
     fun getEventsWithin(query: SupportSQLiteQuery): Flow<List<ChargeEvent>>
 
+    /**
+     * Return a LiveData wrapper around a ChargeEvent (which may be null)
+     */
     @Query("SELECT * FROM ChargeEvent WHERE id = :id")
-    suspend fun getChargeEventWithId(id: Long): ChargeEvent?
+    fun getChargeEventWithId(id: Long): LiveData<ChargeEvent?>
+
+    /**
+     * Return a charge event with the given ID
+     */
+    @Query("SELECT * FROM ChargeEvent WHERE id = :id")
+    suspend fun getExistingChargeEventWithId(id: Long): ChargeEvent
 }

@@ -17,7 +17,6 @@ import org.liamjd.amber.screens.Screen
 import org.liamjd.amber.screens.state.UIState
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.time.temporal.ChronoUnit
 
 class ChargeEventViewModel(application: AmberApplication, private val activeChargeId: Long?) :
     ViewModel() {
@@ -53,14 +52,13 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
     )
     var endModel = MutableLiveData(EndingChargeEventModel(LocalDateTime.now(), 0, 0, 0f, 0))
 
-
     /**
      * On init, fetch the currently selected vehicle from the database
      * It should have a value and not be -1 because we shouldn't be able to get to this screen if it is -1
      */
     init {
 
-        Log.i("ChargeEventViewModel", "Arrived with Active Charge ID = $activeChargeId")
+        Log.i("ChargeEventViewModel init", "Arrived with Active Charge ID = $activeChargeId")
 
         viewModelScope.launch {
             _selectedVehicle.value =
@@ -80,19 +78,21 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
             }
 
             if (activeChargeId != null) {
-                val existingEvent = chargeEventRepository.getChargeEventWithId(activeChargeId)
-                checkNotNull(existingEvent) { "Could not find active charging event with ID $activeChargeId, which is wrong" }
-                Log.i("ChargeEventViewModel init", existingEvent.toString())
-                startModel.value = StartingChargeEventModel(
-                    dateTime = existingEvent.startDateTime,
-                    existingEvent.odometer,
-                    existingEvent.batteryStartingRange,
-                    existingEvent.batteryStartingPct
-                )
+                Log.i("ChargeEventViewModel init","Looking for charge event with ID $activeChargeId")
+                val existingChargeEvent = chargeEventRepository.getChargeEventWithId(activeChargeId)
+                Log.i("ChargeEventViewModel init", existingChargeEvent.toString())
                 chargingStatus = RecordChargingStatus.CHARGING
                 val nowSeconds = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-                chargingSeconds.value =
-                    nowSeconds - existingEvent.startDateTime.toEpochSecond(ZoneOffset.UTC)
+                existingChargeEvent.apply {
+                    startModel.value = StartingChargeEventModel(
+                        dateTime = this.startDateTime,
+                        this.odometer,
+                        this.batteryStartingRange,
+                        this.batteryStartingPct
+                    )
+                    chargingSeconds.value =
+                        nowSeconds - this.startDateTime.toEpochSecond(ZoneOffset.UTC)
+                }
             } else {
                 startModel.value = StartingChargeEventModel(
                     dateTime = LocalDateTime.now(),

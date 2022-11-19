@@ -49,7 +49,6 @@ fun Navigation(application: AmberApplication) {
         }
         composable(route = Screen.StartChargingScreen.buildRoute("{eventId}")) { backStackEntry ->
             val activeChargeID = backStackEntry.arguments?.getString("eventId")
-            println("Navigating to ChargingScreen with event $activeChargeID")
             ChargingScreen(
                 navController = navController,
                 viewModel(factory = ChargeEventVMFactory(application, activeChargeID))
