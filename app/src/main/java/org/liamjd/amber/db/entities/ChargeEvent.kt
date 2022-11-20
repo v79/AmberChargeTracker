@@ -21,7 +21,7 @@ data class ChargeEvent(
     val totalCost: Int? // in pence
 ) {
     @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
+    var id: Long = 0
 
     constructor(
         odometer: Int,

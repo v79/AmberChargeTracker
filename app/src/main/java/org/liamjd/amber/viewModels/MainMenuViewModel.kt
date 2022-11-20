@@ -45,9 +45,18 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
         }
     }
 
+    /**
+     * Abort the current charge event, deleting the row from the ChargeEvent table, and clearing the
+     * CURRENT_CHARGE_EVENT setting
+     */
     fun abortCharging() {
-        Log.e("ChargeEventViewModel", "Abort Charging not written yet")
-        TODO("Abort charging not written yet")
+        Log.e("ChargeEventViewModel", "Aborting charge event ${_activeChargeEvent.value}")
+        viewModelScope.launch {
+            _activeChargeEvent.value?.apply {
+                chargeEventRepository.deleteChargeEvent(this.id)
+                settingsRepository.clear(SettingsKey.CURRENT_CHARGE_EVENT)
+            }
+        }
     }
 
 }

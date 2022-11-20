@@ -8,7 +8,7 @@ import kotlinx.coroutines.launch
 import org.liamjd.amber.db.entities.*
 
 @Database(
-    entities = [ChargeEvent::class, Vehicle::class, Setting::class], version = 14, exportSchema = true
+    entities = [ChargeEvent::class, Vehicle::class, Setting::class], version = 15, exportSchema = true
 )
 @TypeConverters(DBConverters::class)
 abstract class AmberDatabase : RoomDatabase() {

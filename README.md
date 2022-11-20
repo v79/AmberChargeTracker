@@ -7,7 +7,7 @@ It's been a while since I tried Android development.
 ## Task list
 
 ### Bugs 
-- [ ] Ability to abort a charge event
+- [X] Ability to abort a charge event
 - [X] Prevent editing of starting values on active charge event
 - [X] Fix main menu still showing charge event after it's finished
 - [ ] Saving total cost of a charge event
@@ -22,10 +22,12 @@ It's been a while since I tried Android development.
   - [X] Should persist across process death
   - [X] Check if charge is in progress on startup
   - [X] Restore the timer correctly based on the charge start time
-  - [X] Handle back navigation when charge event is saved (e.g from history screen)
+  - [ ] Handle back navigation when charge event is saved (e.g from history screen)
+- [ ] Use `Scaffold` for layout?
 
 ### Features
 
+- [ ] Add better navigation - might come with `Scaffold`?
 - [ ] charge history table improvements
 - [ ] charge history graphs
 - [ ] Journey recording screens and model

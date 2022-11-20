@@ -3,6 +3,8 @@ package org.liamjd.amber.screens
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -16,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
@@ -33,7 +36,9 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
     Log.i("MainMenu comp", "activeChargeEvent: $activeChargeEvent")
     val hasVehicles =
         remember { derivedStateOf { vehicleCount != null && vehicleCount!! > 0 } }
-    val isCharging = remember { derivedStateOf { activeChargeEvent != null && activeChargeEvent?.endDateTime == null } }
+    val isCharging =
+        remember { derivedStateOf { activeChargeEvent != null && activeChargeEvent?.endDateTime == null } }
+    val showAbortChargeDialog = remember { mutableStateOf(false) }
 
     AmberChargeTrackerTheme {
         Column(
@@ -59,8 +64,28 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                             BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
                                 navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
                             }
-                            TextButton(onClick = { viewModel.abortCharging() }) {
-                                Text(text = "Abort")
+                            TextButton(onClick = { showAbortChargeDialog.value = true }) {
+                                Text(text = stringResource(id = R.string.screen_menu_abortCharge))
+                            }
+                            if (showAbortChargeDialog.value) {
+                                AlertDialog(
+                                    onDismissRequest = {
+                                        showAbortChargeDialog.value = false
+                                    },
+                                    title = { Text(text = stringResource(R.string.screen_menu_abortDialog_title)) },
+                                    text = { Text(text = stringResource(id = R.string.screen_menu_abortDialog_text)) },
+                                    confirmButton = {
+                                        TextButton(onClick = { viewModel.abortCharging() }) {
+                                            Text(stringResource(R.string.screen_menu_abortDialog_abort))
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = {
+                                            showAbortChargeDialog.value = false
+                                        }) {
+                                            Text(stringResource(R.string.screen_menu_abortDialog_dismiss))
+                                        }
+                                    })
                             }
                         }
                     }
@@ -139,4 +164,9 @@ fun ScreenTitle() {
             )
         }
     }
+}
+
+@Composable
+fun AbortChargeDialogContent() {
+
 }

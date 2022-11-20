@@ -60,4 +60,8 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
     ) {
         dao.updateChargeRecord(id, endTime, endBatteryPct, endBatteryRange, kw, cost)
     }
+
+    suspend fun deleteChargeEvent(id: Long) {
+        dao.delete(dao.getExistingChargeEventWithId(id))
+    }
 }
