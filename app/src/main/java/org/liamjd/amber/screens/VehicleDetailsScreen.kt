@@ -1,11 +1,13 @@
 package org.liamjd.amber.screens
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,8 +35,11 @@ import org.liamjd.amber.screens.composables.Table
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.ui.theme.md_theme_light_onSurface
+import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
 import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetailsViewModel) {
     val context = LocalContext.current
@@ -42,31 +47,39 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
     val totalVehicles by viewModel.vehicleCount.observeAsState()
 
     AmberChargeTrackerTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(4.dp)
-        ) {
-            Heading(text = R.string.screen_vehicleDetails_title)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(
-                        id = R.string.screen_vehicleDetails_vehicleCount,
-                        totalVehicles ?: 0
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(stringResource(id = R.string.screen_vehicleDetails_title))
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.navigate(Screen.StartScreen.route) }) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                "Back to main menu"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                        containerColor = md_theme_light_surfaceTint
                     )
                 )
-            }
-            if (totalVehicles == null || totalVehicles == 0) {
-                AddVehicle(context, viewModel)
-            } else {
-                ShowCurrentVehicle(context, viewModel)
-            }
-        }
+            },
+            content = {  innerPadding ->
+                Column(modifier = Modifier.padding(innerPadding)) {
+                    Row(modifier = Modifier.fillMaxHeight()) {
+                        if (totalVehicles == null || totalVehicles == 0) {
+                            AddVehicle(context, viewModel)
+                        } else {
+                            ShowCurrentVehicle(context, viewModel)
+                        }
+                    }
+                }
+            },
+            bottomBar = { BottomAppBar() { Text("$totalVehicles vehicles registered") } }
+        )
     }
 }
 
@@ -81,7 +94,7 @@ fun ShowCurrentVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
 
 @Preview
 @Composable
-fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce","Silver Cloud",5176)) {
+fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176)) {
     val cellWidth: (Int) -> Dp = { index ->
         when (index) {
             0 -> 125.dp
@@ -178,7 +191,11 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
             modifier = Modifier.fillMaxWidth(),
             onClick = {
                 entryEnabled = false
-                Toast.makeText(context, R.string.screen_VehicleDetails_toast_saving, Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    R.string.screen_VehicleDetails_toast_saving,
+                    Toast.LENGTH_LONG
+                ).show()
                 val newVehicle =
                     Vehicle(
                         vehicleManufacturer,

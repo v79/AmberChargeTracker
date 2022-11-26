@@ -1,9 +1,11 @@
 package org.liamjd.amber.screens
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -11,6 +13,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -19,17 +22,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.withStateAtLeast
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
+import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
 import org.liamjd.amber.viewModels.MainMenuViewModel
 import org.liamjd.amber.viewModels.RecordChargingStatus
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    // This, in combination with with the viewModel init { refreshView() }, gives me the desired effect
+    LaunchedEffect(Unit) {
+        lifecycleOwner.withStateAtLeast(Lifecycle.State.CREATED) {
+            Log.i("MainMenu comp", "Lifecycle resumed, calling refresh")
+            viewModel.refreshView()
+        }
+    }
+
     val vehicleCount by viewModel.vehicleCount.observeAsState()
     Log.i("MainMenu comp", "vehicleCount: $vehicleCount")
     val activeChargeEvent by viewModel.activeChargeEvent.observeAsState()
@@ -41,67 +60,163 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
     val showAbortChargeDialog = remember { mutableStateOf(false) }
 
     AmberChargeTrackerTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .background(Color.White)
-        ) {
-            ScreenTitle()
-            Row(
-                modifier = Modifier
-                    .fillMaxHeight(0.7f)
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxSize()
+
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    navigationIcon = {
+                        Icon(Icons.Default.Menu, "Navigation menu")
+                    },
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(
+                        containerColor = md_theme_light_surfaceTint
+                    ),
+                    title = {
+                        Text(
+                            text = stringResource(id = R.string.app_title_electric)
+                        )
+                    })
+            },
+            floatingActionButtonPosition = FabPosition.End,
+            floatingActionButton = {
+                if (hasVehicles.value && !isCharging.value) {
+                    StartChargeFab(navController)
+                }
+            },
+            content = {
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxHeight(0.7f)
                 ) {
-                    if (isCharging.value) {
-                        activeChargeEvent?.let { event ->
-                            val timeSoFar =
-                                ChronoUnit.SECONDS.between(event.startDateTime, LocalDateTime.now())
-                            TimerDisplay(isActive = true, startingSeconds = timeSoFar)
-                            BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
-                                navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
-                            }
-                            TextButton(onClick = { showAbortChargeDialog.value = true }) {
-                                Text(text = stringResource(id = R.string.screen_menu_abortCharge))
-                            }
-                            if (showAbortChargeDialog.value) {
-                                AlertDialog(
-                                    onDismissRequest = {
-                                        showAbortChargeDialog.value = false
-                                    },
-                                    title = { Text(text = stringResource(R.string.screen_menu_abortDialog_title)) },
-                                    text = { Text(text = stringResource(id = R.string.screen_menu_abortDialog_text)) },
-                                    confirmButton = {
-                                        TextButton(onClick = { viewModel.abortCharging() }) {
-                                            Text(stringResource(R.string.screen_menu_abortDialog_abort))
-                                        }
-                                    },
-                                    dismissButton = {
-                                        TextButton(onClick = {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        if (isCharging.value) {
+                            activeChargeEvent?.let { event ->
+                                val timeSoFar =
+                                    ChronoUnit.SECONDS.between(
+                                        event.startDateTime,
+                                        LocalDateTime.now()
+                                    )
+                                TimerDisplay(isActive = true, startingSeconds = timeSoFar)
+                                Spacer(modifier = Modifier.height(8.dp))
+                                BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
+                                    navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
+                                }
+                                TextButton(onClick = { showAbortChargeDialog.value = true }) {
+                                    Text(text = stringResource(id = R.string.screen_menu_abortCharge))
+                                }
+                                if (showAbortChargeDialog.value) {
+                                    AlertDialog(
+                                        onDismissRequest = {
                                             showAbortChargeDialog.value = false
-                                        }) {
-                                            Text(stringResource(R.string.screen_menu_abortDialog_dismiss))
-                                        }
-                                    })
+                                        },
+                                        title = { Text(text = stringResource(R.string.screen_menu_abortDialog_title)) },
+                                        text = { Text(text = stringResource(id = R.string.screen_menu_abortDialog_text)) },
+                                        confirmButton = {
+                                            TextButton(onClick = {
+                                                viewModel.abortCharging(); showAbortChargeDialog.value =
+                                                false
+                                            }) {
+                                                Text(stringResource(R.string.screen_menu_abortDialog_abort))
+                                            }
+                                        },
+                                        dismissButton = {
+                                            TextButton(onClick = {
+                                                showAbortChargeDialog.value = false
+                                            }) {
+                                                Text(stringResource(R.string.screen_menu_abortDialog_dismiss))
+                                            }
+                                        })
+                                }
                             }
                         }
-                    }
-                    Button(
-                        enabled = false,
-                        onClick = { navController.navigate(Screen.StartChargingScreen.route) }
+                        Button(
+                            enabled = false,
+                            onClick = { navController.navigate(Screen.StartChargingScreen.route) }
 
-                    ) {
-                        Text(text = stringResource(R.string.screen_menu_RecordHistoricalCharge))
+                        ) {
+                            Text(text = stringResource(R.string.screen_menu_RecordHistoricalCharge))
+                        }
+                        Button(
+                            onClick = { navController.navigate(Screen.VehicleDetailsScreen.route) }) {
+                            Text(stringResource(R.string.screen_menu_Vehicles))
+                        }
+                        Button(enabled = false,
+                            onClick = { /*TODO*/ }) {
+                            Text("Record Journey")
+                        }
                     }
-                    Button(
-                        onClick = { navController.navigate(Screen.VehicleDetailsScreen.route) }) {
-                        Text(stringResource(R.string.screen_menu_Vehicles))
-                    }
-                    Button(enabled = false,
-                        onClick = { /*TODO*/ }) {
+                }
+            },
+            bottomBar = { BottomAppBar() { Text("$vehicleCount vehicles") } }
+        )
+
+
+        /*  Column(
+              modifier = Modifier
+                  .fillMaxHeight()
+                  .background(Color.White)
+          ) {
+              ScreenTitle()
+              Row(
+                  modifier = Modifier
+                      .fillMaxHeight(0.7f)
+              ) {
+                  Column(
+                      verticalArrangement = Arrangement.Center,
+                      horizontalAlignment = Alignment.CenterHorizontally,
+                      modifier = Modifier.fillMaxSize()
+                  ) {
+                      if (isCharging.value) {
+                          activeChargeEvent?.let { event ->
+                              val timeSoFar =
+                                  ChronoUnit.SECONDS.between(event.startDateTime, LocalDateTime.now())
+                              TimerDisplay(isActive = true, startingSeconds = timeSoFar)
+                              Spacer(modifier = Modifier.height(8.dp))
+                              BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
+                                  navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
+                              }
+                              TextButton(onClick = { showAbortChargeDialog.value = true }) {
+                                  Text(text = stringResource(id = R.string.screen_menu_abortCharge))
+                              }
+                              if (showAbortChargeDialog.value) {
+                                  AlertDialog(
+                                      onDismissRequest = {
+                                          showAbortChargeDialog.value = false
+                                      },
+                                      title = { Text(text = stringResource(R.string.screen_menu_abortDialog_title)) },
+                                      text = { Text(text = stringResource(id = R.string.screen_menu_abortDialog_text)) },
+                                      confirmButton = {
+                                          TextButton(onClick = { viewModel.abortCharging(); showAbortChargeDialog.value = false }) {
+                                              Text(stringResource(R.string.screen_menu_abortDialog_abort))
+                                          }
+                                      },
+                                      dismissButton = {
+                                          TextButton(onClick = {
+                                              showAbortChargeDialog.value = false
+                                          }) {
+                                              Text(stringResource(R.string.screen_menu_abortDialog_dismiss))
+                                          }
+                                      })
+                              }
+                          }
+                      }
+                      Button(
+                          enabled = false,
+                          onClick = { navController.navigate(Screen.StartChargingScreen.route) }
+
+                      ) {
+                          Text(text = stringResource(R.string.screen_menu_RecordHistoricalCharge))
+                      }
+                      Button(
+                          onClick = { navController.navigate(Screen.VehicleDetailsScreen.route) }) {
+                          Text(stringResource(R.string.screen_menu_Vehicles))
+                      }
+                      Button(enabled = false,
+                          onClick = { *//*TODO*//* }) {
                         Text("Record Journey")
                     }
                 }
@@ -129,7 +244,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                     StartChargeFab(navController)
                 }
             }
-        }
+        }*/
     }
 }
 
