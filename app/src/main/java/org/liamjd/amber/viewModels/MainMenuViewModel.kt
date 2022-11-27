@@ -18,29 +18,37 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
 
     private var _selectedVehicle: Long? = null
 
-    private lateinit var _vehicleCount: LiveData<Int>
+    private var _vehicleCount: LiveData<Int> = MutableLiveData()
     val vehicleCount: LiveData<Int>
         get() = _vehicleCount
 
     val selectedVehicle: Long?
         get() = _selectedVehicle
 
-    private var _activeChargeEvent: LiveData<ChargeEvent?>
+    private var _activeChargeEvent: LiveData<ChargeEvent?> = MutableLiveData()
     val activeChargeEvent: LiveData<ChargeEvent?>
         get() = _activeChargeEvent
 
     init {
-        _activeChargeEvent = MutableLiveData()
+        refreshView()
+    }
+
+    /**
+     * Refresh the view by fetching the number of vehicles, and searching for an active charge event ID
+     * If it exists, fetch the charge event
+     * Called by ViewModel init, and also in the MainMenu composable LaunchedEffect
+     */
+    fun refreshView() {
         viewModelScope.launch {
             _vehicleCount = vehicleRepository.getVehicleCount()
-            Log.i("ChargeEventViewModel init", "_vehicleCount = $_vehicleCount")
+            Log.i("ChargeEventViewModel refresh", "_vehicleCount = ${_vehicleCount.value}")
             _selectedVehicle = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
             val activeChargeId =
                 settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
-            Log.i("ChargeEventViewModel init", "activeChargeId = $activeChargeId")
+            Log.i("ChargeEventViewModel refresh", "activeChargeId = $activeChargeId")
             if (activeChargeId != null) {
                 _activeChargeEvent = chargeEventRepository.getLiveChargeEventWithId(activeChargeId)
-                Log.i("ChargeEventViewModel init", "_activeChargeEvent = $_activeChargeEvent")
+                Log.i("ChargeEventViewModel refresh", "_activeChargeEvent = ${_activeChargeEvent.value}")
             }
         }
     }
@@ -50,7 +58,7 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
      * CURRENT_CHARGE_EVENT setting
      */
     fun abortCharging() {
-        Log.e("ChargeEventViewModel", "Aborting charge event ${_activeChargeEvent.value}")
+        Log.i("ChargeEventViewModel", "Aborting charge event ${_activeChargeEvent.value}")
         viewModelScope.launch {
             _activeChargeEvent.value?.apply {
                 chargeEventRepository.deleteChargeEvent(this.id)

@@ -1,5 +1,6 @@
 package org.liamjd.amber.db.repositories
 
+import android.util.Log
 import org.liamjd.amber.db.entities.Setting
 import org.liamjd.amber.db.entities.SettingsDao
 import org.liamjd.amber.db.entities.SettingsKey
@@ -16,7 +17,7 @@ class SettingsRepository(private val settingsDao: SettingsDao) {
      * Update or insert ("upsert")
      */
     suspend fun update(setting: Setting) {
-        println("Tying to update setting $setting")
+        Log.i("SettingsRepository","Updating setting: $setting")
         val existingSetting = settingsDao.getSetting(setting.settingsKey)
         if (existingSetting == null) {
             settingsDao.insert(setting)

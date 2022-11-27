@@ -140,18 +140,30 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                         ) {
                             Text(text = stringResource(R.string.screen_menu_RecordHistoricalCharge))
                         }
+                        Button(onClick = { navController.navigate(Screen.ChargeHistoryScreen.route) }) {
+                            Text(text = stringResource(R.string.screen_menu_chargeHistory))
+                        }
                         Button(
                             onClick = { navController.navigate(Screen.VehicleDetailsScreen.route) }) {
                             Text(stringResource(R.string.screen_menu_Vehicles))
                         }
                         Button(enabled = false,
                             onClick = { /*TODO*/ }) {
-                            Text("Record Journey")
+                            Text(stringResource(R.string.screen_menu_recordJourney))
                         }
                     }
                 }
             },
-            bottomBar = { BottomAppBar() { Text("$vehicleCount vehicles") } }
+            bottomBar = {
+                BottomAppBar() {
+                    Text(
+                        text = stringResource(
+                            id = R.string.screen_vehicleDetails_vehicleCount,
+                            vehicleCount ?: 0
+                        )
+                    )
+                }
+            }
         )
 
 

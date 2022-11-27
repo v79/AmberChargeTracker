@@ -44,4 +44,6 @@
     <string name="screen_menu_abortDialog_dismiss">Dismiss</string>
     <string name="screen_menu_abortDialog_text">This will cancel the current charging event.
 You can us the \'Record Historical Charge\' function to manually enter a charging event.</string>
+    <string name="screen_menu_chargeHistory">Charging history</string>
+    <string name="screen_menu_recordJourney">Record Journey</string>
 </resources>

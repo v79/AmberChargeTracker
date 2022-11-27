@@ -23,7 +23,7 @@ It's been a while since I tried Android development.
   - [X] Check if charge is in progress on startup
   - [X] Restore the timer correctly based on the charge start time
   - [ ] Handle back navigation when charge event is saved (e.g from history screen)
-- [ ] Use `Scaffold` for layout?
+- [X] Use `Scaffold` for layout
 
 ### Features
 

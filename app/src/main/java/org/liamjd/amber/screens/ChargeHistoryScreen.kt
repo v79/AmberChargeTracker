@@ -3,6 +3,7 @@ package org.liamjd.amber.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,11 +24,14 @@ import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.screens.composables.Table
 import org.liamjd.amber.toLocalString
+import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
+import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
 import org.liamjd.amber.viewModels.ChargeHistoryViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryViewModel) {
     val context = LocalContext.current
@@ -37,28 +41,49 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
 
     val filter = viewModel.getEventsWithin(timePeriod).observeAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(4.dp)
-    ) {
-        Heading(text = R.string.screen_chargeHistory_title)
-        // filters
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp)
-        ) {
-            TimeFilterMenu(timePeriod, onSelection = { timePeriod = it })
-        }
-        // table data
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(0.dp)
-        ) {
-            ChargeHistoryTable(filter)
-        }
+    AmberChargeTrackerTheme {
+        Scaffold(topBar = {
+            TopAppBar(
+                title = { Text(stringResource(id = R.string.screen_chargeHistory_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigate(Screen.StartScreen.route) }) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            "Back to main menu"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = md_theme_light_surfaceTint
+                )
+            )
+        },
+            content = { innerPadding ->
+                Column(modifier = Modifier.padding(innerPadding)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(0.dp)
+                    ) {
+                        TimeFilterMenu(timePeriod, onSelection = { timePeriod = it })
+                    }
+                    // table data
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(0.dp)
+                    ) {
+                        ChargeHistoryTable(filter)
+                    }
+                }
+
+            },
+            bottomBar = {
+                BottomAppBar() {
+
+                }
+            }
+        )
     }
 }
 
