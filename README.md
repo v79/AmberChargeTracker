@@ -15,6 +15,7 @@ It's been a while since I tried Android development.
 
 ### Technical improvements
 
+- [ ] Set up database migrations so that I can avoid wiping the DB
 - [ ] field validation - really required for currency and percentages
   - _this did not go well when I tried to do it at the composable text input level, so probably needs to happen at the viewmodel - which would mean hoisting the fields into the VM?_
 - [ ] cross-field validation at viewmodel level?
@@ -28,6 +29,7 @@ It's been a while since I tried Android development.
 ### Features
 
 - [ ] Add better navigation - might come with `Scaffold`?
+- [ ] Enable switching between different vehicles - could be useful to keep dev separate from real, now that the app works in a basic way
 - [ ] charge history table improvements
 - [ ] charge history graphs
 - [ ] Journey recording screens and model
