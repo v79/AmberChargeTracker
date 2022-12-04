@@ -1,5 +1,6 @@
 package org.liamjd.amber.db.repositories
 
+import androidx.lifecycle.LiveData
 import androidx.sqlite.db.SimpleSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import org.liamjd.amber.db.entities.ChargeEvent
@@ -20,7 +21,7 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         val xDaysAgoAsLong = xDaysAgo.toEpochSecond(ZoneOffset.UTC)
         return dao.getEventsWithin(
             SimpleSQLiteQuery(
-                "SELECT * FROM ChargeEvent WHERE dateTime > ? ORDER BY dateTime DESC",
+                "SELECT * FROM ChargeEvent WHERE startDateTime > ? ORDER BY startDateTime DESC",
                 arrayOf(xDaysAgoAsLong)
             )
         )
@@ -30,7 +31,9 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         dao.insert(chargeEvent)
     }
 
-    suspend fun getChargeEventWithId(id: Long): ChargeEvent? = dao.getChargeEventWithId(id)
+    fun getLiveChargeEventWithId(id: Long): LiveData<ChargeEvent?> = dao.getChargeEventWithId(id)
+
+    suspend fun getChargeEventWithId(id: Long) = dao.getExistingChargeEventWithId(id)
 
     suspend fun startChargeEvent(
         vehicleId: Long, startOdo: Int,
@@ -56,5 +59,9 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         cost: Int
     ) {
         dao.updateChargeRecord(id, endTime, endBatteryPct, endBatteryRange, kw, cost)
+    }
+
+    suspend fun deleteChargeEvent(id: Long) {
+        dao.delete(dao.getExistingChargeEventWithId(id))
     }
 }

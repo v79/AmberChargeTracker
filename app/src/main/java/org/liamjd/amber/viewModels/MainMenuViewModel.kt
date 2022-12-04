@@ -1,13 +1,9 @@
 package org.liamjd.amber.viewModels
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import android.util.Log
+import androidx.lifecycle.*
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
-import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.repositories.ChargeEventRepository
@@ -22,24 +18,51 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
 
     private var _selectedVehicle: Long? = null
 
-    private lateinit var _vehicleCount: LiveData<Int>
-
+    private var _vehicleCount: LiveData<Int> = MutableLiveData()
     val vehicleCount: LiveData<Int>
         get() = _vehicleCount
+
     val selectedVehicle: Long?
         get() = _selectedVehicle
 
-    private var _activeChargeEvent = mutableStateOf<ChargeEvent?>(null)
-    val activeChargeEvent
+    private var _activeChargeEvent: LiveData<ChargeEvent?> = MutableLiveData()
+    val activeChargeEvent: LiveData<ChargeEvent?>
         get() = _activeChargeEvent
 
     init {
+        refreshView()
+    }
+
+    /**
+     * Refresh the view by fetching the number of vehicles, and searching for an active charge event ID
+     * If it exists, fetch the charge event
+     * Called by ViewModel init, and also in the MainMenu composable LaunchedEffect
+     */
+    fun refreshView() {
         viewModelScope.launch {
             _vehicleCount = vehicleRepository.getVehicleCount()
+            Log.i("ChargeEventViewModel refresh", "_vehicleCount = ${_vehicleCount.value}")
             _selectedVehicle = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
-           val activeChargeId  = settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
-            if(activeChargeId != null) {
-                _activeChargeEvent.value = chargeEventRepository.getChargeEventWithId(activeChargeId)
+            val activeChargeId =
+                settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
+            Log.i("ChargeEventViewModel refresh", "activeChargeId = $activeChargeId")
+            if (activeChargeId != null) {
+                _activeChargeEvent = chargeEventRepository.getLiveChargeEventWithId(activeChargeId)
+                Log.i("ChargeEventViewModel refresh", "_activeChargeEvent = ${_activeChargeEvent.value}")
+            }
+        }
+    }
+
+    /**
+     * Abort the current charge event, deleting the row from the ChargeEvent table, and clearing the
+     * CURRENT_CHARGE_EVENT setting
+     */
+    fun abortCharging() {
+        Log.i("ChargeEventViewModel", "Aborting charge event ${_activeChargeEvent.value}")
+        viewModelScope.launch {
+            _activeChargeEvent.value?.apply {
+                chargeEventRepository.deleteChargeEvent(this.id)
+                settingsRepository.clear(SettingsKey.CURRENT_CHARGE_EVENT)
             }
         }
     }

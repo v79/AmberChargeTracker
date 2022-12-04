@@ -37,4 +37,13 @@
     <string name="screen_menu_Vehicles">Vehicles</string>
     <string name="screen_menu_ChargeHistory">Charge History</string>
     <string name="screen_menu_fab_RecordCharge_desc">Record charge</string>
+    <string name="screen_menu_abortCharge">Abort</string>
+    <string name="toast_attemptingToSave">Attempting to save</string>
+    <string name="screen_menu_abortDialog_title">Abort charging?</string>
+    <string name="screen_menu_abortDialog_abort">Abort</string>
+    <string name="screen_menu_abortDialog_dismiss">Dismiss</string>
+    <string name="screen_menu_abortDialog_text">This will cancel the current charging event.
+You can us the \'Record Historical Charge\' function to manually enter a charging event.</string>
+    <string name="screen_menu_chargeHistory">Charging history</string>
+    <string name="screen_menu_recordJourney">Record Journey</string>
 </resources>

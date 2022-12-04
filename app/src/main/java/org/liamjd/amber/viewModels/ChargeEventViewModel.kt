@@ -16,8 +16,10 @@ import org.liamjd.amber.db.repositories.VehicleRepository
 import org.liamjd.amber.screens.Screen
 import org.liamjd.amber.screens.state.UIState
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 
-class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
+class ChargeEventViewModel(application: AmberApplication, private val activeChargeId: Long?) :
+    ViewModel() {
 
     private val preferences = application.applicationContext.getSharedPreferences(
         application.applicationContext.resources.getString(R.string.CONFIG), Context.MODE_PRIVATE
@@ -38,7 +40,7 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
     val odo = mutableStateOf(0)
 
     var chargingStatus by mutableStateOf(RecordChargingStatus.NOT_STARTED)
-    var chargingSeconds = mutableStateOf(0)
+    var chargingSeconds = mutableStateOf(0L)
 
     var startModel = MutableLiveData(
         StartingChargeEventModel(
@@ -50,16 +52,18 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
     )
     var endModel = MutableLiveData(EndingChargeEventModel(LocalDateTime.now(), 0, 0, 0f, 0))
 
-
     /**
      * On init, fetch the currently selected vehicle from the database
      * It should have a value and not be -1 because we shouldn't be able to get to this screen if it is -1
      */
     init {
+
+        Log.i("ChargeEventViewModel init", "Arrived with Active Charge ID = $activeChargeId")
+
         viewModelScope.launch {
             _selectedVehicle.value =
                 settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue ?: -1
-            Log.e(
+            Log.i(
                 "ChargeEventViewModel init",
                 "Selected vehicle is ${_selectedVehicle.value}"
             )
@@ -72,6 +76,32 @@ class ChargeEventViewModel(application: AmberApplication) : ViewModel() {
             } else {
                 odo.value = vehicleRepository.getCurrentOdometer(selectedVehicle)
             }
+
+            if (activeChargeId != null) {
+                Log.i("ChargeEventViewModel init","Looking for charge event with ID $activeChargeId")
+                val existingChargeEvent = chargeEventRepository.getChargeEventWithId(activeChargeId)
+                Log.i("ChargeEventViewModel init", existingChargeEvent.toString())
+                chargingStatus = RecordChargingStatus.CHARGING
+                val nowSeconds = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                existingChargeEvent.apply {
+                    startModel.value = StartingChargeEventModel(
+                        dateTime = this.startDateTime,
+                        this.odometer,
+                        this.batteryStartingRange,
+                        this.batteryStartingPct
+                    )
+                    chargingSeconds.value =
+                        nowSeconds - this.startDateTime.toEpochSecond(ZoneOffset.UTC)
+                }
+            } else {
+                startModel.value = StartingChargeEventModel(
+                    dateTime = LocalDateTime.now(),
+                    odometer = odo.value,
+                    range = 50,
+                    percentage = 25
+                )
+            }
+
             _uiState.value = UIState.Active
         }
     }
@@ -178,12 +208,16 @@ enum class RecordChargingStatus {
  * Because the ViewModel has a dependency on the repository, and I am not using Hilt for DI, I need this factory
  * https://developer.android.com/topic/libraries/architecture/viewmodel#kotlin
  */
-class ChargeEventVMFactory(private val application: AmberApplication) :
+class ChargeEventVMFactory(
+    private val application: AmberApplication,
+    private val activeChargeId: String?
+) :
     ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        val chargeId = activeChargeId?.toLongOrNull()
         if (modelClass.isAssignableFrom(ChargeEventViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ChargeEventViewModel(application) as T
+            return ChargeEventViewModel(application, chargeId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
@@ -209,18 +243,3 @@ data class EndingChargeEventModel(
     val kw: Float,
     val cost: Int,
 )
-
-//data class ChargeEventVM(
-//    val chargeDateTime: LocalDateTime = LocalDateTime.now(),
-//    var odometer: String = "",
-//    var batteryStartRange: String = "100",
-//    var batteryStartPct: String = "50",
-//    var batteryEndRange: String = "200",
-//    var batteryEndPct: String = "80",
-//    var chargeDuration: String = "30",
-//    var minimumFee: String = "1.00",
-//    var costPerKWH: String = "0.15",
-//    var totalCost: String = "0",
-//    var kw: Int = 22,
-//    var hasError: Boolean = false
-//)
