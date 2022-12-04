@@ -10,6 +10,7 @@ It's been a while since I tried Android development.
 - [X] Ability to abort a charge event
 - [X] Prevent editing of starting values on active charge event
 - [X] Fix main menu still showing charge event after it's finished
+- [X] Correctly handle startup if vehicles exist but SharedPreferences does not - or maybe **store selected vehicle etc in DB instead**?
 - [ ] Saving total cost of a charge event
   - need to parse input string like "1.50" correctly, currently it fails and returns 0
 - [X] Text styling on real device - black on black is hard to read...
@@ -31,8 +32,12 @@ It's been a while since I tried Android development.
 
 - [ ] Add better navigation - might come with `Scaffold`?
 - [ ] Enable switching between different vehicles - could be useful to keep dev separate from real, now that the app works in a basic way
+- [ ] cross-field validation at ViewModel level?
+- [ ] Charging screen improvements
+  - [] Should persist across process death
+  - [X] Check if charge is in progress on startup
+  - [ ] Restore the timer correctly based on the charge start time
 - [ ] charge history table improvements
 - [ ] charge history graphs
 - [ ] Journey recording screens and model
 - [ ] Android Auto integration
-
