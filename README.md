@@ -12,6 +12,7 @@ It's been a while since I tried Android development.
 - [X] Fix main menu still showing charge event after it's finished
 - [ ] Saving total cost of a charge event
   - need to parse input string like "1.50" correctly, currently it fails and returns 0
+- [X] Text styling on real device - black on black is hard to read...
 
 ### Technical improvements
 

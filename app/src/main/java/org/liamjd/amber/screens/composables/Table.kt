@@ -1,6 +1,8 @@
 package org.liamjd.amber.screens.composables
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -12,7 +14,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -21,6 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.liamjd.amber.ui.theme.md_theme_dark_onSurface
+import org.liamjd.amber.ui.theme.md_theme_light_onSurface
 
 
 /**
@@ -52,7 +55,13 @@ fun <T> Table(
                 Column {
                     (0..data.size).forEach { index ->
                         Surface(
-                            border = BorderStroke(1.dp, Color.LightGray),
+                            border = BorderStroke(
+                                1.dp, if (isSystemInDarkTheme()) {
+                                    md_theme_dark_onSurface
+                                } else {
+                                    md_theme_light_onSurface
+                                }
+                            ),
                             modifier = Modifier.width(cellWidth(columnIndex))
                         ) {
                             if (index == 0) {
@@ -68,7 +77,11 @@ fun <T> Table(
     }
 }
 
-@Preview(name = "LazyVerticalGrid use GridCells.Fixed")
+@Preview(
+    name = "LazyVerticalGrid use GridCells.Fixed",
+    showBackground = true,
+    uiMode = UI_MODE_NIGHT_YES
+)
 @Composable
 fun DemoScrollableTable_RowAndColumn() {
     val people = listOf(
@@ -102,25 +115,25 @@ fun DemoScrollableTable_RowAndColumn() {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             fontWeight = FontWeight.Black,
-            textDecoration = TextDecoration.Underline
+            textDecoration = TextDecoration.Underline,
         )
     }
     val cellText: @Composable (Int, Person) -> Unit = { index, item ->
-            val value = when (index) {
-                0 -> item.name
-                1 -> item.age.toString()
-                2 -> if (item.hasDrivingLicence) "YES" else "NO"
-                3 -> item.email
-                else -> ""
-            }
-            Text(
-                text = value,
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(16.dp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+        val value = when (index) {
+            0 -> item.name
+            1 -> item.age.toString()
+            2 -> if (item.hasDrivingLicence) "YES" else "NO"
+            3 -> item.email
+            else -> ""
+        }
+        Text(
+            text = value,
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(16.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 
     Table(

@@ -1,6 +1,8 @@
 package org.liamjd.amber.screens
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -12,20 +14,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
-import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.screens.composables.Table
 import org.liamjd.amber.toLocalString
-import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
-import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
+import org.liamjd.amber.ui.theme.*
 import org.liamjd.amber.viewModels.ChargeHistoryViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -76,10 +79,9 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                         ChargeHistoryTable(filter)
                     }
                 }
-
             },
             bottomBar = {
-                BottomAppBar() {
+                BottomAppBar {
 
                 }
             }
@@ -87,8 +89,8 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
     }
 }
 
-@Preview
 @Composable
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 fun TimeFilterMenu(timePeriod: Int = 0, onSelection: (Int) -> Unit = {}) {
     var timeFilterExpanded by remember { mutableStateOf(false) }
     val label = if (timePeriod in 1..90) {
@@ -121,9 +123,27 @@ fun TimeFilterMenu(timePeriod: Int = 0, onSelection: (Int) -> Unit = {}) {
     }
 }
 
+/**
+ * Dummy data for previewing the charge history table
+ */
+class ChargeHistoryPreviewStub : PreviewParameterProvider<State<List<ChargeEvent>?>> {
+    private val eventList: List<ChargeEvent> = listOf(
+        ChargeEvent(123, "85", "125", "43", "56", 1L, 22.0f, 174),
+        ChargeEvent(195, "94", "178", "48", "89", 1L, 50.0f, 257)
+    )
+    override val values: Sequence<State<List<ChargeEvent>?>>
+        get() = sequenceOf(mutableStateOf(eventList))
+}
+
 @Composable
-fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>?>) {
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) chargeEvents: State<List<ChargeEvent>?>) {
     val now = LocalDateTime.now()
+    val headingTextColour = if (isSystemInDarkTheme()) {
+        md_theme_dark_background
+    } else {
+        md_theme_light_background
+    }
     val cellWidth: (Int) -> Dp = { index ->
         when (index) {
             // use specific index to vary column width
@@ -149,8 +169,10 @@ fun ChargeHistoryTable(chargeEvents: State<List<ChargeEvent>?>) {
             text = value,
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            color = headingTextColour
         )
     }
 

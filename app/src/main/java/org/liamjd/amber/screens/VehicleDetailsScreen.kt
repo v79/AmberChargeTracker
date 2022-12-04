@@ -2,8 +2,10 @@ package org.liamjd.amber.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -29,13 +32,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.Vehicle
-import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.screens.composables.Table
 import org.liamjd.amber.toIntOrZero
-import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
-import org.liamjd.amber.ui.theme.md_theme_light_onSurface
-import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
+import org.liamjd.amber.ui.theme.*
 import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -43,11 +43,9 @@ import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 @Composable
 fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetailsViewModel) {
     val context = LocalContext.current
-
     val totalVehicles by viewModel.vehicleCount.observeAsState()
 
     AmberChargeTrackerTheme {
-
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -78,7 +76,7 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                     }
                 }
             },
-            bottomBar = { BottomAppBar() { Text("$totalVehicles vehicles registered") } }
+            bottomBar = { BottomAppBar { Text("$totalVehicles vehicles registered") } }
         )
     }
 }
@@ -92,9 +90,14 @@ fun ShowCurrentVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
     }
 }
 
-@Preview
 @Composable
+@Preview(uiMode = UI_MODE_NIGHT_YES, showBackground = true)
 fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176)) {
+    val headingTextColour = if (isSystemInDarkTheme()) {
+        md_theme_dark_background
+    } else {
+        md_theme_light_background
+    }
     val cellWidth: (Int) -> Dp = { index ->
         when (index) {
             0 -> 125.dp
@@ -118,8 +121,10 @@ fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176)
             text = value,
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            color = headingTextColour
         )
     }
 
