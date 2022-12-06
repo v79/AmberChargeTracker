@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Entity
-data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int) {
+data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int, val registration: String) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
 }

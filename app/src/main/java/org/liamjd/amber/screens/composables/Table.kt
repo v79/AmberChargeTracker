@@ -56,7 +56,7 @@ fun <T> Table(
                     (0..data.size).forEach { index ->
                         Surface(
                             border = BorderStroke(
-                                1.dp, if (isSystemInDarkTheme()) {
+                                width = 1.dp, color = if (isSystemInDarkTheme()) {
                                     md_theme_dark_onSurface
                                 } else {
                                     md_theme_light_onSurface
@@ -88,7 +88,7 @@ fun DemoScrollableTable_RowAndColumn() {
         Person("Alex", 21, false, "alex@demo-email.com"),
         Person("Adam", 35, true, "adam@demo-email.com"),
         Person("Iris", 26, false, "iris@demo-email.com"),
-        Person("Maria", 32, false, "maria@demo-email.com")
+        Person("Maria Sugarcane", 32, false, "maria@demo-email.com")
     )
 
     val cellWidth: (Int) -> Dp = { index ->
@@ -130,9 +130,9 @@ fun DemoScrollableTable_RowAndColumn() {
             text = value,
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(16.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(8.dp),
+            maxLines = 2,
+            overflow = TextOverflow.Visible,
         )
     }
 

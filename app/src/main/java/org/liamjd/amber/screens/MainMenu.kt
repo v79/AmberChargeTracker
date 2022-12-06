@@ -256,7 +256,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun StartChargeFab(navController: NavController = rememberNavController()) {
     FloatingActionButton(onClick = { navController.navigate(Screen.StartChargingScreen.route) }) {

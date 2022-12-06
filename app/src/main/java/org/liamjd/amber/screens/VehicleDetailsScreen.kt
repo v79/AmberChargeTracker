@@ -3,8 +3,10 @@ package org.liamjd.amber.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,7 +20,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -65,7 +69,7 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                     )
                 )
             },
-            content = {  innerPadding ->
+            content = { innerPadding ->
                 Column(modifier = Modifier.padding(innerPadding)) {
                     Row(modifier = Modifier.fillMaxHeight()) {
                         if (totalVehicles == null || totalVehicles == 0) {
@@ -76,7 +80,19 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                     }
                 }
             },
+            floatingActionButtonPosition = FabPosition.End,
+            floatingActionButton = { AddViewVehicleFab() },
             bottomBar = { BottomAppBar { Text("$totalVehicles vehicles registered") } }
+        )
+    }
+}
+
+@Composable
+fun AddViewVehicleFab() {
+    FloatingActionButton(onClick = { }) {
+        Icon(
+            painterResource(id = R.drawable.ic_baseline_electric_car_24),
+            "Add new vehicle"
         )
     }
 }
@@ -92,7 +108,8 @@ fun ShowCurrentVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
 
 @Composable
 @Preview(uiMode = UI_MODE_NIGHT_YES, showBackground = true)
-fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176)) {
+fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176, "MNY 99 BGS")) {
+
     val headingTextColour = if (isSystemInDarkTheme()) {
         md_theme_dark_background
     } else {
@@ -102,15 +119,15 @@ fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176)
         when (index) {
             0 -> 125.dp
             1 -> 100.dp
-            2 -> 100.dp
+            2 -> 75.dp
             else -> 100.dp
         }
     }
 
     val headerCellTitle: @Composable (Int) -> Unit = { index ->
         val value = when (index) {
-            0 -> "Manufacturer"
-            1 -> "Model"
+            0 -> "Model"
+            1 -> "Registration"
             2 -> "Odometer"
             else -> ""
         }
@@ -130,8 +147,8 @@ fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176)
 
     val tableContent: @Composable (Int, Vehicle) -> Unit = { index, item ->
         val value: String = when (index) {
-            0 -> item.manufacturer
-            1 -> item.model
+            0 -> "${item.manufacturer}\n${item.model}"
+            1 -> item.registration
             2 -> item.odometerReading.toString()
             else -> ""
         }
@@ -140,14 +157,22 @@ fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176)
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(8.dp),
-            maxLines = 2
+            maxLines = 2,
+            overflow = TextOverflow.Clip
         )
 
     }
 
     Table(
         columnCount = 3, cellWidth = cellWidth, data = listOf(vehicle),
-        headerCellContent = headerCellTitle, cellContent = tableContent
+        headerCellContent = headerCellTitle, cellContent = tableContent,
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(
+                onLongPress = {
+                    Log.i("VehicleTable","Long press detected")
+                }
+            )
+        }
     )
 }
 
@@ -158,6 +183,7 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
     var vehicleManufacturer by remember { mutableStateOf("") }
     var vehicleModel by remember { mutableStateOf("") }
     var vehicleOdometerReading by remember { mutableStateOf("") }
+    var vehicleRegistration by remember { mutableStateOf("") }
     var entryEnabled by rememberSaveable { mutableStateOf(true) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -192,6 +218,16 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
             label = R.string.screen_vehicleDetails_currentOdo
         )
 
+        OutlinedTextField(value = vehicleRegistration, onValueChange = { vehicleRegistration = it },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            enabled = entryEnabled,
+            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
+            label = { Text("Registration") })
+
         FilledIconButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
@@ -206,6 +242,7 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                         vehicleManufacturer,
                         vehicleModel,
                         vehicleOdometerReading.toIntOrZero(),
+                        vehicleRegistration
                     )
                 viewModel.insert(newVehicle)
             }) {
@@ -220,6 +257,5 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                 Text(stringResource(id = R.string.screen_vehicleDetails_saveDescription))
             }
         }
-
     }
 }

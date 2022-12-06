@@ -2,20 +2,23 @@ package org.liamjd.amber.db
 
 import android.content.Context
 import androidx.room.*
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.liamjd.amber.db.entities.*
 
 @Database(
-    entities = [ChargeEvent::class, Vehicle::class, Setting::class], version = 15, exportSchema = true
+    entities = [ChargeEvent::class, Vehicle::class, Setting::class],
+    version = 16,
+    exportSchema = true
 )
 @TypeConverters(DBConverters::class)
 abstract class AmberDatabase : RoomDatabase() {
 
     abstract fun chargeEventDao(): ChargeEventDao
     abstract fun vehicleDao(): VehicleDao
-    abstract fun settingsDao() : SettingsDao
+    abstract fun settingsDao(): SettingsDao
 
     companion object {
         @Volatile
@@ -28,11 +31,19 @@ abstract class AmberDatabase : RoomDatabase() {
                     AmberDatabase::class.java,
                     "amber_database"
                 )
+                    .addMigrations(MIGRATION_15_16_addVehicleReg)
                     .addCallback(
                         AmberDatabaseCallback(scope)
-                    ).fallbackToDestructiveMigration().build()
+                    ).build()
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        // migrations
+        val MIGRATION_15_16_addVehicleReg = object : Migration(15, 16) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE Vehicle ADD COLUMN registration TEXT NOT NULL DEFAULT '' ")
             }
         }
     }
@@ -42,8 +53,8 @@ abstract class AmberDatabase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 scope.launch {
-                    database.vehicleDao().insert(Vehicle("Volkswagen", "iD.3", 275))
                     // populate database with fake data? Or other data setup tasks
+//                    database.vehicleDao().insert(Vehicle("Volkswagen", "iD.3", 275))
                 }
             }
         }
