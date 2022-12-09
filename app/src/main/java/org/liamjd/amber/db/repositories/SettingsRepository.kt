@@ -20,8 +20,10 @@ class SettingsRepository(private val settingsDao: SettingsDao) {
         Log.i("SettingsRepository","Updating setting: $setting")
         val existingSetting = settingsDao.getSetting(setting.settingsKey)
         if (existingSetting == null) {
+            Log.i("SetttingsRepository","Inserting new ${setting.settingsKey} as none found")
             settingsDao.insert(setting)
         } else {
+            Log.i("SetttingsRepository","Updating ${setting.settingsKey} with new values ($setting)")
             settingsDao.clearSetting(setting.settingsKey)
             // urgh
             settingsDao.updateLongValue(setting.settingsKey,setting.lValue)

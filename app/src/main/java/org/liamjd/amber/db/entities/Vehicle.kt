@@ -2,6 +2,7 @@ package org.liamjd.amber.db.entities
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Entity
 data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int, val registration: String) {
@@ -39,6 +40,9 @@ interface VehicleDao {
 
     @Query("UPDATE Vehicle SET odometerReading = :odometer WHERE id = :vehicleId")
     suspend fun updateOdometer(vehicleId: Long, odometer: Int)
+
+    @Query("SELECT * FROM Vehicle ORDER BY Manufacturer")
+    fun getAll(): Flow<List<Vehicle>>
 
 }
 

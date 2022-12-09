@@ -2,8 +2,12 @@ package org.liamjd.amber.viewModels
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.R
@@ -22,30 +26,62 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
         application.applicationContext.resources.getString(R.string.CONFIG), Context.MODE_PRIVATE
     )
 
-    lateinit var selectedVehicle: LiveData<Vehicle>
+    private var selectedVehicle: LiveData<Vehicle>? = null
     private var _selectedVehicleId: MutableLiveData<Long> = MutableLiveData<Long>()
+    val selectedVehicleId
+        get() = _selectedVehicleId.value
+
+    private var _mode = mutableStateOf(VehicleDetailsMode.LIST)
+    val mode
+        get() = _mode
+
+    var vehicleCount: LiveData<Int> = repository.getVehicleCount()
+
+    var vehicles by mutableStateOf(emptyList<Vehicle>())
 
 
     init {
+        getVehicles()
         viewModelScope.launch(Dispatchers.IO) {
             val mostRecentVehicleId = repository.getMostRecentVehicleId()
-            mostRecentVehicleId?.let {
+            Log.i("VehicleDetailsViewModel INIT:","mostRecentVehicleId: $mostRecentVehicleId")
+            val selectedVehicleIdFromSettings = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)
+            Log.i("VehicleDetailsViewModel INIT:","selectedVehicleIdFromSettings: $selectedVehicleIdFromSettings")
+
+            selectedVehicleIdFromSettings?.lValue?.let {
                 _selectedVehicleId.postValue(it)
                 selectedVehicle = repository.getVehicleById(it)
             }
 
-            _selectedVehicleId.postValue(
-                settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue ?: -1L
-            )
-
+        //            mostRecentVehicleId?.let {
+//                _selectedVehicleId.postValue(it)
+//                selectedVehicle = repository.getVehicleById(it)
+//            }
+//
+//            _selectedVehicleId.postValue(
+//                settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue ?: -1L
+//            )
+//            Log.i("VehicleDetailsViewModel INIT","mostRecentVehicleId: $mostRecentVehicleId, _selectedVehicleId: ${_selectedVehicleId.value}, selectedVehicle: ${selectedVehicle?.value}")
         }
-
+        if (vehicleCount.value == 0) {
+            _mode.value = VehicleDetailsMode.ADD
+        }
     }
 
-    var vehicleCount: LiveData<Int> = repository.getVehicleCount()
+    fun addNewVehicle() {
+        _mode.value = VehicleDetailsMode.ADD
+    }
+
+    private fun getVehicles() {
+        viewModelScope.launch {
+            repository.getAllVehicles().collect { response ->
+                vehicles = response
+            }
+        }
+    }
 
     /**
-     * Insert the new vehicle and immediately set it as the currently selected vehicle, storing that value in SharedPreferences
+     * Insert the new vehicle and immediately set it as the currently selected vehicle, storing that value in the Settings database table
      */
     fun insert(vehicle: Vehicle) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -57,6 +93,7 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
                 "VehicleDetailsViewModel",
                 "Saved selectedVehicle ID = $primaryKey to Settings ${SettingsKey.SELECTED_VEHICLE.keyString}"
             )
+            _mode.value = VehicleDetailsMode.LIST
         }
     }
 
@@ -67,6 +104,12 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
     }
 }
 
+enum class VehicleDetailsMode {
+    LIST,
+    ADD,
+    DELETE,
+    EDIT
+}
 
 class VehicleDetailsViewModelFactory(private val application: AmberApplication) :
     ViewModelProvider.NewInstanceFactory() {

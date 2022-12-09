@@ -5,10 +5,14 @@ import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -40,6 +44,7 @@ import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.screens.composables.Table
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.*
+import org.liamjd.amber.viewModels.VehicleDetailsMode
 import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -48,6 +53,7 @@ import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetailsViewModel) {
     val context = LocalContext.current
     val totalVehicles by viewModel.vehicleCount.observeAsState()
+    val mode by viewModel.mode
 
     AmberChargeTrackerTheme {
         Scaffold(
@@ -64,32 +70,35 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = md_theme_light_surfaceTint
-                    )
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = md_theme_light_surfaceTint)
                 )
             },
             content = { innerPadding ->
                 Column(modifier = Modifier.padding(innerPadding)) {
                     Row(modifier = Modifier.fillMaxHeight()) {
-                        if (totalVehicles == null || totalVehicles == 0) {
-                            AddVehicle(context, viewModel)
-                        } else {
-                            ShowCurrentVehicle(context, viewModel)
+                        when (mode) {
+                            VehicleDetailsMode.ADD -> {
+                                AddVehicle(context, viewModel)
+                            }
+                            VehicleDetailsMode.LIST -> {
+                                ShowAllVehicles(viewModel.vehicles, viewModel.selectedVehicleId)
+                            }
+                            VehicleDetailsMode.DELETE -> TODO()
+                            VehicleDetailsMode.EDIT -> TODO()
                         }
                     }
                 }
             },
             floatingActionButtonPosition = FabPosition.End,
-            floatingActionButton = { AddViewVehicleFab() },
+            floatingActionButton = { AddViewVehicleFab(viewModel) },
             bottomBar = { BottomAppBar { Text("$totalVehicles vehicles registered") } }
         )
     }
 }
 
 @Composable
-fun AddViewVehicleFab() {
-    FloatingActionButton(onClick = { }) {
+fun AddViewVehicleFab(viewModel: VehicleDetailsViewModel) {
+    FloatingActionButton(onClick = { viewModel.addNewVehicle() }) {
         Icon(
             painterResource(id = R.drawable.ic_baseline_electric_car_24),
             "Add new vehicle"
@@ -97,12 +106,65 @@ fun AddViewVehicleFab() {
     }
 }
 
+@Preview
 @Composable
-fun ShowCurrentVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
-    val selectedVehicle = viewModel.selectedVehicle.observeAsState()
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row { Text(text = "Current Vehicle ${selectedVehicle.value?.id}") }
-        selectedVehicle.value?.let { VehicleTable(vehicle = it) }
+fun ShowAllVehicles(
+    vehicles: List<Vehicle> = listOf(
+        Vehicle("Audi", "A1", 334, "AD11ADU").apply { id = 1L },
+        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD").apply { id = 2L },
+        Vehicle("Mercedes", "S-Class", 61423, "M415HAD").apply { id = 3L }
+    ),
+    selectedVehicleId: Long? = 2L
+) {
+    Column {
+        Text("Selected vehicle: $selectedVehicleId")
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .padding(2.dp)
+                .fillMaxSize()
+        ) {
+            items(vehicles) { vehicle ->
+                val isSelected = (vehicle.id == selectedVehicleId)
+                VehicleCard(vehicle, isSelected)
+            }
+        }
+    }
+    /* val selectedVehicle = viewModel.selectedVehicle?.observeAsState()
+     if (selectedVehicle != null) {
+         selectedVehicle.value?.let {
+             Column(modifier = Modifier.fillMaxWidth()) {
+                 Row { Text(text = "Current Vehicle ${it.id}") }
+                 VehicleTable(vehicle = it)
+             }
+         }
+     }*/
+}
+
+@Preview
+@Composable
+fun VehicleCard(
+    vehicle: Vehicle = Vehicle("Rolls", "Royce", 54123, "MN66BGS"),
+    isSelected: Boolean = true
+) {
+    Card(
+        shape = MaterialTheme.shapes.medium, modifier = Modifier
+            .padding(4.dp)
+            .size(width = 150.dp, height = 150.dp),
+        elevation = CardDefaults.cardElevation(3.dp),
+        border = if (isSelected) {
+            BorderStroke(2.dp, Color.Green)
+        } else {
+            BorderStroke(0.dp, Color.Gray)
+        }
+    ) {
+        Row {
+            Column {
+                Text(text = vehicle.id.toString())
+                Text(text = vehicle.manufacturer)
+                Text(text = vehicle.model)
+            }
+        }
     }
 }
 
@@ -169,7 +231,7 @@ fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176,
         modifier = Modifier.pointerInput(Unit) {
             detectTapGestures(
                 onLongPress = {
-                    Log.i("VehicleTable","Long press detected")
+                    Log.i("VehicleTable", "Long press detected")
                 }
             )
         }
@@ -197,7 +259,6 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                 imeAction = ImeAction.Next
             ),
             enabled = entryEnabled,
-            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
             label = { Text(stringResource(R.string.vehicle_manufacturer)) }
         )
 
@@ -208,7 +269,6 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                 imeAction = ImeAction.Next
             ),
             enabled = entryEnabled,
-            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
             label = { Text(stringResource(R.string.vehicle_model)) })
 
         NumberTextField(
@@ -225,7 +285,6 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                 imeAction = ImeAction.Next
             ),
             enabled = entryEnabled,
-            colors = TextFieldDefaults.outlinedTextFieldColors(textColor = md_theme_light_onSurface),
             label = { Text("Registration") })
 
         FilledIconButton(
