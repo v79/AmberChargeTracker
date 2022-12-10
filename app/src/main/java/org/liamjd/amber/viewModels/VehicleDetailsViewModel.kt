@@ -29,7 +29,7 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
     private var selectedVehicle: LiveData<Vehicle>? = null
     private var _selectedVehicleId: MutableLiveData<Long> = MutableLiveData<Long>()
     val selectedVehicleId
-        get() = _selectedVehicleId.value
+        get() = _selectedVehicleId
 
     private var _mode = mutableStateOf(VehicleDetailsMode.LIST)
     val mode
@@ -44,16 +44,19 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
         getVehicles()
         viewModelScope.launch(Dispatchers.IO) {
             val mostRecentVehicleId = repository.getMostRecentVehicleId()
-            Log.i("VehicleDetailsViewModel INIT:","mostRecentVehicleId: $mostRecentVehicleId")
-            val selectedVehicleIdFromSettings = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)
-            Log.i("VehicleDetailsViewModel INIT:","selectedVehicleIdFromSettings: $selectedVehicleIdFromSettings")
+            Log.i("VehicleDetailsViewModel INIT:", "mostRecentVehicleId: $mostRecentVehicleId")
+            val selectedVehicleIdFromSettings =
+                settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)
+            Log.i(
+                "VehicleDetailsViewModel INIT:",
+                "selectedVehicleIdFromSettings: $selectedVehicleIdFromSettings"
+            )
 
             selectedVehicleIdFromSettings?.lValue?.let {
-                _selectedVehicleId.postValue(it)
-                selectedVehicle = repository.getVehicleById(it)
+                updateSelectedVehicle(it)
             }
 
-        //            mostRecentVehicleId?.let {
+            //            mostRecentVehicleId?.let {
 //                _selectedVehicleId.postValue(it)
 //                selectedVehicle = repository.getVehicleById(it)
 //            }
@@ -70,6 +73,14 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
 
     fun addNewVehicle() {
         _mode.value = VehicleDetailsMode.ADD
+    }
+
+    fun updateSelectedVehicle(newVehicleId: Long) {
+        _selectedVehicleId.postValue(newVehicleId)
+        selectedVehicle = repository.getVehicleById(newVehicleId)
+        viewModelScope.launch {
+            settingsRepository.update(Setting(SettingsKey.SELECTED_VEHICLE, lValue = newVehicleId))
+        }
     }
 
     private fun getVehicles() {

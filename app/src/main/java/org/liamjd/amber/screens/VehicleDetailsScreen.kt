@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -42,6 +41,7 @@ import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.screens.composables.Table
+import org.liamjd.amber.screens.composables.VehicleCard
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.*
 import org.liamjd.amber.viewModels.VehicleDetailsMode
@@ -54,6 +54,7 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
     val context = LocalContext.current
     val totalVehicles by viewModel.vehicleCount.observeAsState()
     val mode by viewModel.mode
+    val selectedVehicleId by viewModel.selectedVehicleId.observeAsState()
 
     AmberChargeTrackerTheme {
         Scaffold(
@@ -81,7 +82,21 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                                 AddVehicle(context, viewModel)
                             }
                             VehicleDetailsMode.LIST -> {
-                                ShowAllVehicles(viewModel.vehicles, viewModel.selectedVehicleId)
+                                viewModel.selectedVehicleId.value?.let {
+                                    Column {
+                                        Row {
+                                            Text("Selected vehicle: $selectedVehicleId")
+                                        }
+                                        Row(horizontalArrangement = Arrangement.Center) {
+                                            ShowAllVehicles(
+                                                vehicles = viewModel.vehicles,
+                                                selectedVehicleId = it
+                                            ) { newVehicleId ->
+                                                viewModel.updateSelectedVehicle(newVehicleId)
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             VehicleDetailsMode.DELETE -> TODO()
                             VehicleDetailsMode.EDIT -> TODO()
@@ -106,7 +121,7 @@ fun AddViewVehicleFab(viewModel: VehicleDetailsViewModel) {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun ShowAllVehicles(
     vehicles: List<Vehicle> = listOf(
@@ -114,20 +129,37 @@ fun ShowAllVehicles(
         Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD").apply { id = 2L },
         Vehicle("Mercedes", "S-Class", 61423, "M415HAD").apply { id = 3L }
     ),
-    selectedVehicleId: Long? = 2L
+    selectedVehicleId: Long = 2L,
+    updateSelectedVehicle: (Long) -> Unit = {}
 ) {
-    Column {
-        Text("Selected vehicle: $selectedVehicleId")
+    var chosenVehicleId by remember {
+        mutableStateOf(selectedVehicleId)
+    }
+    val selectButtonEnabled by remember(chosenVehicleId) { derivedStateOf { chosenVehicleId != selectedVehicleId } }
+    val onItemClick = { index: Long -> chosenVehicleId = index }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier
                 .padding(2.dp)
-                .fillMaxSize()
         ) {
             items(vehicles) { vehicle ->
-                val isSelected = (vehicle.id == selectedVehicleId)
-                VehicleCard(vehicle, isSelected)
+                VehicleCard(vehicle, isSelected = chosenVehicleId == vehicle.id, onClickAction = {
+                    chosenVehicleId = it
+                    Log.i(
+                        "VehicleDetailsScreen",
+                        "Clicked on car $chosenVehicleId (selectedVehicle was $selectedVehicleId)"
+                    )
+                    onItemClick.invoke(it)
+                })
             }
+        }
+        ElevatedButton(
+            onClick = { updateSelectedVehicle.invoke(chosenVehicleId) },
+            enabled = selectButtonEnabled
+        ) {
+            Text("Select vehicle $chosenVehicleId")
         }
     }
     /* val selectedVehicle = viewModel.selectedVehicle?.observeAsState()
@@ -139,33 +171,6 @@ fun ShowAllVehicles(
              }
          }
      }*/
-}
-
-@Preview
-@Composable
-fun VehicleCard(
-    vehicle: Vehicle = Vehicle("Rolls", "Royce", 54123, "MN66BGS"),
-    isSelected: Boolean = true
-) {
-    Card(
-        shape = MaterialTheme.shapes.medium, modifier = Modifier
-            .padding(4.dp)
-            .size(width = 150.dp, height = 150.dp),
-        elevation = CardDefaults.cardElevation(3.dp),
-        border = if (isSelected) {
-            BorderStroke(2.dp, Color.Green)
-        } else {
-            BorderStroke(0.dp, Color.Gray)
-        }
-    ) {
-        Row {
-            Column {
-                Text(text = vehicle.id.toString())
-                Text(text = vehicle.manufacturer)
-                Text(text = vehicle.model)
-            }
-        }
-    }
 }
 
 @Composable

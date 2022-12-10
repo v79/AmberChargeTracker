@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.db.entities.SettingsKey
+import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.repositories.ChargeEventRepository
 import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
@@ -25,6 +26,8 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
     val selectedVehicle: Long?
         get() = _selectedVehicle
 
+    var vehicle: LiveData<Vehicle> = MutableLiveData()
+
     private var _activeChargeEvent: LiveData<ChargeEvent?> = MutableLiveData()
     val activeChargeEvent: LiveData<ChargeEvent?>
         get() = _activeChargeEvent
@@ -43,12 +46,18 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
             _vehicleCount = vehicleRepository.getVehicleCount()
             Log.i("ChargeEventViewModel refresh", "_vehicleCount = ${_vehicleCount.value}")
             _selectedVehicle = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
+            _selectedVehicle?.let {
+                vehicle = vehicleRepository.getVehicleById(it)
+            }
             val activeChargeId =
                 settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
             Log.i("ChargeEventViewModel refresh", "activeChargeId = $activeChargeId")
             if (activeChargeId != null) {
                 _activeChargeEvent = chargeEventRepository.getLiveChargeEventWithId(activeChargeId)
-                Log.i("ChargeEventViewModel refresh", "_activeChargeEvent = ${_activeChargeEvent.value}")
+                Log.i(
+                    "ChargeEventViewModel refresh",
+                    "_activeChargeEvent = ${_activeChargeEvent.value}"
+                )
             }
         }
     }

@@ -29,14 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import org.liamjd.amber.R
-import org.liamjd.amber.getConfigLong
 import org.liamjd.amber.screens.composables.CurrencyTextField
-import org.liamjd.amber.screens.composables.Heading
 import org.liamjd.amber.screens.composables.LoadingMessage
 import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.screens.state.UIState
-import org.liamjd.amber.screens.state.rememberFieldState
-import org.liamjd.amber.screens.validators.CurrencyValidator
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.*
 import org.liamjd.amber.viewModels.*
