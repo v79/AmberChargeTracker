@@ -3,8 +3,6 @@ package org.liamjd.amber.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -15,23 +13,19 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.ExperimentalUnitApi
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.delay
 import org.liamjd.amber.R
 import org.liamjd.amber.screens.composables.CurrencyTextField
 import org.liamjd.amber.screens.composables.LoadingMessage
 import org.liamjd.amber.screens.composables.NumberTextField
+import org.liamjd.amber.screens.composables.TimerDisplay
 import org.liamjd.amber.screens.state.UIState
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.*
@@ -365,59 +359,6 @@ fun BigRoundChargingButton(
         }
         Row { Text(text = label, textAlign = TextAlign.Center) }
     }
-}
-
-@OptIn(ExperimentalUnitApi::class)
-@Preview
-@Composable
-fun TimerDisplay(isActive: Boolean = false, startingSeconds: Long = 7653L) {
-    var timeTakenSeconds by remember {
-        mutableStateOf(startingSeconds)
-    }
-    // timer function
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .border(border = BorderStroke(2.dp, color = Color.Red)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = formatTime(timeTakenSeconds),
-                textAlign = TextAlign.Center,
-                color = Color.Red,
-                fontSize = TextUnit(
-                    12f,
-                    TextUnitType.Em
-                )
-            )
-        }
-
-        LaunchedEffect(key1 = isActive) {
-            while (isActive) {
-                timeTakenSeconds++
-                delay(1_000)
-            }
-        }
-    }
-}
-
-/**
- * Format count of seconds as an hours/minutes/seconds string
- * @param time number of seconds
- * @return string in format "hh:mm:ss"
- */
-fun formatTime(time: Long): String {
-    val hours: Double = time / 3600.0
-    val wholeHours: Int = hours.toInt()
-    val minutes: Double = (hours - wholeHours) * 60
-    val wholeMinutes = minutes.toInt()
-    val seconds: Int = ((minutes - wholeMinutes) * 60).toInt()
-    return "${wholeHours.leadingZero()}h${wholeMinutes.leadingZero()}m:${seconds.leadingZero()}s"
 }
 
 fun Number.leadingZero(): String = this.toString().padStart(2, '0')

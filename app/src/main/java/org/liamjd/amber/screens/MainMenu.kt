@@ -23,6 +23,7 @@ import androidx.lifecycle.withStateAtLeast
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
+import org.liamjd.amber.screens.composables.TimerDisplay
 import org.liamjd.amber.screens.composables.VehicleCard
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
@@ -62,7 +63,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
             topBar = {
                 CenterAlignedTopAppBar(
                     navigationIcon = {
-                        Icon(Icons.Default.Menu, "Navigation menu")
+                        Icon(Icons.Default.Menu, stringResource(R.string.screen_menu_navDesc))
                     },
                     colors = TopAppBarDefaults.mediumTopAppBarColors(
                         containerColor = md_theme_light_surfaceTint
@@ -81,10 +82,9 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                 }
             },
             content = {
-
                 Row(
                     modifier = Modifier
-                        .fillMaxHeight(0.7f)
+                        .fillMaxHeight(1f)
                 ) {
                     Column(
                         verticalArrangement = Arrangement.Center,
@@ -163,7 +163,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                 }
             },
             bottomBar = {
-                BottomAppBar() {
+                BottomAppBar {
                     Text(
                         text = stringResource(
                             id = R.string.screen_vehicleDetails_vehicleCount,
