@@ -40,7 +40,7 @@ fun VehicleCard(
                 Text(text = vehicle.manufacturer, fontWeight = FontWeight.Bold)
                 Text(text = vehicle.model)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = vehicle.registration)
+                Text(text = "(${vehicle.id}) ${vehicle.registration}")
             }
         }
     }

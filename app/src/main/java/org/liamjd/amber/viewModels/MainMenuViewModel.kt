@@ -17,14 +17,11 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
     private val settingsRepository: SettingsRepository = application.settingsRepo
     private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
 
-    private var _selectedVehicle: Long? = null
+    private var _selectedVehicleId: Long? = null
 
     private var _vehicleCount: LiveData<Int> = MutableLiveData()
     val vehicleCount: LiveData<Int>
         get() = _vehicleCount
-
-    val selectedVehicle: Long?
-        get() = _selectedVehicle
 
     var vehicle: LiveData<Vehicle> = MutableLiveData()
 
@@ -45,8 +42,8 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
         viewModelScope.launch {
             _vehicleCount = vehicleRepository.getVehicleCount()
             Log.i("ChargeEventViewModel refresh", "_vehicleCount = ${_vehicleCount.value}")
-            _selectedVehicle = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
-            _selectedVehicle?.let {
+            _selectedVehicleId = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
+            _selectedVehicleId?.let {
                 vehicle = vehicleRepository.getVehicleById(it)
             }
             val activeChargeId =

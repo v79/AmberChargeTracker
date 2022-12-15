@@ -80,8 +80,14 @@ interface ChargeEventDao {
     @Query("SELECT * FROM ChargeEvent ORDER BY startDateTime DESC")
     fun getAll(): Flow<List<ChargeEvent>>
 
+    @Query("SELECT * FROM ChargeEvent where vehicleId = :vehicleId")
+    fun getAllForVehicle(vehicleId: Long): Flow<List<ChargeEvent>>
+
     @RawQuery(observedEntities = [ChargeEvent::class])
     fun getEventsWithin(query: SupportSQLiteQuery): Flow<List<ChargeEvent>>
+
+    @Query("SELECT * FROM ChargeEvent WHERE vehicleId = :vehicleId AND endDateTime IS NOT NULL AND startDateTime > :startDateTime ORDER BY startDateTime DESC")
+    fun getEventsSince(startDateTime: Long,vehicleId: Long): Flow<List<ChargeEvent>>
 
     /**
      * Return a LiveData wrapper around a ChargeEvent (which may be null)
