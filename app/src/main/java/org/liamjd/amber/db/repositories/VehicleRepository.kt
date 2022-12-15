@@ -2,6 +2,8 @@ package org.liamjd.amber.db.repositories
 
 import android.util.Log
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.entities.VehicleDao
 
@@ -16,6 +18,8 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
     fun insert(vehicle: Vehicle) = vehicleDao.insert(vehicle)
 
     fun getVehicleIdFromRowId(rowId: Long): Long = vehicleDao.getVehiclePkWithRowId(rowId)
+
+    suspend fun getAllVehicles(): Flow<List<Vehicle>> = vehicleDao.getAll()
 
     suspend fun getMostRecentVehicleId() = vehicleDao.getMostRecentVehicleId()
 

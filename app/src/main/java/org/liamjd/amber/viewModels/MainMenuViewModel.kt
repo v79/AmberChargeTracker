@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.db.entities.SettingsKey
+import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.repositories.ChargeEventRepository
 import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
@@ -16,14 +17,13 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
     private val settingsRepository: SettingsRepository = application.settingsRepo
     private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
 
-    private var _selectedVehicle: Long? = null
+    private var _selectedVehicleId: Long? = null
 
     private var _vehicleCount: LiveData<Int> = MutableLiveData()
     val vehicleCount: LiveData<Int>
         get() = _vehicleCount
 
-    val selectedVehicle: Long?
-        get() = _selectedVehicle
+    var vehicle: LiveData<Vehicle> = MutableLiveData()
 
     private var _activeChargeEvent: LiveData<ChargeEvent?> = MutableLiveData()
     val activeChargeEvent: LiveData<ChargeEvent?>
@@ -42,13 +42,19 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
         viewModelScope.launch {
             _vehicleCount = vehicleRepository.getVehicleCount()
             Log.i("ChargeEventViewModel refresh", "_vehicleCount = ${_vehicleCount.value}")
-            _selectedVehicle = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
+            _selectedVehicleId = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
+            _selectedVehicleId?.let {
+                vehicle = vehicleRepository.getVehicleById(it)
+            }
             val activeChargeId =
                 settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
             Log.i("ChargeEventViewModel refresh", "activeChargeId = $activeChargeId")
             if (activeChargeId != null) {
                 _activeChargeEvent = chargeEventRepository.getLiveChargeEventWithId(activeChargeId)
-                Log.i("ChargeEventViewModel refresh", "_activeChargeEvent = ${_activeChargeEvent.value}")
+                Log.i(
+                    "ChargeEventViewModel refresh",
+                    "_activeChargeEvent = ${_activeChargeEvent.value}"
+                )
             }
         }
     }

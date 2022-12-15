@@ -23,6 +23,8 @@ import androidx.lifecycle.withStateAtLeast
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
+import org.liamjd.amber.screens.composables.TimerDisplay
+import org.liamjd.amber.screens.composables.VehicleCard
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
 import org.liamjd.amber.viewModels.MainMenuViewModel
@@ -53,6 +55,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
     val isCharging =
         remember { derivedStateOf { activeChargeEvent != null && activeChargeEvent?.endDateTime == null } }
     val showAbortChargeDialog = remember { mutableStateOf(false) }
+    val currentVehicle by viewModel.vehicle.observeAsState()
 
     AmberChargeTrackerTheme {
 
@@ -60,7 +63,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
             topBar = {
                 CenterAlignedTopAppBar(
                     navigationIcon = {
-                        Icon(Icons.Default.Menu, "Navigation menu")
+                        Icon(Icons.Default.Menu, stringResource(R.string.screen_menu_navDesc))
                     },
                     colors = TopAppBarDefaults.mediumTopAppBarColors(
                         containerColor = md_theme_light_surfaceTint
@@ -79,16 +82,25 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                 }
             },
             content = {
-
                 Row(
                     modifier = Modifier
-                        .fillMaxHeight(0.7f)
+                        .fillMaxHeight(1f)
                 ) {
                     Column(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxSize()
                     ) {
+
+                        if (hasVehicles.value) {
+                            currentVehicle?.let {
+                                VehicleCard(
+                                    it,
+                                    isSelected = true,
+                                    onClickAction = {})
+                            }
+                        }
+
                         if (isCharging.value) {
                             activeChargeEvent?.let { event ->
                                 val timeSoFar =
@@ -151,7 +163,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                 }
             },
             bottomBar = {
-                BottomAppBar() {
+                BottomAppBar {
                     Text(
                         text = stringResource(
                             id = R.string.screen_vehicleDetails_vehicleCount,
@@ -161,102 +173,10 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                 }
             }
         )
-
-
-        /*  Column(
-              modifier = Modifier
-                  .fillMaxHeight()
-                  .background(Color.White)
-          ) {
-              ScreenTitle()
-              Row(
-                  modifier = Modifier
-                      .fillMaxHeight(0.7f)
-              ) {
-                  Column(
-                      verticalArrangement = Arrangement.Center,
-                      horizontalAlignment = Alignment.CenterHorizontally,
-                      modifier = Modifier.fillMaxSize()
-                  ) {
-                      if (isCharging.value) {
-                          activeChargeEvent?.let { event ->
-                              val timeSoFar =
-                                  ChronoUnit.SECONDS.between(event.startDateTime, LocalDateTime.now())
-                              TimerDisplay(isActive = true, startingSeconds = timeSoFar)
-                              Spacer(modifier = Modifier.height(8.dp))
-                              BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
-                                  navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
-                              }
-                              TextButton(onClick = { showAbortChargeDialog.value = true }) {
-                                  Text(text = stringResource(id = R.string.screen_menu_abortCharge))
-                              }
-                              if (showAbortChargeDialog.value) {
-                                  AlertDialog(
-                                      onDismissRequest = {
-                                          showAbortChargeDialog.value = false
-                                      },
-                                      title = { Text(text = stringResource(R.string.screen_menu_abortDialog_title)) },
-                                      text = { Text(text = stringResource(id = R.string.screen_menu_abortDialog_text)) },
-                                      confirmButton = {
-                                          TextButton(onClick = { viewModel.abortCharging(); showAbortChargeDialog.value = false }) {
-                                              Text(stringResource(R.string.screen_menu_abortDialog_abort))
-                                          }
-                                      },
-                                      dismissButton = {
-                                          TextButton(onClick = {
-                                              showAbortChargeDialog.value = false
-                                          }) {
-                                              Text(stringResource(R.string.screen_menu_abortDialog_dismiss))
-                                          }
-                                      })
-                              }
-                          }
-                      }
-                      Button(
-                          enabled = false,
-                          onClick = { navController.navigate(Screen.StartChargingScreen.route) }
-
-                      ) {
-                          Text(text = stringResource(R.string.screen_menu_RecordHistoricalCharge))
-                      }
-                      Button(
-                          onClick = { navController.navigate(Screen.VehicleDetailsScreen.route) }) {
-                          Text(stringResource(R.string.screen_menu_Vehicles))
-                      }
-                      Button(enabled = false,
-                          onClick = { *//*TODO*//* }) {
-                        Text("Record Journey")
-                    }
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxHeight(0.2f)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    enabled = hasVehicles.value,
-                    onClick = { navController.navigate(Screen.ChargeHistoryScreen.route) }) {
-                    Text(stringResource(R.string.screen_menu_ChargeHistory))
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .align(Alignment.End),
-                horizontalArrangement = Arrangement.End
-            ) {
-                if (hasVehicles.value && !isCharging.value) {
-                    StartChargeFab(navController)
-                }
-            }
-        }*/
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun StartChargeFab(navController: NavController = rememberNavController()) {
     FloatingActionButton(onClick = { navController.navigate(Screen.StartChargingScreen.route) }) {

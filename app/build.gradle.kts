@@ -18,9 +18,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+        kapt {
+            arguments {
+                arg("room.schemaLocation","$projectDir/schemas")
             }
         }
     }
@@ -73,8 +73,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // Hilt DI
-    implementation("com.google.dagger:hilt-android:2.44")
-    kapt("com.google.dagger:hilt-compiler:2.44")
+    implementation("com.google.dagger:hilt-android:2.44.2")
+    kapt("com.google.dagger:hilt-compiler:2.44.2")
 
     // room DB
     implementation("androidx.room:room-ktx:2.4.3")

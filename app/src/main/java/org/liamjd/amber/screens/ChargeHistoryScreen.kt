@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.screens.composables.Table
+import org.liamjd.amber.screens.composables.VehicleCard
 import org.liamjd.amber.toLocalString
 import org.liamjd.amber.ui.theme.*
 import org.liamjd.amber.viewModels.ChargeHistoryViewModel
@@ -42,6 +43,7 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
         mutableStateOf(0)
     }
 
+    val currentVehicle by viewModel.vehicle.observeAsState()
     val filter = viewModel.getEventsWithin(timePeriod).observeAsState()
 
     AmberChargeTrackerTheme {
@@ -63,6 +65,12 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
         },
             content = { innerPadding ->
                 Column(modifier = Modifier.padding(innerPadding)) {
+                        currentVehicle?.let {
+                            VehicleCard(
+                                it,
+                                isSelected = true,
+                                onClickAction = {})
+                    }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
