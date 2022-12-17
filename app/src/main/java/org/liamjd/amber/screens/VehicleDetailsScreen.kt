@@ -3,9 +3,15 @@ package org.liamjd.amber.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -24,9 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,6 +54,8 @@ import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.*
 import org.liamjd.amber.viewModels.VehicleDetailsMode
 import org.liamjd.amber.viewModels.VehicleDetailsViewModel
+import coil.compose.AsyncImage
+import java.time.LocalDateTime
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -125,9 +135,9 @@ fun AddViewVehicleFab(viewModel: VehicleDetailsViewModel) {
 @Composable
 fun ShowAllVehicles(
     vehicles: List<Vehicle> = listOf(
-        Vehicle("Audi", "A1", 334, "AD11ADU").apply { id = 1L },
-        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD").apply { id = 2L },
-        Vehicle("Mercedes", "S-Class", 61423, "M415HAD").apply { id = 3L }
+        Vehicle("Audi", "A1", 334, "AD11ADU", LocalDateTime.now()).apply { id = 1L },
+        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD",LocalDateTime.now()).apply { id = 2L },
+        Vehicle("Mercedes", "S-Class", 61423, "M415HAD",LocalDateTime.now()).apply { id = 3L }
     ),
     selectedVehicleId: Long = 2L,
     updateSelectedVehicle: (Long) -> Unit = {}
@@ -137,6 +147,7 @@ fun ShowAllVehicles(
     }
     val selectButtonEnabled by remember(chosenVehicleId) { derivedStateOf { chosenVehicleId != selectedVehicleId } }
     val onItemClick = { index: Long -> chosenVehicleId = index }
+    var showVehicleEdit by remember { mutableStateOf(false) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         LazyVerticalGrid(
@@ -145,37 +156,39 @@ fun ShowAllVehicles(
                 .padding(2.dp)
         ) {
             items(vehicles) { vehicle ->
-                VehicleCard(vehicle, isSelected = chosenVehicleId == vehicle.id, onClickAction = {
+                VehicleCard(vehicle, isSelected = chosenVehicleId == vehicle.id, isEditable = true, onClickAction = {
                     chosenVehicleId = it
                     Log.i(
                         "VehicleDetailsScreen",
                         "Clicked on car $chosenVehicleId (selectedVehicle was $selectedVehicleId)"
                     )
                     onItemClick.invoke(it)
+                },
+                onLongClickAction = {
+                    chosenVehicleId = it
+                    showVehicleEdit = true
                 })
             }
         }
+        Text(text = "Long-press a vehicle to edit it", fontStyle = FontStyle.Italic)
         ElevatedButton(
             onClick = { updateSelectedVehicle.invoke(chosenVehicleId) },
             enabled = selectButtonEnabled
         ) {
             Text("Select vehicle $chosenVehicleId")
         }
+        if(showVehicleEdit) {
+            Text(text = "Editing vehicle $chosenVehicleId")
+            // wanted to use a FulLScreenDialog here, but not available... So maybe need to rewrite the AddVehicle() function?
+        }
     }
-    /* val selectedVehicle = viewModel.selectedVehicle?.observeAsState()
-     if (selectedVehicle != null) {
-         selectedVehicle.value?.let {
-             Column(modifier = Modifier.fillMaxWidth()) {
-                 Row { Text(text = "Current Vehicle ${it.id}") }
-                 VehicleTable(vehicle = it)
-             }
-         }
-     }*/
+
+
 }
 
 @Composable
 @Preview(uiMode = UI_MODE_NIGHT_YES, showBackground = true)
-fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176, "MNY 99 BGS")) {
+fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176, "MNY 99 BGS",LocalDateTime.now())) {
 
     val headingTextColour = if (isSystemInDarkTheme()) {
         md_theme_dark_background
@@ -292,6 +305,10 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
             enabled = entryEnabled,
             label = { Text("Registration") })
 
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+            VehiclePhotoSelector()
+        }
+
         FilledIconButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
@@ -306,7 +323,8 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                         vehicleManufacturer,
                         vehicleModel,
                         vehicleOdometerReading.toIntOrZero(),
-                        vehicleRegistration
+                        vehicleRegistration,
+                        LocalDateTime.now()
                     )
                 viewModel.insert(newVehicle)
             }) {
@@ -321,5 +339,49 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                 Text(stringResource(id = R.string.screen_vehicleDetails_saveDescription))
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun VehiclePhotoSelector(photoChosen: (picUri: Uri) -> Unit = { }) {
+    var hasPhotograph by remember { mutableStateOf(false) }
+    var choosePhotograph by remember { mutableStateOf(false) }
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val pickMediaActivityResultLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            photoChosen.invoke(it)
+        }
+    }
+
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Add photograph")
+        Box(
+            modifier = Modifier
+                .border(2.dp, Color.Blue)
+                .width(100.dp)
+                .height(100.dp)
+                .clickable {
+                    pickMediaActivityResultLauncher.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                }) {
+            AsyncImage(
+                model = selectedImageUri,
+                contentDescription = null,
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.Crop
+            )
+
+        }
+
     }
 }

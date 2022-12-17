@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.entities.VehicleDao
+import java.time.LocalDateTime
 
 interface VehicleRepositoryIF // TODO
 
@@ -30,6 +31,6 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
     }
 
     suspend fun updateOdometer(vehicleId: Long, odometer: Int) {
-        vehicleDao.updateOdometer(vehicleId, odometer)
+        vehicleDao.updateOdometer(vehicleId, odometer, LocalDateTime.now())
     }
 }

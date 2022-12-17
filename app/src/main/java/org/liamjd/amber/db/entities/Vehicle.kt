@@ -3,9 +3,10 @@ package org.liamjd.amber.db.entities
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
 
 @Entity
-data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int, val registration: String) {
+data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int, val registration: String, val lastUpdated: LocalDateTime) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
 }
@@ -38,8 +39,9 @@ interface VehicleDao {
     @Query("SELECT odometerReading FROM Vehicle WHERE id = :id")
     suspend fun getCurrentOdometer(id: Long): Int
 
-    @Query("UPDATE Vehicle SET odometerReading = :odometer WHERE id = :vehicleId")
-    suspend fun updateOdometer(vehicleId: Long, odometer: Int)
+    @Query("UPDATE Vehicle SET odometerReading = :odometer, lastUpdated = :now WHERE id = :vehicleId")
+    suspend fun updateOdometer(vehicleId: Long, odometer: Int, now: LocalDateTime
+    )
 
     @Query("SELECT * FROM Vehicle ORDER BY Manufacturer")
     fun getAll(): Flow<List<Vehicle>>

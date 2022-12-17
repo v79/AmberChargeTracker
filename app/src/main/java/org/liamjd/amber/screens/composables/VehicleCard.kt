@@ -1,7 +1,9 @@
 package org.liamjd.amber.screens.composables
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -15,19 +17,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.liamjd.amber.db.entities.Vehicle
+import java.time.LocalDateTime
 
+@OptIn(ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
 fun VehicleCard(
-    vehicle: Vehicle = Vehicle("Rolls", "Royce", 54123, "MN66BGS"),
+    vehicle: Vehicle = Vehicle("Rolls", "Royce", 54123, "MN66BGS", LocalDateTime.now()),
     isSelected: Boolean = true,
-    onClickAction: (Long) -> Unit = { }
+    isEditable: Boolean = false,
+    onClickAction: (Long) -> Unit = { },
+    onLongClickAction: (Long) -> Unit = { }
 ) {
     Card(
         shape = MaterialTheme.shapes.medium, modifier = Modifier
             .padding(4.dp)
             .size(width = 150.dp, height = 150.dp)
-            .clickable { onClickAction.invoke(vehicle.id) },
+            .combinedClickable(onClick = { onClickAction.invoke(vehicle.id) },
+                onLongClick = { onLongClickAction.invoke(vehicle.id) }),
         elevation = CardDefaults.cardElevation(3.dp),
         border = if (isSelected) {
             BorderStroke(2.dp, Color.Green)
