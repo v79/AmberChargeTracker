@@ -6,7 +6,14 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
 @Entity
-data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int, val registration: String, val lastUpdated: LocalDateTime) {
+data class Vehicle(
+    val manufacturer: String,
+    val model: String,
+    val odometerReading: Int,
+    val registration: String,
+    val lastUpdated: LocalDateTime,
+    var photoPath: String?
+) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
 }
@@ -40,8 +47,12 @@ interface VehicleDao {
     suspend fun getCurrentOdometer(id: Long): Int
 
     @Query("UPDATE Vehicle SET odometerReading = :odometer, lastUpdated = :now WHERE id = :vehicleId")
-    suspend fun updateOdometer(vehicleId: Long, odometer: Int, now: LocalDateTime
+    suspend fun updateOdometer(
+        vehicleId: Long, odometer: Int, now: LocalDateTime
     )
+
+    @Query("UPDATE Vehicle SET photoPath = :photoPath, lastUpdated = :now WHERE id = :vehicleId")
+    suspend fun updatePhotoPath(vehicleId: Long, photoPath: String?, now: LocalDateTime)
 
     @Query("SELECT * FROM Vehicle ORDER BY Manufacturer")
     fun getAll(): Flow<List<Vehicle>>

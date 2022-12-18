@@ -1,7 +1,9 @@
 package org.liamjd.amber.screens
 
 import android.annotation.SuppressLint
+import android.content.ContentResolver
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.util.Log
@@ -55,6 +57,7 @@ import org.liamjd.amber.ui.theme.*
 import org.liamjd.amber.viewModels.VehicleDetailsMode
 import org.liamjd.amber.viewModels.VehicleDetailsViewModel
 import coil.compose.AsyncImage
+import java.io.IOException
 import java.time.LocalDateTime
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -135,9 +138,9 @@ fun AddViewVehicleFab(viewModel: VehicleDetailsViewModel) {
 @Composable
 fun ShowAllVehicles(
     vehicles: List<Vehicle> = listOf(
-        Vehicle("Audi", "A1", 334, "AD11ADU", LocalDateTime.now()).apply { id = 1L },
-        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD",LocalDateTime.now()).apply { id = 2L },
-        Vehicle("Mercedes", "S-Class", 61423, "M415HAD",LocalDateTime.now()).apply { id = 3L }
+        Vehicle("Audi", "A1", 334, "AD11ADU", LocalDateTime.now(),null).apply { id = 1L },
+        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD", LocalDateTime.now(),null).apply { id = 2L },
+        Vehicle("Mercedes", "S-Class", 61423, "M415HAD", LocalDateTime.now(),null).apply { id = 3L }
     ),
     selectedVehicleId: Long = 2L,
     updateSelectedVehicle: (Long) -> Unit = {}
@@ -156,18 +159,21 @@ fun ShowAllVehicles(
                 .padding(2.dp)
         ) {
             items(vehicles) { vehicle ->
-                VehicleCard(vehicle, isSelected = chosenVehicleId == vehicle.id, isEditable = true, onClickAction = {
-                    chosenVehicleId = it
-                    Log.i(
-                        "VehicleDetailsScreen",
-                        "Clicked on car $chosenVehicleId (selectedVehicle was $selectedVehicleId)"
-                    )
-                    onItemClick.invoke(it)
-                },
-                onLongClickAction = {
-                    chosenVehicleId = it
-                    showVehicleEdit = true
-                })
+                VehicleCard(vehicle,
+                    isSelected = chosenVehicleId == vehicle.id,
+                    isEditable = true,
+                    onClickAction = {
+                        chosenVehicleId = it
+                        Log.i(
+                            "VehicleDetailsScreen",
+                            "Clicked on car $chosenVehicleId (selectedVehicle was $selectedVehicleId)"
+                        )
+                        onItemClick.invoke(it)
+                    },
+                    onLongClickAction = {
+                        chosenVehicleId = it
+                        showVehicleEdit = true
+                    })
             }
         }
         Text(text = "Long-press a vehicle to edit it", fontStyle = FontStyle.Italic)
@@ -177,7 +183,7 @@ fun ShowAllVehicles(
         ) {
             Text("Select vehicle $chosenVehicleId")
         }
-        if(showVehicleEdit) {
+        if (showVehicleEdit) {
             Text(text = "Editing vehicle $chosenVehicleId")
             // wanted to use a FulLScreenDialog here, but not available... So maybe need to rewrite the AddVehicle() function?
         }
@@ -188,7 +194,16 @@ fun ShowAllVehicles(
 
 @Composable
 @Preview(uiMode = UI_MODE_NIGHT_YES, showBackground = true)
-fun VehicleTable(vehicle: Vehicle = Vehicle("Rolls Royce", "Silver Cloud", 5176, "MNY 99 BGS",LocalDateTime.now())) {
+fun VehicleTable(
+    vehicle: Vehicle = Vehicle(
+        "Rolls Royce",
+        "Silver Cloud",
+        5176,
+        "MNY 99 BGS",
+        LocalDateTime.now(),
+        null
+    )
+) {
 
     val headingTextColour = if (isSystemInDarkTheme()) {
         md_theme_dark_background
@@ -306,7 +321,9 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
             label = { Text("Registration") })
 
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-            VehiclePhotoSelector()
+            VehiclePhotoSelector(photoChosen = {
+                viewModel.chosenPhotoUri.value = it
+            })
         }
 
         FilledIconButton(
@@ -324,7 +341,8 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                         vehicleModel,
                         vehicleOdometerReading.toIntOrZero(),
                         vehicleRegistration,
-                        LocalDateTime.now()
+                        LocalDateTime.now(),
+                        null
                     )
                 viewModel.insert(newVehicle)
             }) {

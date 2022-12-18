@@ -1,7 +1,9 @@
 package org.liamjd.amber.viewModels
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,6 +18,9 @@ import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
+import java.io.IOException
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 class VehicleDetailsViewModel(private val application: AmberApplication) : ViewModel() {
 
@@ -38,6 +43,8 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
     var vehicleCount: LiveData<Int> = repository.getVehicleCount()
 
     var vehicles by mutableStateOf(emptyList<Vehicle>())
+
+    var chosenPhotoUri: MutableState<Uri?> = mutableStateOf(null)
 
 
     init {
@@ -105,7 +112,48 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
                 "Saved selectedVehicle ID = $primaryKey to Settings ${SettingsKey.SELECTED_VEHICLE.keyString}"
             )
             _mode.value = VehicleDetailsMode.LIST
+            // now that we have a vehicle, look to see if there is an image for it
+            chosenPhotoUri.value?.let { uri ->
+                val photoPath = saveImageToStorage(uri,primaryKey, vehicle.manufacturer)
+                repository.updatePhotoPath(primaryKey,photoPath)
+            }
         }
+    }
+
+    /**
+     * Copy the photograph from the given uri to the application's internal storage
+     * The filename will be "id-manufacturer-timestamp.jpg"
+     * @param uri Uri provided by the photo picker
+     * @param id primary key of the vehicle
+     * @param manufacturer vehicle manufacturer, just a string to make the filename a little more human readable
+     * @return the calculated filename
+     * */
+    private fun saveImageToStorage(uri: Uri, id: Long, manufacturer: String): String {
+        val fileName = "$id-$manufacturer-${
+            LocalDateTime.now().toInstant(
+                ZoneOffset.UTC
+            ).toEpochMilli()
+        }.jpg"
+        Log.i("ViewDetailsViewModel", "Chosen photo is $uri")
+        try {
+            val inputStream = application.contentResolver.openInputStream(uri)
+            val imageBytes = inputStream?.readBytes()
+            inputStream?.close()
+            if (imageBytes?.isNotEmpty() == true) {
+
+                application.openFileOutput(fileName, Context.MODE_PRIVATE)
+                    .use { stream ->
+                        Log.i(
+                            "ViewDetailsViewModel",
+                            "Writing bytes from $uri to new byte array with name $fileName"
+                        )
+                        stream.write(imageBytes)
+                    }
+            }
+        } catch (e: IOException) {
+            Log.e("ViewDetailsViewModel", e.toString())
+        }
+        return fileName
     }
 
     private fun getMostRecentVehicleId() {

@@ -33,4 +33,8 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
     suspend fun updateOdometer(vehicleId: Long, odometer: Int) {
         vehicleDao.updateOdometer(vehicleId, odometer, LocalDateTime.now())
     }
+
+    suspend fun updatePhotoPath(vehicleId: Long, photoPath: String?) {
+        vehicleDao.updatePhotoPath(vehicleId, photoPath, LocalDateTime.now())
+    }
 }

@@ -12,7 +12,7 @@ import java.time.ZoneOffset
 
 @Database(
     entities = [ChargeEvent::class, Vehicle::class, Setting::class],
-    version = 17,
+    version = 18,
     exportSchema = true
 )
 @TypeConverters(DBConverters::class)
@@ -33,7 +33,7 @@ abstract class AmberDatabase : RoomDatabase() {
                     AmberDatabase::class.java,
                     "amber_database"
                 )
-                    .addMigrations(MIGRATION_15_16_addVehicleReg, MIGRATION_16_17_addVehicleUpdateDateTime)
+                    .addMigrations(MIGRATION_15_16_addVehicleReg, MIGRATION_16_17_addVehicleUpdateDateTime, MIGRATION_17_18_addVehiclePhotoPath)
                     .addCallback(
                         AmberDatabaseCallback(scope)
                     ).build()
@@ -43,15 +43,20 @@ abstract class AmberDatabase : RoomDatabase() {
         }
 
         // migrations
-        val MIGRATION_15_16_addVehicleReg = object : Migration(15, 16) {
+        private val MIGRATION_15_16_addVehicleReg = object : Migration(15, 16) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE Vehicle ADD COLUMN registration TEXT NOT NULL DEFAULT '' ")
             }
         }
-        val MIGRATION_16_17_addVehicleUpdateDateTime = object : Migration(16,17) {
+        private val MIGRATION_16_17_addVehicleUpdateDateTime = object : Migration(16,17) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
                 database.execSQL("ALTER TABLE Vehicle ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT $now")
+            }
+        }
+        private val MIGRATION_17_18_addVehiclePhotoPath = object : Migration(17,18) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE Vehicle ADD COLUMN photoPath TEXT DEFAULT NULL")
             }
         }
     }
