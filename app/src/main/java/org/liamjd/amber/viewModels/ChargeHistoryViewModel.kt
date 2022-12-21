@@ -3,6 +3,8 @@ package org.liamjd.amber.viewModels
 import androidx.lifecycle.*
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
+import org.liamjd.amber.db.entities.ChargeEvent
+import org.liamjd.amber.db.entities.Setting
 import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.repositories.ChargeEventRepository
@@ -15,12 +17,13 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
     private val vehicleRepository: VehicleRepository = application.vehicleRepo
     private val settingsRepository: SettingsRepository = application.settingsRepo
 
-    private var _selectedVehicleId: Long = -1L
-    var vehicle: LiveData<Vehicle> = MutableLiveData()
+    var selectedVehicleId: Long? = null
+    var vehicle: Vehicle? = null
 
     val allEvents = chargeEventRepository.allChargeEvents.asLiveData()
 
-    fun getEventsWithin(days: Int) = chargeEventRepository.getEventsWithin(days, _selectedVehicleId).asLiveData()
+//    fun getEventsWithin(days: Int) = chargeEventRepository.getEventsWithin(days,selectedVehicleId).asLiveData()
+    fun getEventsWithin(days: Int) = MutableLiveData<List<ChargeEvent>>() // TODO
 
     fun eventsForVehicle(vehicleId: Long) = chargeEventRepository.getAllEventsForVehicle(vehicleId).asLiveData()
 
@@ -30,8 +33,8 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
 
     private fun refreshView() {
         viewModelScope.launch {
-            _selectedVehicleId = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue?: -1L
-            _selectedVehicleId.let {
+            selectedVehicleId = settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
+            selectedVehicleId?.let {
                 vehicle = vehicleRepository.getVehicleById(it)
             }
         }

@@ -19,7 +19,7 @@
     <string name="screen_recordCharge_BUTTON_save">Save</string>
     <string name="screen_recordCharge_saveDesc">Save charge record</string>
     <string name="screen_chargeHistory_title">Charging History</string>
-    <string name="screen_vehicleDetails_title">Vehicle Details</string>
+    <string name="screen_vehicleDetails_title">All Vehicles</string>
     <string name="screen_vehicleDetails_currentOdo">Current Odometer (mi)</string>
     <string name="vehicle_manufacturer">Manufacturer</string>
     <string name="vehicle_model">Model</string>

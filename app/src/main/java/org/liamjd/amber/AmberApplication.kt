@@ -18,7 +18,7 @@ class AmberApplication : Application() {
     private val database by lazy { AmberDatabase.getDatabase(this, applicationScope) }
     val chargeEventRepo by lazy { ChargeEventRepository(database.chargeEventDao()) }
     val vehicleRepo by lazy { VehicleRepository(database.vehicleDao()) }
-    val settingsRepo by lazy { SettingsRepository(database.settingsDao())}
+    val settingsRepo by lazy { SettingsRepository(database.settingsDao()) }
 
     /**
      * Get a Long value from the shared preferences with the given key

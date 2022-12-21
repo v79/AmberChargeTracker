@@ -1,4 +1,4 @@
-package org.liamjd.amber.screens.composables
+package org.liamjd.amber.screens.vehicles
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.*
@@ -21,9 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.ui.theme.md_theme_dark_onSecondary
-import org.liamjd.amber.ui.theme.md_theme_dark_secondary
 import org.liamjd.amber.ui.theme.md_theme_light_onSecondary
-import org.liamjd.amber.ui.theme.md_theme_light_secondary
 import java.io.File
 import java.time.LocalDateTime
 
@@ -44,14 +42,16 @@ fun VehicleCard(
     onClickAction: (Long) -> Unit = { },
     onLongClickAction: (Long) -> Unit = { }
 ) {
-
-
     Card(
         shape = MaterialTheme.shapes.medium, modifier = Modifier
             .padding(4.dp)
             .size(width = 150.dp, height = 150.dp)
             .combinedClickable(onClick = { onClickAction.invoke(vehicle.id) },
-                onLongClick = { onLongClickAction.invoke(vehicle.id) }),
+                onLongClick = {
+                    if (isEditable) {
+                        onLongClickAction.invoke(vehicle.id)
+                    }
+                }),
         elevation = CardDefaults.cardElevation(3.dp),
         border = if (isSelected) {
             BorderStroke(2.dp, Color.Green)
@@ -77,7 +77,7 @@ fun VehicleCard(
                 bitmap?.let {
                     Image(
                         bitmap = bitmap,
-                        contentDescription = "my pic",
+                        contentDescription = "${vehicle.manufacturer} ${vehicle.model}",
                         contentScale = ContentScale.Crop
                     )
                 }

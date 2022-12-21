@@ -7,6 +7,7 @@ It's been a while since I tried Android development.
 ## Task list
 
 ### Bugs 
+- [ ] Really getting confused about ViewModels, init {} blocks, LaunchedEffects... I'm not getting the data I expect when I expect it
 - [X] Ability to abort a charge event
 - [X] Prevent editing of starting values on active charge event
 - [X] Fix main menu still showing charge event after it's finished

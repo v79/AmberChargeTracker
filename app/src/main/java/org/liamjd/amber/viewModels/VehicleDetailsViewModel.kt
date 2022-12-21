@@ -9,10 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
-import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.Setting
 import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.entities.Vehicle
@@ -27,70 +25,77 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
     private val repository: VehicleRepository = application.vehicleRepo
     private val settingsRepository: SettingsRepository = application.settingsRepo
 
-    private val preferences = application.applicationContext.getSharedPreferences(
-        application.applicationContext.resources.getString(R.string.CONFIG), Context.MODE_PRIVATE
-    )
+    private var _selectedVehicle = mutableStateOf<Vehicle?>(null)
+    val selectedVehicle
+        get() = _selectedVehicle
 
-    private var selectedVehicle: LiveData<Vehicle>? = null
-    private var _selectedVehicleId: MutableLiveData<Long> = MutableLiveData<Long>()
-    val selectedVehicleId
-        get() = _selectedVehicleId
+    var selectedVehicleId = mutableStateOf(-1L) // will get reset on load
 
     private var _mode = mutableStateOf(VehicleDetailsMode.LIST)
     val mode
         get() = _mode
 
     var vehicleCount: LiveData<Int> = repository.getVehicleCount()
-
     var vehicles by mutableStateOf(emptyList<Vehicle>())
-
     var chosenPhotoUri: MutableState<Uri?> = mutableStateOf(null)
 
 
     init {
+        Log.i("VehicleDetailsViewModel", "INIT: About to get all the vehicles")
         getVehicles()
         viewModelScope.launch(Dispatchers.IO) {
             val mostRecentVehicleId = repository.getMostRecentVehicleId()
-            Log.i("VehicleDetailsViewModel INIT:", "mostRecentVehicleId: $mostRecentVehicleId")
+            Log.i("VehicleDetailsViewModel", "INIT: mostRecentVehicleId: $mostRecentVehicleId")
             val selectedVehicleIdFromSettings =
-                settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)
+                settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
             Log.i(
-                "VehicleDetailsViewModel INIT:",
-                "selectedVehicleIdFromSettings: $selectedVehicleIdFromSettings"
+                "VehicleDetailsViewModel",
+                "INIT: selectedVehicleIdFromSettings: $selectedVehicleIdFromSettings"
             )
 
-            selectedVehicleIdFromSettings?.lValue?.let {
+            selectedVehicleIdFromSettings?.let {
+                Log.i("VehicleDetailsViewModel", "INIT: updateSelectedVehicle($it)")
                 updateSelectedVehicle(it)
             }
-
-            //            mostRecentVehicleId?.let {
-//                _selectedVehicleId.postValue(it)
-//                selectedVehicle = repository.getVehicleById(it)
-//            }
-//
-//            _selectedVehicleId.postValue(
-//                settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue ?: -1L
-//            )
-//            Log.i("VehicleDetailsViewModel INIT","mostRecentVehicleId: $mostRecentVehicleId, _selectedVehicleId: ${_selectedVehicleId.value}, selectedVehicle: ${selectedVehicle?.value}")
         }
         if (vehicleCount.value == 0) {
             _mode.value = VehicleDetailsMode.ADD
         }
     }
 
+    /**
+     * Switch to ADD mode
+     */
     fun addNewVehicle() {
         _mode.value = VehicleDetailsMode.ADD
     }
 
+    /**
+     * Switch to edit mode and update the vehicle selection
+     */
+    fun switchToEditMode(editVehicleId: Long) {
+        Log.i("VehicleDetailsVM","switchToEditMode($editVehicleId)")
+        _mode.value = VehicleDetailsMode.EDIT
+        updateSelectedVehicle(editVehicleId)
+    }
+
+    /**
+     * Update the selected vehicle based on the `newVehicleId` param, and save that to the settings repository
+     */
     fun updateSelectedVehicle(newVehicleId: Long) {
-        _selectedVehicleId.postValue(newVehicleId)
-        selectedVehicle = repository.getVehicleById(newVehicleId)
         viewModelScope.launch {
+            selectedVehicleId.value = newVehicleId
+            _selectedVehicle.value = repository.getVehicleById(newVehicleId)
+            Log.i("VehicleDetailsVM","updatedSelectedVehicle($newVehicleId) fetching new vehicle and updating selected vehicle in Settings")
             settingsRepository.update(Setting(SettingsKey.SELECTED_VEHICLE, lValue = newVehicleId))
         }
     }
 
+    /**
+     * Get all the vehicles in the database
+     */
     private fun getVehicles() {
+        Log.i("ViewDetailsVM", "getVehicles() collecting flow")
         viewModelScope.launch {
             repository.getAllVehicles().collect { response ->
                 vehicles = response
@@ -101,11 +106,11 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
     /**
      * Insert the new vehicle and immediately set it as the currently selected vehicle, storing that value in the Settings database table
      */
-    fun insert(vehicle: Vehicle) {
+    fun insert(vehicle: Vehicle): Long {
         viewModelScope.launch(Dispatchers.IO) {
             val primaryKey = repository.insert(vehicle)
-            _selectedVehicleId.postValue(primaryKey)
-            selectedVehicle = repository.getVehicleById(primaryKey)
+            selectedVehicleId.value = primaryKey
+            _selectedVehicle.value = repository.getVehicleById(primaryKey)
             settingsRepository.insert(Setting(SettingsKey.SELECTED_VEHICLE, lValue = primaryKey))
             Log.i(
                 "VehicleDetailsViewModel",
@@ -114,8 +119,24 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
             _mode.value = VehicleDetailsMode.LIST
             // now that we have a vehicle, look to see if there is an image for it
             chosenPhotoUri.value?.let { uri ->
-                val photoPath = saveImageToStorage(uri,primaryKey, vehicle.manufacturer)
-                repository.updatePhotoPath(primaryKey,photoPath)
+                val photoPath = saveImageToStorage(uri, primaryKey, vehicle.manufacturer)
+                repository.updatePhotoPath(primaryKey, photoPath)
+            }
+        }
+        return selectedVehicleId.value
+    }
+
+    /**
+     * Update the database entry for the given VehicleDTO
+     */
+    fun saveEditedVehicle(vehicleDTO: VehicleDTO) {
+        Log.i("VehicleDetailsVM","saveEditedVehicle($vehicleDTO)")
+        if(vehicleDTO.id == null) {
+            Log.e("VehicleDetailsVM","Unable to update vehicle $vehicleDTO as the ID is null; this should be impossible")
+        } else {
+            viewModelScope.launch(Dispatchers.IO) {
+                val updatedVehicle = vehicleDTO.toVehicle()
+                repository.updateVehicle(updatedVehicle)
             }
         }
     }
@@ -163,12 +184,16 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
     }
 }
 
+/**
+ * Enum class represents the different modes the VehicleDetailsScreen can be in
+ */
 enum class VehicleDetailsMode {
     LIST,
     ADD,
     DELETE,
     EDIT
 }
+
 
 class VehicleDetailsViewModelFactory(private val application: AmberApplication) :
     ViewModelProvider.NewInstanceFactory() {
@@ -180,3 +205,39 @@ class VehicleDetailsViewModelFactory(private val application: AmberApplication) 
         throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
 }
+
+/**
+ * Represents a Vehicle but fully editable
+ */
+data class VehicleDTO(
+    var manufacturer: String = "",
+    var model: String = "",
+    var odometerReading: Int = 0,
+    var registration: String = "",
+    var photoPath: String? = null,
+    var id: Long? = null
+)
+
+/**
+ * Convert a database Vehicle entity to the [VehicleDTO] data class
+ */
+fun Vehicle.toDTO() = VehicleDTO(
+    manufacturer = this.manufacturer,
+    model = this.model,
+    odometerReading = this.odometerReading,
+    registration = this.registration,
+    photoPath = this.photoPath,
+    id = this.id
+)
+
+/**
+ * Convert the VehicleDTO to the [Vehicle] database entity class
+ */
+fun VehicleDTO.toVehicle() = Vehicle(
+    manufacturer = this.manufacturer,
+    model = this.model,
+    odometerReading = this.odometerReading,
+    registration = this.registration,
+    lastUpdated = LocalDateTime.now(),
+    photoPath = this.photoPath
+)

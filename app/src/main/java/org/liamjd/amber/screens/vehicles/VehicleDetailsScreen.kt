@@ -1,21 +1,15 @@
-package org.liamjd.amber.screens
+package org.liamjd.amber.screens.vehicles
 
 import android.annotation.SuppressLint
-import android.content.ContentResolver
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -29,45 +23,40 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.Vehicle
+import org.liamjd.amber.screens.Screen
 import org.liamjd.amber.screens.composables.NumberTextField
-import org.liamjd.amber.screens.composables.Table
-import org.liamjd.amber.screens.composables.VehicleCard
 import org.liamjd.amber.toIntOrZero
 import org.liamjd.amber.ui.theme.*
-import org.liamjd.amber.viewModels.VehicleDetailsMode
-import org.liamjd.amber.viewModels.VehicleDetailsViewModel
-import coil.compose.AsyncImage
-import java.io.IOException
+import org.liamjd.amber.viewModels.*
 import java.time.LocalDateTime
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetailsViewModel) {
     val context = LocalContext.current
-    val totalVehicles by viewModel.vehicleCount.observeAsState()
+    val vehicleCount by viewModel.vehicleCount.observeAsState()
     val mode by viewModel.mode
-    val selectedVehicleId by viewModel.selectedVehicleId.observeAsState()
+    val selectedVehicleId by remember { mutableStateOf(viewModel.selectedVehicleId) }
+    val selectedVehicle = remember { viewModel.selectedVehicle }
+    val hasVehicles =
+        remember { derivedStateOf { vehicleCount != null && vehicleCount!! > 0 } }
 
     AmberChargeTrackerTheme {
         Scaffold(
@@ -77,7 +66,17 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                         Text(stringResource(id = R.string.screen_vehicleDetails_title))
                     },
                     navigationIcon = {
-                        IconButton(onClick = { navController.navigate(Screen.StartScreen.route) }) {
+                        IconButton(onClick = {
+                            when (viewModel.mode.value) {
+                                VehicleDetailsMode.LIST -> {
+                                    navController.navigate(Screen.StartScreen.route)
+                                }
+                                else -> {
+                                    viewModel.mode.value = VehicleDetailsMode.LIST
+                                }
+                            }
+                        }
+                        ) {
                             Icon(
                                 Icons.Default.ArrowBack,
                                 "Back to main menu"
@@ -92,34 +91,63 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                     Row(modifier = Modifier.fillMaxHeight()) {
                         when (mode) {
                             VehicleDetailsMode.ADD -> {
-                                AddVehicle(context, viewModel)
+                                AddOrEditVehicle(context, vehicle = null, viewModel, onSave = {
+                                    val newPK = viewModel.insert(it.toVehicle())
+                                    viewModel.selectedVehicleId.value = newPK
+                                    selectedVehicleId.value = newPK
+                                })
                             }
                             VehicleDetailsMode.LIST -> {
-                                viewModel.selectedVehicleId.value?.let {
+                                if (hasVehicles.value) {
                                     Column {
                                         Row {
-                                            Text("Selected vehicle: $selectedVehicleId")
+                                            Text("Selected vehicle: ${selectedVehicleId.value}")
                                         }
+                                        Row {
+                                            Text(selectedVehicle.value?.toString()?: "")
+                                        }
+
                                         Row(horizontalArrangement = Arrangement.Center) {
                                             ShowAllVehicles(
                                                 vehicles = viewModel.vehicles,
-                                                selectedVehicleId = it
-                                            ) { newVehicleId ->
-                                                viewModel.updateSelectedVehicle(newVehicleId)
-                                            }
+                                                selectedVehicleId = selectedVehicleId.value,
+                                                updateSelectedVehicle = { newVehicleId ->
+                                                    viewModel.updateSelectedVehicle(newVehicleId)
+                                                },
+                                                onLongPress = { newVehicleId ->
+                                                    viewModel.switchToEditMode(newVehicleId)
+                                                }
+                                            )
                                         }
                                     }
+                                } else {
+                                    Text("No vehicles found. Press the 'Add Vehicle' button below to start")
                                 }
                             }
                             VehicleDetailsMode.DELETE -> TODO()
-                            VehicleDetailsMode.EDIT -> TODO()
+                            VehicleDetailsMode.EDIT -> {
+                                AddOrEditVehicle(
+                                    context = context,
+                                    vehicle = selectedVehicle?.value,
+                                    viewModel = viewModel,
+                                    isEdit = true,
+                                    onSave = {
+                                        // TODO save edited vehicle
+                                        Log.i(
+                                            "VehicleDetailsScreen",
+                                            "Edited and ready to save vehicleDTO $it (but haven't actually saved the change"
+                                        )
+
+                                        viewModel.saveEditedVehicle(it)
+                                    })
+                            }
                         }
                     }
                 }
             },
             floatingActionButtonPosition = FabPosition.End,
             floatingActionButton = { AddViewVehicleFab(viewModel) },
-            bottomBar = { BottomAppBar { Text("$totalVehicles vehicles registered") } }
+            bottomBar = { BottomAppBar { Text("$vehicleCount vehicles registered") } }
         )
     }
 }
@@ -134,25 +162,29 @@ fun AddViewVehicleFab(viewModel: VehicleDetailsViewModel) {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Preview(showBackground = true)
 @Composable
 fun ShowAllVehicles(
     vehicles: List<Vehicle> = listOf(
-        Vehicle("Audi", "A1", 334, "AD11ADU", LocalDateTime.now(),null).apply { id = 1L },
-        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD", LocalDateTime.now(),null).apply { id = 2L },
-        Vehicle("Mercedes", "S-Class", 61423, "M415HAD", LocalDateTime.now(),null).apply { id = 3L }
+        Vehicle("Audi", "A1", 334, "AD11ADU", LocalDateTime.now(), null).apply { id = 1L },
+        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD", LocalDateTime.now(), null).apply { id = 2L },
+        Vehicle("Mercedes", "S-Class", 61423, "M415HAD", LocalDateTime.now(), null).apply {
+            id = 3L
+        }
     ),
     selectedVehicleId: Long = 2L,
-    updateSelectedVehicle: (Long) -> Unit = {}
+    updateSelectedVehicle: (Long) -> Unit = {},
+    onLongPress: (Long) -> Unit = {}
 ) {
     var chosenVehicleId by remember {
         mutableStateOf(selectedVehicleId)
     }
     val selectButtonEnabled by remember(chosenVehicleId) { derivedStateOf { chosenVehicleId != selectedVehicleId } }
     val onItemClick = { index: Long -> chosenVehicleId = index }
-    var showVehicleEdit by remember { mutableStateOf(false) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier
@@ -172,7 +204,7 @@ fun ShowAllVehicles(
                     },
                     onLongClickAction = {
                         chosenVehicleId = it
-                        showVehicleEdit = true
+                        onLongPress(it)
                     })
             }
         }
@@ -183,106 +215,36 @@ fun ShowAllVehicles(
         ) {
             Text("Select vehicle $chosenVehicleId")
         }
-        if (showVehicleEdit) {
-            Text(text = "Editing vehicle $chosenVehicleId")
-            // wanted to use a FulLScreenDialog here, but not available... So maybe need to rewrite the AddVehicle() function?
-        }
     }
-
-
-}
-
-@Composable
-@Preview(uiMode = UI_MODE_NIGHT_YES, showBackground = true)
-fun VehicleTable(
-    vehicle: Vehicle = Vehicle(
-        "Rolls Royce",
-        "Silver Cloud",
-        5176,
-        "MNY 99 BGS",
-        LocalDateTime.now(),
-        null
-    )
-) {
-
-    val headingTextColour = if (isSystemInDarkTheme()) {
-        md_theme_dark_background
-    } else {
-        md_theme_light_background
-    }
-    val cellWidth: (Int) -> Dp = { index ->
-        when (index) {
-            0 -> 125.dp
-            1 -> 100.dp
-            2 -> 75.dp
-            else -> 100.dp
-        }
-    }
-
-    val headerCellTitle: @Composable (Int) -> Unit = { index ->
-        val value = when (index) {
-            0 -> "Model"
-            1 -> "Registration"
-            2 -> "Odometer"
-            else -> ""
-        }
-        Text(
-            modifier = Modifier
-                .background(Color.LightGray)
-                .padding(8.dp),
-            text = value,
-            textAlign = TextAlign.Center,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            color = headingTextColour
-        )
-    }
-
-    val tableContent: @Composable (Int, Vehicle) -> Unit = { index, item ->
-        val value: String = when (index) {
-            0 -> "${item.manufacturer}\n${item.model}"
-            1 -> item.registration
-            2 -> item.odometerReading.toString()
-            else -> ""
-        }
-        Text(
-            text = value,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(8.dp),
-            maxLines = 2,
-            overflow = TextOverflow.Clip
-        )
-
-    }
-
-    Table(
-        columnCount = 3, cellWidth = cellWidth, data = listOf(vehicle),
-        headerCellContent = headerCellTitle, cellContent = tableContent,
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures(
-                onLongPress = {
-                    Log.i("VehicleTable", "Long press detected")
-                }
-            )
-        }
-    )
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
-    var vehicleManufacturer by remember { mutableStateOf("") }
-    var vehicleModel by remember { mutableStateOf("") }
-    var vehicleOdometerReading by remember { mutableStateOf("") }
-    var vehicleRegistration by remember { mutableStateOf("") }
+fun AddOrEditVehicle(
+    context: Context,
+    vehicle: Vehicle? = null,
+    viewModel: VehicleDetailsViewModel,
+    isEdit: Boolean = false,
+    onSave: (VehicleDTO) -> Unit = {}
+) {
+    val dto = vehicle?.toDTO() ?: VehicleDTO()
+    var vehicleManufacturer by remember { mutableStateOf(dto.manufacturer) }
+    var vehicleModel by remember { mutableStateOf(dto.model) }
+    var vehicleOdometerReading by remember { mutableStateOf(dto.odometerReading) }
+    var vehicleRegistration by remember { mutableStateOf(dto.registration) }
     var entryEnabled by rememberSaveable { mutableStateOf(true) }
+    var vehiclePhotoPath by remember { mutableStateOf(dto.photoPath) }
+    val vehicleId: Long? = dto.id
+
+    Log.i("VehicleDetailsScreen", "AddOrEditVehicle(): Vehicle=${dto}, edit=$isEdit")
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = stringResource(R.string.screen_vehicleDetails_addNew))
+        if (isEdit) {
+            Text(text = "Editing vehicle ${dto.id}")
+        } else {
+            Text(text = stringResource(R.string.screen_vehicleDetails_addNew))
+        }
         OutlinedTextField(
             value = vehicleManufacturer,
             onValueChange = { vehicleManufacturer = it },
@@ -305,8 +267,8 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
             label = { Text(stringResource(R.string.vehicle_model)) })
 
         NumberTextField(
-            value = vehicleOdometerReading,
-            onValueChange = { vehicleOdometerReading = it },
+            value = vehicleOdometerReading.toString(),
+            onValueChange = { vehicleOdometerReading = it.toIntOrZero() },
             enabled = entryEnabled,
             label = R.string.screen_vehicleDetails_currentOdo
         )
@@ -336,15 +298,15 @@ fun AddVehicle(context: Context, viewModel: VehicleDetailsViewModel) {
                     Toast.LENGTH_LONG
                 ).show()
                 val newVehicle =
-                    Vehicle(
+                    VehicleDTO(
                         vehicleManufacturer,
                         vehicleModel,
-                        vehicleOdometerReading.toIntOrZero(),
+                        vehicleOdometerReading,
                         vehicleRegistration,
-                        LocalDateTime.now(),
-                        null
+                        vehiclePhotoPath,
+                        vehicleId
                     )
-                viewModel.insert(newVehicle)
+                onSave(newVehicle)
             }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

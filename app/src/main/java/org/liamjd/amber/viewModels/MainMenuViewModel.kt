@@ -1,6 +1,7 @@
 package org.liamjd.amber.viewModels
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.*
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
@@ -17,34 +18,70 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
     private val settingsRepository: SettingsRepository = application.settingsRepo
     private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
 
-    private var _selectedVehicleId: Long? = null
+    var selectedVehicleId: Long? = null
 
     private var _vehicleCount: LiveData<Int> = MutableLiveData()
     val vehicleCount: LiveData<Int>
         get() = _vehicleCount
 
-    var vehicle: LiveData<Vehicle> = MutableLiveData()
+    var vehicle = mutableStateOf<Vehicle?>(null)
 
     private var _activeChargeEvent: LiveData<ChargeEvent?> = MutableLiveData()
     val activeChargeEvent: LiveData<ChargeEvent?>
         get() = _activeChargeEvent
 
+
     init {
-        refreshView()
+        viewModelScope.launch {
+            Log.i("MainMenuViewModel", "init{}")
+            _vehicleCount = vehicleRepository.getVehicleCount()
+            selectedVehicleId = settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
+
+            selectedVehicleId?.let {
+                vehicle.value = vehicleRepository.getVehicleById(it)
+                Log.i("MainMenuViewModel","looked for vehicle with id=$it, found $vehicle")
+            }
+
+            val activeChargeId =
+                settingsRepository.getSettingLongValue(SettingsKey.CURRENT_CHARGE_EVENT)
+            Log.i("ChargeEventViewModel refresh", "activeChargeId = $activeChargeId")
+            activeChargeId?.let {
+                _activeChargeEvent = chargeEventRepository.getLiveChargeEventWithId(it)
+            }
+        }
     }
 
     /**
      * Refresh the view by fetching the number of vehicles, and searching for an active charge event ID
      * If it exists, fetch the charge event
      * Called by ViewModel init, and also in the MainMenu composable LaunchedEffect
-     */
+     *//*
     fun refreshView() {
+        Log.i("MainMenuViewModel","refreshView(): ${LocalDateTime.now().toLocalString()}")
         viewModelScope.launch {
             _vehicleCount = vehicleRepository.getVehicleCount()
-            Log.i("ChargeEventViewModel refresh", "_vehicleCount = ${_vehicleCount.value}")
+            Log.i("MainMenuViewModel", "refreshView(): _vehicleCount = ${_vehicleCount.value}")
             _selectedVehicleId = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
+
+            if(_selectedVehicleId == null) {
+                // Somehow we don't have a vehicle set, so get the most recent value, hoping it exists
+                _selectedVehicleId = vehicleRepository.getMostRecentVehicleId()
+                if(_selectedVehicleId != null) {
+                    // and now we are sure we have a value, save it
+                    Log.i("MainMenuViewModel","refreshView(): Updating selected vehicle in repo to $_selectedVehicleId")
+                    settingsRepository.update(Setting(SettingsKey.SELECTED_VEHICLE, lValue = _selectedVehicleId))
+                }
+            }
+
             _selectedVehicleId?.let {
-                vehicle = vehicleRepository.getVehicleById(it)
+                this.launch {
+                    Log.i(
+                        "MainMenuViewModel",
+                        "refreshView(): Almost certainly got a vehicle by now, so fetch it (id=$_selectedVehicleId)!"
+                    )
+                    vehicle = vehicleRepository.getVehicleById(it)
+                    Log.i("MainMenuViewModel", "refreshView(): Fetched -> ${vehicle.value}")
+                }
             }
             val activeChargeId =
                 settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
@@ -57,7 +94,7 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
                 )
             }
         }
-    }
+    }*/
 
     /**
      * Abort the current charge event, deleting the row from the ChargeEvent table, and clearing the

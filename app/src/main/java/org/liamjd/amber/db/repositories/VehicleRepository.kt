@@ -3,7 +3,6 @@ package org.liamjd.amber.db.repositories
 import android.util.Log
 import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.entities.VehicleDao
 import java.time.LocalDateTime
@@ -14,7 +13,7 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
 
     fun getVehicleCount(): LiveData<Int> = vehicleDao.getVehicleCount()
 
-    fun getVehicleById(id: Long): LiveData<Vehicle> = vehicleDao.getVehicle(id)
+    suspend fun getVehicleById(id: Long): Vehicle = vehicleDao.getVehicle(id)
 
     fun insert(vehicle: Vehicle) = vehicleDao.insert(vehicle)
 
@@ -36,5 +35,9 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
 
     suspend fun updatePhotoPath(vehicleId: Long, photoPath: String?) {
         vehicleDao.updatePhotoPath(vehicleId, photoPath, LocalDateTime.now())
+    }
+
+    suspend fun updateVehicle(vehicle: Vehicle) {
+        vehicleDao.update(vehicle)
     }
 }

@@ -32,10 +32,10 @@ interface VehicleDao {
     fun update(vehicle: Vehicle)
 
     @Query("SELECT * FROM Vehicle where id = :id LIMIT 1")
-    fun getVehicle(id: Long): LiveData<Vehicle>
+    suspend fun getVehicle(id: Long): Vehicle
 
     @Query("SELECT COUNT(*) FROM Vehicle")
-    fun getVehicleCount(): LiveData<Int>
+     fun getVehicleCount(): LiveData<Int>
 
     @Query("SELECT MAX(id) FROM Vehicle")
     suspend fun getMostRecentVehicleId(): Long?

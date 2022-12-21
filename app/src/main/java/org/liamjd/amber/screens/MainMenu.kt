@@ -18,13 +18,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.withStateAtLeast
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
 import org.liamjd.amber.screens.composables.TimerDisplay
-import org.liamjd.amber.screens.composables.VehicleCard
+import org.liamjd.amber.screens.vehicles.VehicleCard
 import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
 import org.liamjd.amber.viewModels.MainMenuViewModel
@@ -39,12 +37,12 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
 
     val lifecycleOwner = LocalLifecycleOwner.current
     // This, in combination with with the viewModel init { refreshView() }, gives me the desired effect
-    LaunchedEffect(Unit) {
+    /*LaunchedEffect(Unit) {
         lifecycleOwner.withStateAtLeast(Lifecycle.State.CREATED) {
             Log.i("MainMenu comp", "Lifecycle resumed, calling refresh")
             viewModel.refreshView()
         }
-    }
+    }*/
 
     val vehicleCount by viewModel.vehicleCount.observeAsState()
     Log.i("MainMenu comp", "vehicleCount: $vehicleCount")
@@ -55,7 +53,8 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
     val isCharging =
         remember { derivedStateOf { activeChargeEvent != null && activeChargeEvent?.endDateTime == null } }
     val showAbortChargeDialog = remember { mutableStateOf(false) }
-    val currentVehicle by viewModel.vehicle.observeAsState()
+    val currentVehicle by remember { viewModel.vehicle }
+    Log.i("MainMenu comp", "currentVehicle: $currentVehicle")
 
     AmberChargeTrackerTheme {
 
@@ -79,6 +78,9 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
             floatingActionButton = {
                 if (hasVehicles.value && !isCharging.value) {
                     StartChargeFab(navController)
+                }
+                if(!hasVehicles.value) {
+                    // TODO: Add a fab which navigates to the VehicleDetailsScreen into ADD mode
                 }
             },
             content = {

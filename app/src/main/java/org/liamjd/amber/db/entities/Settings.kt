@@ -1,12 +1,6 @@
 package org.liamjd.amber.db.entities
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 
 /**
  * For example Setting(key = "selectedVehicleId", sValue = null, iValue = null, lValue = 12L)
@@ -36,6 +30,7 @@ enum class SettingsKey(val keyString: String) {
     SELECTED_VEHICLE("SELECTED_VEHICLE"),
     CURRENT_CHARGE_EVENT("CURRENT_CHARGE_EVENT")
 }
+
 
 @Dao
 interface SettingsDao {

@@ -27,7 +27,7 @@ import androidx.navigation.NavController
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.screens.composables.Table
-import org.liamjd.amber.screens.composables.VehicleCard
+import org.liamjd.amber.screens.vehicles.VehicleCard
 import org.liamjd.amber.toLocalString
 import org.liamjd.amber.ui.theme.*
 import org.liamjd.amber.viewModels.ChargeHistoryViewModel
@@ -42,8 +42,9 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
     var timePeriod by remember {
         mutableStateOf(0)
     }
-
-    val currentVehicle by viewModel.vehicle.observeAsState()
+    val currentVehicle = remember {
+        mutableStateOf(viewModel.vehicle)
+    }
     val filter = viewModel.getEventsWithin(timePeriod).observeAsState()
 
     AmberChargeTrackerTheme {
@@ -65,26 +66,26 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
         },
             content = { innerPadding ->
                 Column(modifier = Modifier.padding(innerPadding)) {
-                        currentVehicle?.let {
-                            VehicleCard(
-                                it,
-                                isSelected = true,
-                                onClickAction = {})
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp)
-                    ) {
-                        TimeFilterMenu(timePeriod, onSelection = { timePeriod = it })
-                    }
-                    // table data
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp)
-                    ) {
-                        ChargeHistoryTable(filter)
+                    currentVehicle.value?.let {
+                        VehicleCard(
+                            it,
+                            isSelected = true,
+                            onClickAction = {})
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(0.dp)
+                        ) {
+                            TimeFilterMenu(timePeriod, onSelection = { timePeriod = it })
+                        }
+                        // table data
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(0.dp)
+                        ) {
+                            ChargeHistoryTable(filter)
+                        }
                     }
                 }
             },
