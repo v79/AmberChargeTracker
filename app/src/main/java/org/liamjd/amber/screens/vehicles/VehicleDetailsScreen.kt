@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -31,8 +30,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -54,7 +55,7 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
     val vehicleCount by viewModel.vehicleCount.observeAsState()
     val mode by viewModel.mode
     val selectedVehicleId by remember { mutableStateOf(viewModel.selectedVehicleId) }
-    val selectedVehicle = remember { viewModel.selectedVehicle }
+    val selectedVehicle = viewModel.selectedVehicle
     val hasVehicles =
         remember { derivedStateOf { vehicleCount != null && vehicleCount!! > 0 } }
 
@@ -91,22 +92,31 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                     Row(modifier = Modifier.fillMaxHeight()) {
                         when (mode) {
                             VehicleDetailsMode.ADD -> {
-                                AddOrEditVehicle(context, vehicle = null, viewModel, onSave = {
-                                    val newPK = viewModel.insert(it.toVehicle())
+                                AddOrEditVehicle(context, vehicle = null, onSave = { dto, uri ->
+                                    val newPK = viewModel.insert(dto.toVehicle())
+                                    viewModel.chosenPhotoUri.value = uri
                                     viewModel.selectedVehicleId.value = newPK
                                     selectedVehicleId.value = newPK
                                 })
                             }
                             VehicleDetailsMode.LIST -> {
                                 if (hasVehicles.value) {
-                                    Column {
-                                        Row {
-                                            Text("Selected vehicle: ${selectedVehicleId.value}")
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                fontWeight = FontWeight.Bold,
+                                                textAlign = TextAlign.Center,
+                                                text = "${selectedVehicle.value?.manufacturer} ${selectedVehicle.value?.model}"
+                                            )
                                         }
-                                        Row {
-                                            Text(selectedVehicle.value?.toString()?: "")
-                                        }
-
                                         Row(horizontalArrangement = Arrangement.Center) {
                                             ShowAllVehicles(
                                                 vehicles = viewModel.vehicles,
@@ -128,17 +138,12 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                             VehicleDetailsMode.EDIT -> {
                                 AddOrEditVehicle(
                                     context = context,
-                                    vehicle = selectedVehicle?.value,
-                                    viewModel = viewModel,
+                                    vehicle = selectedVehicle.value?.toDTO(),
                                     isEdit = true,
-                                    onSave = {
-                                        // TODO save edited vehicle
-                                        Log.i(
-                                            "VehicleDetailsScreen",
-                                            "Edited and ready to save vehicleDTO $it (but haven't actually saved the change"
-                                        )
-
-                                        viewModel.saveEditedVehicle(it)
+                                    onSave = { dto, photoUri ->
+                                        Log.i("VehicleDetailsScreen","Edit onSave dto = $dto")
+                                        viewModel.chosenPhotoUri.value = photoUri
+                                        viewModel.saveEditedVehicle(dto)
                                     })
                             }
                         }
@@ -146,14 +151,14 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                 }
             },
             floatingActionButtonPosition = FabPosition.End,
-            floatingActionButton = { AddViewVehicleFab(viewModel) },
+            floatingActionButton = { AddNewVehicleFab(viewModel) },
             bottomBar = { BottomAppBar { Text("$vehicleCount vehicles registered") } }
         )
     }
 }
 
 @Composable
-fun AddViewVehicleFab(viewModel: VehicleDetailsViewModel) {
+fun AddNewVehicleFab(viewModel: VehicleDetailsViewModel) {
     FloatingActionButton(onClick = { viewModel.addNewVehicle() }) {
         Icon(
             painterResource(id = R.drawable.ic_baseline_electric_car_24),
@@ -223,18 +228,20 @@ fun ShowAllVehicles(
 @Composable
 fun AddOrEditVehicle(
     context: Context,
-    vehicle: Vehicle? = null,
-    viewModel: VehicleDetailsViewModel,
+    vehicle: VehicleDTO? = null,
     isEdit: Boolean = false,
-    onSave: (VehicleDTO) -> Unit = {}
+    onSave: (VehicleDTO, Uri?) -> Unit = { _: VehicleDTO, _: Uri? -> {}}
 ) {
-    val dto = vehicle?.toDTO() ?: VehicleDTO()
+    var dto = VehicleDTO()
+    if(vehicle != null) {
+        dto = vehicle
+    }
     var vehicleManufacturer by remember { mutableStateOf(dto.manufacturer) }
     var vehicleModel by remember { mutableStateOf(dto.model) }
     var vehicleOdometerReading by remember { mutableStateOf(dto.odometerReading) }
     var vehicleRegistration by remember { mutableStateOf(dto.registration) }
-    var entryEnabled by rememberSaveable { mutableStateOf(true) }
-    var vehiclePhotoPath by remember { mutableStateOf(dto.photoPath) }
+    var entryEnabled by remember { mutableStateOf(true) }
+        var vehiclePhotoUri by remember { mutableStateOf(dto.photoPath?.let { Uri.parse( it ) }) }
     val vehicleId: Long? = dto.id
 
     Log.i("VehicleDetailsScreen", "AddOrEditVehicle(): Vehicle=${dto}, edit=$isEdit")
@@ -283,8 +290,8 @@ fun AddOrEditVehicle(
             label = { Text("Registration") })
 
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-            VehiclePhotoSelector(photoChosen = {
-                viewModel.chosenPhotoUri.value = it
+            VehiclePhotoSelector(currentPhoto = dto.photoPath, photoChosen = {
+                vehiclePhotoUri = it
             })
         }
 
@@ -297,16 +304,8 @@ fun AddOrEditVehicle(
                     R.string.screen_VehicleDetails_toast_saving,
                     Toast.LENGTH_LONG
                 ).show()
-                val newVehicle =
-                    VehicleDTO(
-                        vehicleManufacturer,
-                        vehicleModel,
-                        vehicleOdometerReading,
-                        vehicleRegistration,
-                        vehiclePhotoPath,
-                        vehicleId
-                    )
-                onSave(newVehicle)
+                dto = VehicleDTO(vehicleManufacturer,vehicleModel,vehicleOdometerReading,vehicleRegistration,vehiclePhotoUri?.path,vehicleId)
+                onSave(dto, vehiclePhotoUri)
             }) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -324,11 +323,17 @@ fun AddOrEditVehicle(
 
 @Preview(showBackground = true)
 @Composable
-fun VehiclePhotoSelector(photoChosen: (picUri: Uri) -> Unit = { }) {
-    var hasPhotograph by remember { mutableStateOf(false) }
+fun VehiclePhotoSelector(currentPhoto: String? = null, photoChosen: (picUri: Uri) -> Unit = { }) {
+    val storagePath = LocalContext.current.filesDir.path
+    val existingUri = if (currentPhoto != null) {
+        Uri.parse("$storagePath/$currentPhoto")
+    } else {
+        null
+    }
+    var hasPhotograph by remember { mutableStateOf(currentPhoto != null) }
     var choosePhotograph by remember { mutableStateOf(false) }
 
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedImageUri by remember { mutableStateOf(existingUri) }
 
     val pickMediaActivityResultLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -338,7 +343,6 @@ fun VehiclePhotoSelector(photoChosen: (picUri: Uri) -> Unit = { }) {
             photoChosen.invoke(it)
         }
     }
-
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Add photograph")

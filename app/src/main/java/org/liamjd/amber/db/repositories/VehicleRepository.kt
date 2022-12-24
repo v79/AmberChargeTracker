@@ -37,7 +37,8 @@ class VehicleRepository(private val vehicleDao: VehicleDao) {
         vehicleDao.updatePhotoPath(vehicleId, photoPath, LocalDateTime.now())
     }
 
-    suspend fun updateVehicle(vehicle: Vehicle) {
+    fun updateVehicle(vehicle: Vehicle) {
+        Log.i("VehicleRepository","DAO is updating vehicle $vehicle (${vehicle.id})")
         vehicleDao.update(vehicle)
     }
 }

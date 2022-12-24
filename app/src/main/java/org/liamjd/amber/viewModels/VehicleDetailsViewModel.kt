@@ -131,14 +131,23 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
      */
     fun saveEditedVehicle(vehicleDTO: VehicleDTO) {
         Log.i("VehicleDetailsVM","saveEditedVehicle($vehicleDTO)")
+        Log.i("VehicleDetailsVM","chosenPhotoUri = ${chosenPhotoUri.value}")
         if(vehicleDTO.id == null) {
             Log.e("VehicleDetailsVM","Unable to update vehicle $vehicleDTO as the ID is null; this should be impossible")
-        } else {
+        }
+        vehicleDTO.id?.let { id ->
             viewModelScope.launch(Dispatchers.IO) {
+                val originalSavedVehicle = repository.getVehicleById(id)
                 val updatedVehicle = vehicleDTO.toVehicle()
+               chosenPhotoUri.value?.let { uri ->
+                    val photoPath = saveImageToStorage(uri, id, vehicleDTO.manufacturer)
+                    updatedVehicle.photoPath = photoPath
+                    repository.updatePhotoPath(id, photoPath)
+                }
                 repository.updateVehicle(updatedVehicle)
             }
         }
+        _mode.value = VehicleDetailsMode.LIST
     }
 
     /**
@@ -239,5 +248,7 @@ fun VehicleDTO.toVehicle() = Vehicle(
     odometerReading = this.odometerReading,
     registration = this.registration,
     lastUpdated = LocalDateTime.now(),
-    photoPath = this.photoPath
-)
+    photoPath = this.photoPath,
+).also {
+    this.id?.let { dtoId -> it.id = dtoId }
+}
