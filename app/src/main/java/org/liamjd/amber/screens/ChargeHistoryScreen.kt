@@ -1,6 +1,7 @@
 package org.liamjd.amber.screens
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlinx.coroutines.flow.emptyFlow
 import org.liamjd.amber.R
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.screens.composables.Table
@@ -39,13 +42,13 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryViewModel) {
     val context = LocalContext.current
-    var timePeriod by remember {
-        mutableStateOf(0)
+    val timePeriod by remember {
+        viewModel.timePeriod
     }
     val currentVehicle = remember {
-        mutableStateOf(viewModel.vehicle)
+        viewModel.vehicle
     }
-    val filter = viewModel.getEventsWithin(timePeriod).observeAsState()
+    val filter = remember { viewModel.events }
 
     AmberChargeTrackerTheme {
         Scaffold(topBar = {
@@ -66,17 +69,22 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
         },
             content = { innerPadding ->
                 Column(modifier = Modifier.padding(innerPadding)) {
-                    currentVehicle.value?.let {
-                        VehicleCard(
-                            it,
-                            isSelected = true,
-                            onClickAction = {})
+                    currentVehicle.value?.let { vehicle ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(0.dp)
                         ) {
-                            TimeFilterMenu(timePeriod, onSelection = { timePeriod = it })
+                            VehicleCard(
+                                vehicle,
+                                isSelected = true,
+                                onClickAction = {})
+                                TimeFilterMenu(
+                                    timePeriod,
+                                    onSelection = { viewModel.changeTimeFilter(it) })
+                        }
+                        Row {
+                            Text("${filter.value.size} events")
                         }
                         // table data
                         Row(
@@ -107,28 +115,53 @@ fun TimeFilterMenu(timePeriod: Int = 0, onSelection: (Int) -> Unit = {}) {
     } else {
         stringResource(R.string.screen_chargeHistory_filterAllTime)
     }
-    OutlinedButton(
-        modifier = Modifier
-            .width(170.dp)
-            .padding(8.dp),
-        onClick = { timeFilterExpanded = true }) {
+    Box {
+        OutlinedButton(
+            modifier = Modifier
+                .width(170.dp)
+                .padding(8.dp),
+            onClick = { timeFilterExpanded = true }) {
 
-        Text(text = label)
-        Icon(imageVector = Icons.Default.Menu, contentDescription = "Choose time period")
-    }
-    DropdownMenu(expanded = timeFilterExpanded, onDismissRequest = { timeFilterExpanded = false }) {
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.screen_chargeHistory_filterAllTime)) },
-            onClick = { timeFilterExpanded = false; onSelection.invoke(0) })
-        DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.screen_chargeHistory_timeFilterDays, 7)) },
-            onClick = { timeFilterExpanded = false; onSelection.invoke(7) })
-        DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.screen_chargeHistory_timeFilterDays, 30)) },
-            onClick = { timeFilterExpanded = false; onSelection.invoke(30) })
-        DropdownMenuItem(
-            text = { Text(stringResource(id = R.string.screen_chargeHistory_timeFilterDays, 90)) },
-            onClick = { timeFilterExpanded = false; onSelection.invoke(90) })
+            Text(text = label)
+            Icon(imageVector = Icons.Default.Menu, contentDescription = "Choose time period")
+        }
+        DropdownMenu(
+            expanded = timeFilterExpanded,
+            onDismissRequest = { timeFilterExpanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.screen_chargeHistory_filterAllTime)) },
+                onClick = { timeFilterExpanded = false; onSelection.invoke(0) })
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        stringResource(
+                            id = R.string.screen_chargeHistory_timeFilterDays,
+                            7
+                        )
+                    )
+                },
+                onClick = { timeFilterExpanded = false; onSelection.invoke(7) })
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        stringResource(
+                            id = R.string.screen_chargeHistory_timeFilterDays,
+                            30
+                        )
+                    )
+                },
+                onClick = { timeFilterExpanded = false; onSelection.invoke(30) })
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        stringResource(
+                            id = R.string.screen_chargeHistory_timeFilterDays,
+                            90
+                        )
+                    )
+                },
+                onClick = { timeFilterExpanded = false; onSelection.invoke(90) })
+        }
     }
 }
 
@@ -146,7 +179,11 @@ class ChargeHistoryPreviewStub : PreviewParameterProvider<State<List<ChargeEvent
 
 @Composable
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) chargeEvents: State<List<ChargeEvent>?>) {
+fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) chargeEvents: MutableState<List<ChargeEvent>>?) {
+    Log.i(
+        "ChargeHistoryScreen",
+        "Rendering ChargeHistoryTable with ${chargeEvents?.value?.size} events"
+    )
     val now = LocalDateTime.now()
     val headingTextColour = if (isSystemInDarkTheme()) {
         md_theme_dark_background
@@ -218,7 +255,7 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
     Table(
         columnCount = 4,
         cellWidth = cellWidth,
-        data = chargeEvents.value ?: emptyList<ChargeEvent>(),
+        data = chargeEvents?.value ?: emptyList<ChargeEvent>(),
         headerCellContent = headerCellTitle,
         cellContent = cellText
     )

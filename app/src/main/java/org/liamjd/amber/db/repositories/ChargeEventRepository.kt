@@ -30,6 +30,7 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
     }
 
     fun getAllEventsForVehicle(vehicleId: Long): Flow<List<ChargeEvent>> {
+        Log.i("ChargeEventRepo","getAllEventsForVehicle($vehicleId)")
         return dao.getAllForVehicle(vehicleId)
     }
 

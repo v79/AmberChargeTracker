@@ -18,6 +18,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.SelectAll
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -84,7 +87,12 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = md_theme_light_surfaceTint)
+                    colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = md_theme_light_surfaceTint),
+                    actions = {
+                        IconButton(onClick = { Log.i("VehicleDeletesScreen","Delete vehicle ${selectedVehicle.value?.id}") }) {
+                            Icon(Icons.Outlined.DeleteForever, contentDescription = "Delete selected car")
+                        }
+                    }
                 )
             },
             content = { innerPadding ->
@@ -152,7 +160,9 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
             },
             floatingActionButtonPosition = FabPosition.End,
             floatingActionButton = { AddNewVehicleFab(viewModel) },
-            bottomBar = { BottomAppBar { Text("$vehicleCount vehicles registered") } }
+            bottomBar = {
+                // BottomAppBar { Text("$vehicleCount vehicles registered") }
+            }
         )
     }
 }
@@ -194,6 +204,7 @@ fun ShowAllVehicles(
             columns = GridCells.Fixed(2),
             modifier = Modifier
                 .padding(2.dp)
+                .fillMaxHeight(0.8f)
         ) {
             items(vehicles) { vehicle ->
                 VehicleCard(vehicle,
@@ -214,11 +225,16 @@ fun ShowAllVehicles(
             }
         }
         Text(text = "Long-press a vehicle to edit it", fontStyle = FontStyle.Italic)
-        ElevatedButton(
-            onClick = { updateSelectedVehicle.invoke(chosenVehicleId) },
-            enabled = selectButtonEnabled
-        ) {
-            Text("Select vehicle $chosenVehicleId")
+        Row( modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+            ElevatedButton(
+                onClick = { updateSelectedVehicle.invoke(chosenVehicleId) },
+                enabled = selectButtonEnabled
+            ) {
+                Row( verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.SelectAll, "Select vehicle as default")
+                    Text("Select vehicle $chosenVehicleId")
+                }
+            }
         }
     }
 }
@@ -321,12 +337,15 @@ fun AddOrEditVehicle(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
 fun VehiclePhotoSelector(currentPhoto: String? = null, photoChosen: (picUri: Uri) -> Unit = { }) {
     val storagePath = LocalContext.current.filesDir.path
     val existingUri = if (currentPhoto != null) {
-        Uri.parse("$storagePath/$currentPhoto")
+        try {
+            Uri.parse("$storagePath/$currentPhoto")
+        } catch (e: Exception) {
+            Log.e("VehiclePhotoSelector", "Error parsing URI for photo path $currentPhoto")
+        }
     } else {
         null
     }
