@@ -36,12 +36,13 @@ It's been a while since I tried Android development.
 - [X] Enable switching between different vehicles - could be useful to keep dev separate from real, now that the app works in a basic way
 - [ ] cross-field validation at ViewModel level?
 - [ ] Charging screen improvements
-  - [ ] Should persist across process death
+  - [X] Should persist across process death
   - [X] Check if charge is in progress on startup
   - [-] Restore the timer correctly based on the charge start time
 - [ ] charge history table improvements
 - [ ] charge history graphs
 - [ ] Journey recording screens and model
 - [ ] Android Auto integration
-- [ ] Add a photograph of the cars for easy identification
-- [ ] Edit car details
+- [X] Add a photograph of the cars for easy identification
+- [X] Edit car details
+- [X] Delete vehicle and all associated events, images etc
