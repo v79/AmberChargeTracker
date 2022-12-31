@@ -32,11 +32,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -58,9 +61,17 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
     val vehicleCount by viewModel.vehicleCount.observeAsState()
     val mode by viewModel.mode
     val selectedVehicleId by remember { mutableStateOf(viewModel.selectedVehicleId) }
-    val selectedVehicle = viewModel.selectedVehicle
+    val selectedVehicle =
+        viewModel.selectedVehicle // this is the actual, active vehicle, the one events will be recorded against
+    val currentVehicle =
+        remember { mutableStateOf(selectedVehicleId.value) } // this is just the vehicle that's been clicked on, it is not active, but is a target for delete or edit actions
     val hasVehicles =
         remember { derivedStateOf { vehicleCount != null && vehicleCount!! > 0 } }
+    var showDeleteDialog by remember {
+        mutableStateOf(false)
+    }
+    val vehicleToDelete =
+        viewModel.vehicleToDelete
 
     AmberChargeTrackerTheme {
         Scaffold(
@@ -89,13 +100,42 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                     },
                     colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = md_theme_light_surfaceTint),
                     actions = {
-                        IconButton(onClick = { Log.i("VehicleDeletesScreen","Delete vehicle ${selectedVehicle.value?.id}") }) {
-                            Icon(Icons.Outlined.DeleteForever, contentDescription = "Delete selected car")
+                        IconButton(onClick = {
+                            Log.i(
+                                "VehicleDeleteScreen",
+                                "Delete vehicle ${currentVehicle.value}"
+                            )
+                            viewModel.chooseVehicleToDelete(currentVehicle.value)
+                            showDeleteDialog = true
+                        }) {
+                            Icon(
+                                Icons.Outlined.DeleteForever,
+                                contentDescription = "Delete selected car"
+                            )
                         }
                     }
                 )
             },
             content = { innerPadding ->
+
+                if (showDeleteDialog) {
+
+                    vehicleToDelete.value?.let { vehicle ->
+                        DeleteConfirmation(
+                            vehicle,
+                            dismissAction = { showDeleteDialog = false },
+                            confirmAction = {
+                                Log.i(
+                                    "VehicleDeleteScreen",
+                                    "OK, really ready to delete ${vehicle.id} now"
+                                )
+                                viewModel.deleteVehicle(vehicle.id)
+                                showDeleteDialog = false
+                            })
+                    }
+                }
+
+
                 Column(modifier = Modifier.padding(innerPadding)) {
                     Row(modifier = Modifier.fillMaxHeight()) {
                         when (mode) {
@@ -129,6 +169,7 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                                             ShowAllVehicles(
                                                 vehicles = viewModel.vehicles,
                                                 selectedVehicleId = selectedVehicleId.value,
+                                                updateChosenVehicle = { currentVehicle.value = it },
                                                 updateSelectedVehicle = { newVehicleId ->
                                                     viewModel.updateSelectedVehicle(newVehicleId)
                                                 },
@@ -149,7 +190,7 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                                     vehicle = selectedVehicle.value?.toDTO(),
                                     isEdit = true,
                                     onSave = { dto, photoUri ->
-                                        Log.i("VehicleDetailsScreen","Edit onSave dto = $dto")
+                                        Log.i("VehicleDetailsScreen", "Edit onSave dto = $dto")
                                         viewModel.chosenPhotoUri.value = photoUri
                                         viewModel.saveEditedVehicle(dto)
                                     })
@@ -177,18 +218,56 @@ fun AddNewVehicleFab(viewModel: VehicleDetailsViewModel) {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@Preview
+@Composable
+fun DeleteConfirmation(
+    vehicle: Vehicle = Vehicle(
+        "DeleteTest", "Begone", 2345, "XX99ABC",
+        LocalDateTime.now(), null
+    ), dismissAction: () -> Unit = {}, confirmAction: () -> Unit = {}
+) {
+    AlertDialog(onDismissRequest = dismissAction, confirmButton = {
+        Button(onClick = confirmAction) {
+            Icon(
+                Icons.Default.DeleteForever,
+                "Delete vehicle and all records",
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+            Text("Delete")
+        }
+    },
+        dismissButton = {
+            TextButton(onClick = dismissAction) {
+                Text("Cancel")
+            }
+        },
+
+        text = {
+            Text(text = buildAnnotatedString {
+                append("Delete vehicle ")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append("${vehicle.manufacturer} ${vehicle.model}")
+                }
+                append(" and all associated data? This cannot be undone.")
+            })
+        })
+}
+
 @Preview(showBackground = true)
 @Composable
 fun ShowAllVehicles(
     vehicles: List<Vehicle> = listOf(
         Vehicle("Audi", "A1", 334, "AD11ADU", LocalDateTime.now(), null).apply { id = 1L },
-        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD", LocalDateTime.now(), null).apply { id = 2L },
+        Vehicle("Zaphod", "Zero", 15512, "ZZ88BAD", LocalDateTime.now(), null).apply {
+            id = 2L
+        },
         Vehicle("Mercedes", "S-Class", 61423, "M415HAD", LocalDateTime.now(), null).apply {
             id = 3L
         }
     ),
     selectedVehicleId: Long = 2L,
+    updateChosenVehicle: (Long) -> Unit = {},
     updateSelectedVehicle: (Long) -> Unit = {},
     onLongPress: (Long) -> Unit = {}
 ) {
@@ -196,7 +275,8 @@ fun ShowAllVehicles(
         mutableStateOf(selectedVehicleId)
     }
     val selectButtonEnabled by remember(chosenVehicleId) { derivedStateOf { chosenVehicleId != selectedVehicleId } }
-    val onItemClick = { index: Long -> chosenVehicleId = index }
+    val onItemClick =
+        { index: Long -> chosenVehicleId = index; updateChosenVehicle.invoke(chosenVehicleId) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -225,12 +305,15 @@ fun ShowAllVehicles(
             }
         }
         Text(text = "Long-press a vehicle to edit it", fontStyle = FontStyle.Italic)
-        Row( modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
             ElevatedButton(
                 onClick = { updateSelectedVehicle.invoke(chosenVehicleId) },
                 enabled = selectButtonEnabled
             ) {
-                Row( verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.SelectAll, "Select vehicle as default")
                     Text("Select vehicle $chosenVehicleId")
                 }
@@ -246,10 +329,10 @@ fun AddOrEditVehicle(
     context: Context,
     vehicle: VehicleDTO? = null,
     isEdit: Boolean = false,
-    onSave: (VehicleDTO, Uri?) -> Unit = { _: VehicleDTO, _: Uri? -> {}}
+    onSave: (VehicleDTO, Uri?) -> Unit = { _: VehicleDTO, _: Uri? -> {} }
 ) {
     var dto = VehicleDTO()
-    if(vehicle != null) {
+    if (vehicle != null) {
         dto = vehicle
     }
     var vehicleManufacturer by remember { mutableStateOf(dto.manufacturer) }
@@ -257,7 +340,7 @@ fun AddOrEditVehicle(
     var vehicleOdometerReading by remember { mutableStateOf(dto.odometerReading) }
     var vehicleRegistration by remember { mutableStateOf(dto.registration) }
     var entryEnabled by remember { mutableStateOf(true) }
-        var vehiclePhotoUri by remember { mutableStateOf(dto.photoPath?.let { Uri.parse( it ) }) }
+    var vehiclePhotoUri by remember { mutableStateOf(dto.photoPath?.let { Uri.parse(it) }) }
     val vehicleId: Long? = dto.id
 
     Log.i("VehicleDetailsScreen", "AddOrEditVehicle(): Vehicle=${dto}, edit=$isEdit")
@@ -296,7 +379,8 @@ fun AddOrEditVehicle(
             label = R.string.screen_vehicleDetails_currentOdo
         )
 
-        OutlinedTextField(value = vehicleRegistration, onValueChange = { vehicleRegistration = it },
+        OutlinedTextField(value = vehicleRegistration,
+            onValueChange = { vehicleRegistration = it },
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
@@ -305,7 +389,10 @@ fun AddOrEditVehicle(
             enabled = entryEnabled,
             label = { Text("Registration") })
 
-        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             VehiclePhotoSelector(currentPhoto = dto.photoPath, photoChosen = {
                 vehiclePhotoUri = it
             })
@@ -320,7 +407,14 @@ fun AddOrEditVehicle(
                     R.string.screen_VehicleDetails_toast_saving,
                     Toast.LENGTH_LONG
                 ).show()
-                dto = VehicleDTO(vehicleManufacturer,vehicleModel,vehicleOdometerReading,vehicleRegistration,vehiclePhotoUri?.path,vehicleId)
+                dto = VehicleDTO(
+                    vehicleManufacturer,
+                    vehicleModel,
+                    vehicleOdometerReading,
+                    vehicleRegistration,
+                    vehiclePhotoUri?.path,
+                    vehicleId
+                )
                 onSave(dto, vehiclePhotoUri)
             }) {
             Row(
@@ -338,7 +432,10 @@ fun AddOrEditVehicle(
 }
 
 @Composable
-fun VehiclePhotoSelector(currentPhoto: String? = null, photoChosen: (picUri: Uri) -> Unit = { }) {
+fun VehiclePhotoSelector(
+    currentPhoto: String? = null,
+    photoChosen: (picUri: Uri) -> Unit = { }
+) {
     val storagePath = LocalContext.current.filesDir.path
     val existingUri = if (currentPhoto != null) {
         try {

@@ -26,7 +26,7 @@ interface VehicleDao {
     fun insert(vehicle: Vehicle): Long
 
     @Delete
-    fun delete(vehicle: Vehicle)
+    suspend fun delete(vehicle: Vehicle)
 
     @Update
     fun update(vehicle: Vehicle)

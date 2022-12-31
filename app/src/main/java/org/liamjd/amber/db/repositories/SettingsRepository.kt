@@ -5,11 +5,11 @@ import org.liamjd.amber.db.entities.Setting
 import org.liamjd.amber.db.entities.SettingsDao
 import org.liamjd.amber.db.entities.SettingsKey
 
-class SettingsRepository(private val settingsDao: SettingsDao) {
+class SettingsRepository(private val dao: SettingsDao) {
 
-    suspend fun insert(setting: Setting) = settingsDao.insert(setting)
+    suspend fun insert(setting: Setting) = dao.insert(setting)
 
-    fun delete(setting: Setting) = settingsDao.delete(setting)
+    fun delete(setting: Setting) = dao.delete(setting)
 
 //    fun getSetting(key: SettingsKey): LiveData<Setting?> = settingsDao.getSetting(key.keyString)
 
@@ -18,21 +18,21 @@ class SettingsRepository(private val settingsDao: SettingsDao) {
      */
     suspend fun update(setting: Setting) {
         Log.i("SettingsRepository","Updating setting: $setting")
-        val existingSetting = settingsDao.getSetting(setting.settingsKey)
+        val existingSetting = dao.getSetting(setting.settingsKey)
         if (existingSetting == null) {
             Log.e("SetttingsRepository","Inserting new ${setting.settingsKey} as none found")
-            settingsDao.insert(setting)
+            dao.insert(setting)
         } else {
             if(valuesChanged(setting,existingSetting)) {
                 Log.i(
                     "SetttingsRepository",
                     "Updating ${setting.settingsKey} with new values ($setting)"
                 )
-                settingsDao.clearSetting(setting.settingsKey)
+                dao.clearSetting(setting.settingsKey)
                 // urgh
-                settingsDao.updateLongValue(setting.settingsKey, setting.lValue)
-                settingsDao.updateIntValue(setting.settingsKey, setting.iValue)
-                settingsDao.updateStringValue(setting.settingsKey, setting.sValue)
+                dao.updateLongValue(setting.settingsKey, setting.lValue)
+                dao.updateIntValue(setting.settingsKey, setting.iValue)
+                dao.updateStringValue(setting.settingsKey, setting.sValue)
             } else {
                 Log.i("SettingsRepository","No changes required for $setting")
             }
@@ -44,7 +44,7 @@ class SettingsRepository(private val settingsDao: SettingsDao) {
      * Or return null if not found
      */
     suspend fun getSettingLongValue(key: SettingsKey): Long? {
-        val setting = settingsDao.getSetting(key.keyString)
+        val setting = dao.getSetting(key.keyString)
         Log.i("SettingsRepository","getSettingLongValue($key) returns $setting")
         return setting?.lValue
     }
@@ -60,5 +60,5 @@ class SettingsRepository(private val settingsDao: SettingsDao) {
      * Remove all the stored values for the given setting.
      * This does not delete the row in the database, but just resets the values to null
      */
-    suspend fun clear(key: SettingsKey) = settingsDao.clearSetting(key.keyString)
+    suspend fun clear(key: SettingsKey) = dao.clearSetting(key.keyString)
 }

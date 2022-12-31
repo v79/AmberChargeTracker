@@ -90,6 +90,13 @@ interface ChargeEventDao {
     fun getEventsSince(startDateTime: Long,vehicleId: Long): Flow<List<ChargeEvent>>
 
     /**
+     * Delete all events for the given vehicleId
+     * Returns the number of deleted rows
+     */
+    @Query("DELETE FROM ChargeEvent WHERE vehicleId = :vehicleId")
+    suspend fun deleteEventsForVehicle(vehicleId: Long): Int
+
+    /**
      * Return a LiveData wrapper around a ChargeEvent (which may be null)
      */
     @Query("SELECT * FROM ChargeEvent WHERE id = :id")

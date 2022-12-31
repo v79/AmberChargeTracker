@@ -14,6 +14,7 @@ import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.db.entities.Setting
 import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.entities.Vehicle
+import org.liamjd.amber.db.repositories.ChargeEventRepository
 import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
 import java.io.IOException
@@ -24,10 +25,15 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
 
     private val repository: VehicleRepository = application.vehicleRepo
     private val settingsRepository: SettingsRepository = application.settingsRepo
+    private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
 
     private var _selectedVehicle = mutableStateOf<Vehicle?>(null)
     val selectedVehicle
         get() = _selectedVehicle
+
+    private var _vehicleToDelete = mutableStateOf<Vehicle?>(null)
+    val vehicleToDelete
+        get() = _vehicleToDelete
 
     var selectedVehicleId = mutableStateOf(-1L) // will get reset on load
 
@@ -74,7 +80,7 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
      * Switch to edit mode and update the vehicle selection
      */
     fun switchToEditMode(editVehicleId: Long) {
-        Log.i("VehicleDetailsVM","switchToEditMode($editVehicleId)")
+        Log.i("VehicleDetailsVM", "switchToEditMode($editVehicleId)")
         _mode.value = VehicleDetailsMode.EDIT
         updateSelectedVehicle(editVehicleId)
     }
@@ -86,7 +92,10 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
         viewModelScope.launch {
             selectedVehicleId.value = newVehicleId
             _selectedVehicle.value = repository.getVehicleById(newVehicleId)
-            Log.i("VehicleDetailsVM","updatedSelectedVehicle($newVehicleId) fetching new vehicle and updating selected vehicle in Settings")
+            Log.i(
+                "VehicleDetailsVM",
+                "updatedSelectedVehicle($newVehicleId) fetching new vehicle and updating selected vehicle in Settings"
+            )
             settingsRepository.update(Setting(SettingsKey.SELECTED_VEHICLE, lValue = newVehicleId))
         }
     }
@@ -130,16 +139,19 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
      * Update the database entry for the given VehicleDTO
      */
     fun saveEditedVehicle(vehicleDTO: VehicleDTO) {
-        Log.i("VehicleDetailsVM","saveEditedVehicle($vehicleDTO)")
-        Log.i("VehicleDetailsVM","chosenPhotoUri = ${chosenPhotoUri.value}")
-        if(vehicleDTO.id == null) {
-            Log.e("VehicleDetailsVM","Unable to update vehicle $vehicleDTO as the ID is null; this should be impossible")
+        Log.i("VehicleDetailsVM", "saveEditedVehicle($vehicleDTO)")
+        Log.i("VehicleDetailsVM", "chosenPhotoUri = ${chosenPhotoUri.value}")
+        if (vehicleDTO.id == null) {
+            Log.e(
+                "VehicleDetailsVM",
+                "Unable to update vehicle $vehicleDTO as the ID is null; this should be impossible"
+            )
         }
         vehicleDTO.id?.let { id ->
             viewModelScope.launch(Dispatchers.IO) {
                 val originalSavedVehicle = repository.getVehicleById(id)
                 val updatedVehicle = vehicleDTO.toVehicle()
-               chosenPhotoUri.value?.let { uri ->
+                chosenPhotoUri.value?.let { uri ->
                     val photoPath = saveImageToStorage(uri, id, vehicleDTO.manufacturer)
                     updatedVehicle.photoPath = photoPath
                     repository.updatePhotoPath(id, photoPath)
@@ -186,9 +198,31 @@ class VehicleDetailsViewModel(private val application: AmberApplication) : ViewM
         return fileName
     }
 
-    private fun getMostRecentVehicleId() {
+    fun chooseVehicleToDelete(vehicleId: Long) {
         viewModelScope.launch {
-            repository.getMostRecentVehicleId()  // TODO: really this should be stored elsewhere
+            val vehicle = repository.getVehicleById(vehicleId)
+            _vehicleToDelete.value = vehicle
+        }
+    }
+
+    /**
+     * Delete the given vehicle and all its events.
+     * Also delete its image from disc if it exists
+     */
+    fun deleteVehicle(vehicleId: Long) {
+        viewModelScope.launch {
+            val vehicleToDelete = repository.getVehicleById(vehicleId)
+            Log.i("VehicleDetailsVM", "deleteVehicle(${vehicleToDelete.id})")
+            // delete photo
+            val photoPath = vehicleToDelete.photoPath
+            if (photoPath != null) {
+                Log.i("VehicleDetailsVM", "delete photo $photoPath next")
+                application.deleteFile(photoPath)
+            }
+            // delete charge events
+            chargeEventRepository.deleteEventsForVehicle(vehicleToDelete.id)
+            // delete vehicle
+            repository.deleteVehicle(vehicleToDelete)
         }
     }
 }

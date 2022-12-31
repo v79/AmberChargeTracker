@@ -95,6 +95,7 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                                 ChargeHistoryTable(filter)
                             }
+
                         }
                     }
                 }

@@ -41,6 +41,11 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         dao.insert(chargeEvent)
     }
 
+    suspend fun deleteEventsForVehicle(vehicleId: Long) {
+        val count = dao.deleteEventsForVehicle(vehicleId)
+        Log.i("ChargeEventRepo","deleteEventsForVehicle($vehicleId) deleted $count rows")
+    }
+
     fun getLiveChargeEventWithId(id: Long): LiveData<ChargeEvent?> = dao.getChargeEventWithId(id)
 
     suspend fun getChargeEventWithId(id: Long) = dao.getExistingChargeEventWithId(id)
