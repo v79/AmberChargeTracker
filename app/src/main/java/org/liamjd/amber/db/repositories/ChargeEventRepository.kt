@@ -19,17 +19,20 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
      */
     fun getEventsWithin(days: Int, vehicleId: Long): Flow<List<ChargeEvent>> {
         if (days <= 0) {
-            return dao.getAll()
+            return getAllEventsForVehicle(vehicleId)
         }
         val now = LocalDateTime.now()
         val xDaysAgo = now.minusDays(days.toLong())
         val xDaysAgoAsLong = xDaysAgo.toEpochSecond(ZoneOffset.UTC)
-        Log.i("ChargeEventRepo","getEventsWithin($days,$vehicleId)")
+        Log.i("ChargeEventRepo","getEventsWithin($days days, vehicle $vehicleId)")
 
         return dao.getEventsSince(xDaysAgoAsLong,vehicleId)
     }
 
-    fun getAllEventsForVehicle(vehicleId: Long): Flow<List<ChargeEvent>> {
+    /**
+     * Get all the charge events for the currently selected vehicle, regardless of time
+     */
+    private fun getAllEventsForVehicle(vehicleId: Long): Flow<List<ChargeEvent>> {
         Log.i("ChargeEventRepo","getAllEventsForVehicle($vehicleId)")
         return dao.getAllForVehicle(vehicleId)
     }

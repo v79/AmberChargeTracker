@@ -80,7 +80,7 @@ interface ChargeEventDao {
     @Query("SELECT * FROM ChargeEvent ORDER BY startDateTime DESC")
     fun getAll(): Flow<List<ChargeEvent>>
 
-    @Query("SELECT * FROM ChargeEvent where vehicleId = :vehicleId")
+    @Query("SELECT * FROM ChargeEvent where vehicleId = :vehicleId ORDER BY startDateTime DESC")
     fun getAllForVehicle(vehicleId: Long): Flow<List<ChargeEvent>>
 
     @RawQuery(observedEntities = [ChargeEvent::class])

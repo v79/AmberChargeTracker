@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.db.entities.ChargeEvent
-import org.liamjd.amber.db.entities.Setting
 import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.repositories.ChargeEventRepository
@@ -36,12 +35,12 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
         Log.i("ChargeHistoryVM","refreshView()")
         viewModelScope.launch {
             selectedVehicleId = settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
-            selectedVehicleId?.let { id ->
-                vehicle.value = vehicleRepository.getVehicleById(id)
-                chargeEventRepository.getEventsWithin(timePeriod.value,id).collect {
+            selectedVehicleId?.let { vehicleId ->
+                vehicle.value = vehicleRepository.getVehicleById(vehicleId)
+                chargeEventRepository.getEventsWithin(timePeriod.value,vehicleId).collect {
                    response ->
                    events.value = response
-                    Log.i("ChargeHistoryVM","collecting events - ${response.size} found")
+                    Log.i("ChargeHistoryVM","refreshView() collecting events for vehicle $vehicleId - ${response.size} found")
                }
             }
         }
@@ -53,9 +52,10 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
     fun changeTimeFilter(days: Int) {
         timePeriod.value = days
         viewModelScope.launch {
-            selectedVehicleId?.let { id ->
-                chargeEventRepository.getEventsWithin(timePeriod.value, id).collect { response ->
+            selectedVehicleId?.let { vehicleId ->
+                chargeEventRepository.getEventsWithin(timePeriod.value, vehicleId).collect { response ->
                     events.value = response
+                    Log.i("ChargeHistoryVM","changeTimeFilter($days) collecting events for vehicle $vehicleId - ${response.size} found")
                 }
             }
         }

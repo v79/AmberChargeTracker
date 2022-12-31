@@ -15,6 +15,7 @@ It's been a while since I tried Android development.
 - [ ] Saving total cost of a charge event
   - need to parse input string like "1.50" correctly, currently it fails and returns 0
 - [X] Text styling on real device - black on black is hard to read...
+- [ ] Very inconsistent behaviour moving between screens when charging
 
 ### Technical improvements
 
