@@ -3,9 +3,17 @@ package org.liamjd.amber.db.entities
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
 
 @Entity
-data class Vehicle(val manufacturer: String, val model: String, val odometerReading: Int, val registration: String) {
+data class Vehicle(
+    val manufacturer: String,
+    val model: String,
+    val odometerReading: Int,
+    val registration: String,
+    val lastUpdated: LocalDateTime,
+    var photoPath: String?
+) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
 }
@@ -18,16 +26,16 @@ interface VehicleDao {
     fun insert(vehicle: Vehicle): Long
 
     @Delete
-    fun delete(vehicle: Vehicle)
+    suspend fun delete(vehicle: Vehicle)
 
     @Update
     fun update(vehicle: Vehicle)
 
     @Query("SELECT * FROM Vehicle where id = :id LIMIT 1")
-    fun getVehicle(id: Long): LiveData<Vehicle>
+    suspend fun getVehicle(id: Long): Vehicle
 
     @Query("SELECT COUNT(*) FROM Vehicle")
-    fun getVehicleCount(): LiveData<Int>
+     fun getVehicleCount(): LiveData<Int>
 
     @Query("SELECT MAX(id) FROM Vehicle")
     suspend fun getMostRecentVehicleId(): Long?
@@ -38,8 +46,13 @@ interface VehicleDao {
     @Query("SELECT odometerReading FROM Vehicle WHERE id = :id")
     suspend fun getCurrentOdometer(id: Long): Int
 
-    @Query("UPDATE Vehicle SET odometerReading = :odometer WHERE id = :vehicleId")
-    suspend fun updateOdometer(vehicleId: Long, odometer: Int)
+    @Query("UPDATE Vehicle SET odometerReading = :odometer, lastUpdated = :now WHERE id = :vehicleId")
+    suspend fun updateOdometer(
+        vehicleId: Long, odometer: Int, now: LocalDateTime
+    )
+
+    @Query("UPDATE Vehicle SET photoPath = :photoPath, lastUpdated = :now WHERE id = :vehicleId")
+    suspend fun updatePhotoPath(vehicleId: Long, photoPath: String?, now: LocalDateTime)
 
     @Query("SELECT * FROM Vehicle ORDER BY Manufacturer")
     fun getAll(): Flow<List<Vehicle>>

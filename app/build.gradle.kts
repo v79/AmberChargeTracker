@@ -72,6 +72,10 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation("androidx.compose.material:material-icons-extended")
 
+    // images
+    implementation("androidx.activity:activity:1.6.1")
+    implementation("io.coil-kt:coil-compose:2.2.2")
+
     // Hilt DI
     implementation("com.google.dagger:hilt-android:2.44.2")
     kapt("com.google.dagger:hilt-compiler:2.44.2")

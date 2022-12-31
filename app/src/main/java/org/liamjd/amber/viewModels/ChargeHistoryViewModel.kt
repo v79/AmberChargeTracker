@@ -1,8 +1,12 @@
 package org.liamjd.amber.viewModels
 
+import android.util.Log
+import androidx.compose.runtime.*
 import androidx.lifecycle.*
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
+import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.repositories.ChargeEventRepository
@@ -15,24 +19,44 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
     private val vehicleRepository: VehicleRepository = application.vehicleRepo
     private val settingsRepository: SettingsRepository = application.settingsRepo
 
-    private var _selectedVehicleId: Long = -1L
-    var vehicle: LiveData<Vehicle> = MutableLiveData()
+    private var selectedVehicleId: Long? = null
+    var vehicle = mutableStateOf<Vehicle?>(null)
 
-    val allEvents = chargeEventRepository.allChargeEvents.asLiveData()
+    var events = mutableStateOf<List<ChargeEvent>>(
+        emptyList())
 
-    fun getEventsWithin(days: Int) = chargeEventRepository.getEventsWithin(days, _selectedVehicleId).asLiveData()
-
-    fun eventsForVehicle(vehicleId: Long) = chargeEventRepository.getAllEventsForVehicle(vehicleId).asLiveData()
+    var timePeriod = mutableStateOf(0)
 
     init {
         refreshView()
     }
 
     private fun refreshView() {
+        Log.i("ChargeHistoryVM","refreshView()")
         viewModelScope.launch {
-            _selectedVehicleId = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue?: -1L
-            _selectedVehicleId.let {
-                vehicle = vehicleRepository.getVehicleById(it)
+            selectedVehicleId = settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
+            selectedVehicleId?.let { vehicleId ->
+                vehicle.value = vehicleRepository.getVehicleById(vehicleId)
+                chargeEventRepository.getEventsWithin(timePeriod.value,vehicleId).collect {
+                   response ->
+                   events.value = response
+                    Log.i("ChargeHistoryVM","refreshView() collecting events for vehicle $vehicleId - ${response.size} found")
+               }
+            }
+        }
+    }
+
+    /**
+     * Update the time period and requery the database to get the matching events
+     */
+    fun changeTimeFilter(days: Int) {
+        timePeriod.value = days
+        viewModelScope.launch {
+            selectedVehicleId?.let { vehicleId ->
+                chargeEventRepository.getEventsWithin(timePeriod.value, vehicleId).collect { response ->
+                    events.value = response
+                    Log.i("ChargeHistoryVM","changeTimeFilter($days) collecting events for vehicle $vehicleId - ${response.size} found")
+                }
             }
         }
     }

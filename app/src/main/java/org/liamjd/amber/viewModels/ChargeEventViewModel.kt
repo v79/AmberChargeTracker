@@ -29,9 +29,8 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
     private val settingsRepository: SettingsRepository = application.settingsRepo
 
 
-    private var _selectedVehicle = mutableStateOf(-1L)
-    val selectedVehicle: Long
-        get() = _selectedVehicle.value
+    private var _selectedVehicleId: Long? = -1L
+
 
     private val _uiState = mutableStateOf<UIState>(UIState.Loading)
     val uiState: State<UIState>
@@ -58,27 +57,25 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
      */
     init {
 
-        Log.i("ChargeEventViewModel init", "Arrived with Active Charge ID = $activeChargeId")
+        Log.i("ChargeEventViewModel", "init{} Arrived with Active Charge ID = $activeChargeId")
 
         viewModelScope.launch {
-            _selectedVehicle.value =
-                settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue ?: -1
+            _selectedVehicleId =
+                settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
             Log.i(
-                "ChargeEventViewModel init",
-                "Selected vehicle is ${_selectedVehicle.value}"
+                "ChargeEventViewModel",
+                "init{} Selected vehicle is $_selectedVehicleId"
             )
 
-            if (_selectedVehicle.value == -1L) {
-                Log.e(
-                    "ChargeEventViewModel init",
-                    "Selected vehicle is -1, error in database?"
-                )
-            } else {
-                odo.value = vehicleRepository.getCurrentOdometer(selectedVehicle)
+            _selectedVehicleId?.let {
+                odo.value = vehicleRepository.getCurrentOdometer(it)
             }
 
             if (activeChargeId != null) {
-                Log.i("ChargeEventViewModel init","Looking for charge event with ID $activeChargeId")
+                Log.i(
+                    "ChargeEventViewModel init",
+                    "Looking for charge event with ID $activeChargeId"
+                )
                 val existingChargeEvent = chargeEventRepository.getChargeEventWithId(activeChargeId)
                 Log.i("ChargeEventViewModel init", existingChargeEvent.toString())
                 chargingStatus = RecordChargingStatus.CHARGING
@@ -94,6 +91,10 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
                         nowSeconds - this.startDateTime.toEpochSecond(ZoneOffset.UTC)
                 }
             } else {
+                Log.i(
+                    "ChargeEventViewModel",
+                    "{init} Building UI model for ${_selectedVehicleId}, odo reading is ${odo.value}"
+                )
                 startModel.value = StartingChargeEventModel(
                     dateTime = LocalDateTime.now(),
                     odometer = odo.value,
@@ -136,24 +137,31 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
         chargingStatus = RecordChargingStatus.CHARGING
 
         viewModelScope.launch {
-            _uiState.value = UIState.Saving
-            val vehicleCurrentOdo = vehicleRepository.getCurrentOdometer(selectedVehicle)
+            _selectedVehicleId?.let { vehicleId ->
+                _uiState.value = UIState.Saving
+                val vehicleCurrentOdo = vehicleRepository.getCurrentOdometer(vehicleId)
 //            if (startModel.odometer > vehicleCurrentOdo) {
-            Log.i(
-                "ChargeEventViewModel",
-                "Updating odometer reading for vehicle $_selectedVehicle from $vehicleCurrentOdo to ${startModel.odometer}"
-            )
-            vehicleRepository.updateOdometer(selectedVehicle, startModel.odometer)
+                Log.i(
+                    "ChargeEventViewModel",
+                    "Updating odometer reading for vehicle $vehicleId from $vehicleCurrentOdo to ${startModel.odometer}"
+                )
+                vehicleRepository.updateOdometer(vehicleId, startModel.odometer)
 //            }
-            val eventId = chargeEventRepository.startChargeEvent(
-                vehicleId = selectedVehicle,
-                startOdo = startModel.odometer,
-                startTime = startModel.dateTime,
-                startBatteryPct = startModel.percentage,
-                startBatteryRange = startModel.range
-            )
-            settingsRepository.update(Setting(SettingsKey.CURRENT_CHARGE_EVENT, lValue = eventId))
-            _uiState.value = UIState.Active
+                val eventId = chargeEventRepository.startChargeEvent(
+                    vehicleId = vehicleId,
+                    startOdo = startModel.odometer,
+                    startTime = startModel.dateTime,
+                    startBatteryPct = startModel.percentage,
+                    startBatteryRange = startModel.range
+                )
+                settingsRepository.update(
+                    Setting(
+                        SettingsKey.CURRENT_CHARGE_EVENT,
+                        lValue = eventId
+                    )
+                )
+                _uiState.value = UIState.Active
+            }
         }
     }
 
@@ -174,7 +182,7 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
         _uiState.value = UIState.Saving
 
         val currentEvent: Long? =
-            settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
+            settingsRepository.getSettingLongValue(SettingsKey.CURRENT_CHARGE_EVENT)
         if (currentEvent == null) {
             Log.e(
                 "ChargeEventViewModel",

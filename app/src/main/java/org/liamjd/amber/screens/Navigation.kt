@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.AmberApplication
+import org.liamjd.amber.screens.vehicles.VehicleDetailsScreen
 import org.liamjd.amber.viewModels.ChargeEventVMFactory
 import org.liamjd.amber.viewModels.ChargeHistoryViewModelFactory
 import org.liamjd.amber.viewModels.MainMenuViewModelFactory
