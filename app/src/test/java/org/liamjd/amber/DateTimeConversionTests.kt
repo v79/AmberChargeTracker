@@ -13,7 +13,7 @@ class DateTimeConversionTests {
         val now = LocalDateTime.of(2022, 10, 26, 21, 15)
         val monthAgo = LocalDateTime.of(2022, 9, 26, 21, 15)
 
-        val daysBetween = ChronoUnit.DAYS.between(now, monthAgo)
+        val daysBetween = ChronoUnit.DAYS.between(now, monthAgo).absoluteValue
 
         assertEquals(30L, daysBetween)
     }

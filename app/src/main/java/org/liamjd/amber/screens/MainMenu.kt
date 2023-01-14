@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -18,6 +19,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.withStateAtLeast
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.liamjd.amber.R
@@ -36,14 +39,6 @@ import java.time.temporal.ChronoUnit
 fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    // This, in combination with with the viewModel init { refreshView() }, gives me the desired effect
-    /*LaunchedEffect(Unit) {
-        lifecycleOwner.withStateAtLeast(Lifecycle.State.CREATED) {
-            Log.i("MainMenu comp", "Lifecycle resumed, calling refresh")
-            viewModel.refreshView()
-        }
-    }*/
-
     val vehicleCount by viewModel.vehicleCount.observeAsState()
     Log.i("MainMenu comp", "vehicleCount: $vehicleCount")
     val activeChargeEvent by viewModel.activeChargeEvent.observeAsState()
@@ -52,7 +47,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
         remember { derivedStateOf { vehicleCount != null && vehicleCount!! > 0 } }
     val isCharging =
         remember { derivedStateOf { activeChargeEvent != null && activeChargeEvent?.endDateTime == null } }
-    val showAbortChargeDialog = remember { mutableStateOf(false) }
+    val showAbortChargeDialog = rememberSaveable { mutableStateOf(false) }
     val currentVehicle by remember { viewModel.vehicle }
     Log.i("MainMenu comp", "currentVehicle: $currentVehicle")
 

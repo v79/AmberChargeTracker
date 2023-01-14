@@ -30,6 +30,7 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
     val activeChargeEvent: LiveData<ChargeEvent?>
         get() = _activeChargeEvent
 
+    private var _isCharging: LiveData<Boolean> = MutableLiveData(false)
 
     init {
         viewModelScope.launch {
@@ -44,57 +45,12 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
 
             val activeChargeId =
                 settingsRepository.getSettingLongValue(SettingsKey.CURRENT_CHARGE_EVENT)
-            Log.i("ChargeEventViewModel refresh", "activeChargeId = $activeChargeId")
+            Log.i("MainMenuViewModel", "activeChargeId = $activeChargeId")
             activeChargeId?.let {
                 _activeChargeEvent = chargeEventRepository.getLiveChargeEventWithId(it)
             }
         }
     }
-
-    /**
-     * Refresh the view by fetching the number of vehicles, and searching for an active charge event ID
-     * If it exists, fetch the charge event
-     * Called by ViewModel init, and also in the MainMenu composable LaunchedEffect
-     *//*
-    fun refreshView() {
-        Log.i("MainMenuViewModel","refreshView(): ${LocalDateTime.now().toLocalString()}")
-        viewModelScope.launch {
-            _vehicleCount = vehicleRepository.getVehicleCount()
-            Log.i("MainMenuViewModel", "refreshView(): _vehicleCount = ${_vehicleCount.value}")
-            _selectedVehicleId = settingsRepository.getSetting(SettingsKey.SELECTED_VEHICLE)?.lValue
-
-            if(_selectedVehicleId == null) {
-                // Somehow we don't have a vehicle set, so get the most recent value, hoping it exists
-                _selectedVehicleId = vehicleRepository.getMostRecentVehicleId()
-                if(_selectedVehicleId != null) {
-                    // and now we are sure we have a value, save it
-                    Log.i("MainMenuViewModel","refreshView(): Updating selected vehicle in repo to $_selectedVehicleId")
-                    settingsRepository.update(Setting(SettingsKey.SELECTED_VEHICLE, lValue = _selectedVehicleId))
-                }
-            }
-
-            _selectedVehicleId?.let {
-                this.launch {
-                    Log.i(
-                        "MainMenuViewModel",
-                        "refreshView(): Almost certainly got a vehicle by now, so fetch it (id=$_selectedVehicleId)!"
-                    )
-                    vehicle = vehicleRepository.getVehicleById(it)
-                    Log.i("MainMenuViewModel", "refreshView(): Fetched -> ${vehicle.value}")
-                }
-            }
-            val activeChargeId =
-                settingsRepository.getSetting(SettingsKey.CURRENT_CHARGE_EVENT)?.lValue
-            Log.i("ChargeEventViewModel refresh", "activeChargeId = $activeChargeId")
-            if (activeChargeId != null) {
-                _activeChargeEvent = chargeEventRepository.getLiveChargeEventWithId(activeChargeId)
-                Log.i(
-                    "ChargeEventViewModel refresh",
-                    "_activeChargeEvent = ${_activeChargeEvent.value}"
-                )
-            }
-        }
-    }*/
 
     /**
      * Abort the current charge event, deleting the row from the ChargeEvent table, and clearing the
