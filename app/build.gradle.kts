@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("org.sonarqube") version "3.5.0.2730"
 }
 
 android {
@@ -93,6 +94,7 @@ dependencies {
     testImplementation("androidx.room:room-testing:2.4.3")
     debugImplementation("androidx.compose.ui:ui-tooling")
 //    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+
 
 }
 
