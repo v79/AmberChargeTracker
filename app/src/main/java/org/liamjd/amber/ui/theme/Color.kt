@@ -63,5 +63,6 @@ val md_theme_dark_surfaceTint = Color(0xFFAEC6FF)
 val md_theme_light_startButtonBackground = Color(0xFF3C9940)
 val md_theme_light_stopButtonBackground = Color(0xFF972727)
 val md_theme_light_disabledButtonBackground = Color(0xFF6B6B6B)
+val md_theme_light_txtIncrease = Color(0xFF257529)
 
 val seed = Color(0xFF005AC6)

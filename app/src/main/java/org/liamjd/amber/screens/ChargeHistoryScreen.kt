@@ -3,7 +3,6 @@ package org.liamjd.amber.screens
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -83,7 +82,7 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                                 timePeriod,
                                 onSelection = { timePeriod -> viewModel.changeTimeFilter(timePeriod) })
                         }
-                        Row {
+                        Row(modifier = Modifier.padding(start = 12.dp)) {
                             Text("${filter.value.size} events")
                         }
                         // table data
@@ -196,9 +195,11 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
     val cellWidth: (Int) -> Dp = { index ->
         when (index) {
             // use specific index to vary column width
-            0 -> 100.dp
-            1 -> 75.dp
-            2 -> 75.dp
+            0 -> 120.dp
+            1 -> 65.dp
+            2 -> 65.dp
+            3 -> 50.dp
+            4 -> 75.dp
             else -> 100.dp
         }
     }
@@ -208,7 +209,8 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
             0 -> stringResource(R.string.screen_chargeHistory_dateTime)
             1 -> stringResource(R.string.screen_chargeHistory_from)
             2 -> stringResource(R.string.screen_chargeHistory_to)
-            3 -> stringResource(R.string.screen_chargeHistory_costs)
+            3 -> "⬆️"
+            4 -> stringResource(R.string.screen_chargeHistory_costs)
             else -> ""
         }
         Text(
@@ -226,14 +228,16 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
     }
 
     val cellText: @Composable (Int, ChargeEvent) -> Unit = { index, item ->
+        var txtColor = if (isSystemInDarkTheme()) { md_theme_dark_onPrimaryContainer} else { md_theme_light_onPrimaryContainer }
+        val duration = ChronoUnit.MINUTES.between(item.startDateTime,item.endDateTime?: LocalDateTime.now())
         val value = when (index) {
             0 -> {
-                val output = if (ChronoUnit.DAYS.between(item.startDateTime, now) > 7L) {
-                    item.startDateTime.toLocalString()
+                val dateTime = if (ChronoUnit.DAYS.between(item.startDateTime, now) > 7L) {
+                    "${item.startDateTime.toLocalString()} (${duration}mins)"
                 } else {
-                    item.startDateTime.format(DateTimeFormatter.ofPattern("EEEE HH:mm"))
+                    "${item.startDateTime.format(DateTimeFormatter.ofPattern("EEEE HH:mm"))} (${duration}mins)"
                 }
-                output.replace(" ", "\n")
+                dateTime
             }
             1 -> {
                 "${item.batteryStartingPct}%\n${item.batteryStartingRange}mi"
@@ -242,23 +246,31 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
                 "${item.batteryEndingPct}%\n${item.batteryEndingRange}mi"
             }
             3 -> {
+                txtColor = md_theme_light_txtIncrease
+                "${item.batteryEndingPct?.minus(item.batteryStartingPct)}%\n" +
+                        "${item.batteryEndingRange?.minus(item.batteryStartingRange)}mi"
+            }
+            4 -> {
+                txtColor = if (isSystemInDarkTheme()) { md_theme_dark_onPrimaryContainer} else { md_theme_light_onPrimaryContainer }
                 "£${item.totalCost}\n@ ${item.kilowatt}kw"
             }
             else -> ""
         }
         Text(
+
             text = value,
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(8.dp),
+            color = txtColor,
+            modifier = Modifier.padding(8.dp).height(37.dp),
             maxLines = 2
         )
     }
 
     Table(
-        columnCount = 4,
+        columnCount = 5,
         cellWidth = cellWidth,
-        data = chargeEvents?.value ?: emptyList<ChargeEvent>(),
+        data = chargeEvents?.value ?: emptyList(),
         headerCellContent = headerCellTitle,
         cellContent = cellText
     )
