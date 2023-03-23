@@ -367,6 +367,7 @@ fun Number.leadingZero(): String = this.toString().padStart(2, '0')
 @Composable
 fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
 
+    val kwList = listOf(3,7,11,22,50,100,150,180,300,350)
     var kwMenuExpanded by remember { mutableStateOf(false) }
 
     Box {
@@ -379,27 +380,10 @@ fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
         }
         DropdownMenu(
             expanded = kwMenuExpanded, onDismissRequest = { kwMenuExpanded = false }) {
-            DropdownMenuItem(
-                text = { Text("3kw") },
-                onClick = { onSelection.invoke(3); kwMenuExpanded = false })
-            DropdownMenuItem(
-                text = { Text("7kw") },
-                onClick = { onSelection.invoke(7); kwMenuExpanded = false })
-            DropdownMenuItem(
-                text = { Text("11kw") },
-                onClick = { onSelection.invoke(11); kwMenuExpanded = false })
-            DropdownMenuItem(
-                text = { Text("22kw") },
-                onClick = { onSelection.invoke(22); kwMenuExpanded = false })
-            DropdownMenuItem(
-                text = { Text("50kw") },
-                onClick = { onSelection.invoke(50); kwMenuExpanded = false })
-            DropdownMenuItem(
-                text = { Text("100kw") },
-                onClick = { onSelection.invoke(150); kwMenuExpanded = false })
-            DropdownMenuItem(
-                text = { Text("350kw") },
-                onClick = { onSelection.invoke(350); kwMenuExpanded = false })
+            kwList.forEach {
+                DropdownMenuItem(text = { Text("${it}kw") },
+                    onClick = { onSelection.invoke(it); kwMenuExpanded = false })
+            }
         }
     }
 }
