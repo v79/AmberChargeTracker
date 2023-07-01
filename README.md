@@ -16,6 +16,7 @@ It's been a while since I tried Android development.
   - need to parse input string like "1.50" correctly, currently it fails and returns 0
 - [X] Text styling on real device - black on black is hard to read...
 - [ ] Very inconsistent behaviour moving between screens when charging
+- [ ] Remove all references to costs; it's not always practical to know what the cost will be, chargers often don't report this
 
 ### Technical improvements
 
