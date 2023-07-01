@@ -195,11 +195,10 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
     val cellWidth: (Int) -> Dp = { index ->
         when (index) {
             // use specific index to vary column width
-            0 -> 120.dp
-            1 -> 65.dp
-            2 -> 65.dp
-            3 -> 50.dp
-            4 -> 75.dp
+            0 -> 140.dp
+            1 -> 70.dp
+            2 -> 70.dp
+            3 -> 75.dp
             else -> 100.dp
         }
     }
@@ -210,7 +209,6 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
             1 -> stringResource(R.string.screen_chargeHistory_from)
             2 -> stringResource(R.string.screen_chargeHistory_to)
             3 -> "⬆️"
-            4 -> stringResource(R.string.screen_chargeHistory_costs)
             else -> ""
         }
         Text(
@@ -237,7 +235,7 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
                 } else {
                     "${item.startDateTime.format(DateTimeFormatter.ofPattern("EEEE HH:mm"))} (${duration}mins)"
                 }
-                dateTime
+                dateTime + " @${item.kilowatt}kwh"
             }
             1 -> {
                 "${item.batteryStartingPct}%\n${item.batteryStartingRange}mi"
@@ -250,14 +248,9 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
                 "${item.batteryEndingPct?.minus(item.batteryStartingPct)}%\n" +
                         "${item.batteryEndingRange?.minus(item.batteryStartingRange)}mi"
             }
-            4 -> {
-                txtColor = if (isSystemInDarkTheme()) { md_theme_dark_onPrimaryContainer} else { md_theme_light_onPrimaryContainer }
-                "£${item.totalCost}\n@ ${item.kilowatt}kw"
-            }
             else -> ""
         }
         Text(
-
             text = value,
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
@@ -268,7 +261,7 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
     }
 
     Table(
-        columnCount = 5,
+        columnCount = 4,
         cellWidth = cellWidth,
         data = chargeEvents?.value ?: emptyList(),
         headerCellContent = headerCellTitle,
