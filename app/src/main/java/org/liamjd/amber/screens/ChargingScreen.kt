@@ -22,7 +22,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.liamjd.amber.R
-import org.liamjd.amber.screens.composables.CurrencyTextField
 import org.liamjd.amber.screens.composables.LoadingMessage
 import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.screens.composables.TimerDisplay
@@ -37,12 +36,9 @@ import java.time.LocalDateTime
 @Composable
 fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel) {
 
-    val initOdo = viewModel.odo
     val context = LocalContext.current
 
-
     AmberChargeTrackerTheme {
-
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -61,7 +57,6 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                 )
             },
             content = { innerPadding ->
-                
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -86,7 +81,6 @@ fun ChargingScreenContent(
 ) {
     val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving && viewModel.chargingStatus != RecordChargingStatus.CHARGING } }
     val startModel = viewModel.startModel.observeAsState()
-    val endModel = viewModel.endModel.observeAsState()
     when (viewModel.uiState.value) {
         is UIState.Loading -> {
             LoadingMessage()
@@ -110,11 +104,8 @@ fun ChargingScreenContent(
                 remember { mutableStateOf(startModel.value?.percentage.toString()) }
             val batteryEndPct = remember { mutableStateOf("80") }
             val batteryEndRange = remember { mutableStateOf("200") }
-            val minimumFee = remember { mutableStateOf("1.00") }
-            val costPerKWH = remember { mutableStateOf("0.15") }
             val totalCost = remember { mutableStateOf("1.50") }
             var kw by remember { mutableStateOf(22) }
-
 
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -217,64 +208,6 @@ fun ChargingScreenContent(
                     Spacer(modifier = Modifier.width(10.dp))
                     KWMenu(kw = kw, onSelection = { kw = it })
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    Column {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.screen_recordCharge_costs),
-                                fontWeight = FontWeight.Bold
-                            )
-                            TextButton(onClick = {
-                                minimumFee.value = "0.00"
-                                costPerKWH.value = "0.00"
-                                totalCost.value = "0.00"
-                            }) {
-                                Text(stringResource(R.string.screen_recordCharge_BUTTON_reset))
-                            }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.SpaceAround,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CurrencyTextField(
-                                modifier = Modifier.weight(1f),
-                                value = minimumFee.value,
-                                onValueChange = { minimumFee.value = it },
-                                enabled = inputEnabled,
-                                label = R.string.screen_recordCharge_minFee
-                            )
-                            Spacer(Modifier.width(10.dp))
-                            CurrencyTextField(
-                                modifier = Modifier.weight(1f),
-                                value = costPerKWH.value,
-                                onValueChange = { costPerKWH.value = it },
-                                enabled = inputEnabled,
-                                label = R.string.screen_recordCharge_costPkwh
-                            )
-                            Spacer(Modifier.width(10.dp))
-                            CurrencyTextField(
-                                modifier = Modifier.weight(1f),
-                                value = totalCost.value,
-                                onValueChange = { totalCost.value = it },
-                                enabled = inputEnabled,
-                                label = R.string.screen_recordCharge_totalCost
-                            )
-                        }
-                    }
-                }
-//                    Spacer(modifier = Modifier.weight(1f))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
