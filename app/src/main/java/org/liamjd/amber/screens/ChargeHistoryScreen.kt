@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -56,7 +56,7 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                 navigationIcon = {
                     IconButton(onClick = { navController.navigate(Screen.StartScreen.route) }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             "Back to main menu"
                         )
                     }
@@ -195,7 +195,7 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
     val cellWidth: (Int) -> Dp = { index ->
         when (index) {
             // use specific index to vary column width
-            0 -> 140.dp
+            0 -> 150.dp
             1 -> 70.dp
             2 -> 70.dp
             3 -> 75.dp
@@ -255,7 +255,7 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
             color = txtColor,
-            modifier = Modifier.padding(8.dp).height(37.dp),
+            modifier = Modifier.padding(4.dp).height(39.dp),
             maxLines = 2
         )
     }
