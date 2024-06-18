@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 18,
-    "identityHash": "7200ae20b068691969324b1bbf5a6494",
+    "version": 17,
+    "identityHash": "5ffcd9bfaa717d3fc81013012ffa5585",
     "entities": [
       {
         "tableName": "ChargeEvent",
@@ -86,7 +86,7 @@
       },
       {
         "tableName": "Vehicle",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`manufacturer` TEXT NOT NULL, `model` TEXT NOT NULL, `odometerReading` INTEGER NOT NULL, `registration` TEXT NOT NULL, `lastUpdated` INTEGER NOT NULL, `photoPath` TEXT, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`manufacturer` TEXT NOT NULL, `model` TEXT NOT NULL, `odometerReading` INTEGER NOT NULL, `registration` TEXT NOT NULL, `lastUpdated` INTEGER NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
         "fields": [
           {
             "fieldPath": "manufacturer",
@@ -117,12 +117,6 @@
             "columnName": "lastUpdated",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "photoPath",
-            "columnName": "photoPath",
-            "affinity": "TEXT",
-            "notNull": false
           },
           {
             "fieldPath": "id",
@@ -188,7 +182,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7200ae20b068691969324b1bbf5a6494')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5ffcd9bfaa717d3fc81013012ffa5585')"
     ]
   }
 }
