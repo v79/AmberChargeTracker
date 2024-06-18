@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -56,7 +56,7 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                 navigationIcon = {
                     IconButton(onClick = { navController.navigate(Screen.StartScreen.route) }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             "Back to main menu"
                         )
                     }
@@ -195,11 +195,10 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
     val cellWidth: (Int) -> Dp = { index ->
         when (index) {
             // use specific index to vary column width
-            0 -> 120.dp
-            1 -> 65.dp
-            2 -> 65.dp
-            3 -> 50.dp
-            4 -> 75.dp
+            0 -> 150.dp
+            1 -> 70.dp
+            2 -> 70.dp
+            3 -> 75.dp
             else -> 100.dp
         }
     }
@@ -210,7 +209,6 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
             1 -> stringResource(R.string.screen_chargeHistory_from)
             2 -> stringResource(R.string.screen_chargeHistory_to)
             3 -> "⬆️"
-            4 -> stringResource(R.string.screen_chargeHistory_costs)
             else -> ""
         }
         Text(
@@ -237,7 +235,7 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
                 } else {
                     "${item.startDateTime.format(DateTimeFormatter.ofPattern("EEEE HH:mm"))} (${duration}mins)"
                 }
-                dateTime
+                dateTime + " @${item.kilowatt}kwh"
             }
             1 -> {
                 "${item.batteryStartingPct}%\n${item.batteryStartingRange}mi"
@@ -250,25 +248,20 @@ fun ChargeHistoryTable(@PreviewParameter(ChargeHistoryPreviewStub::class) charge
                 "${item.batteryEndingPct?.minus(item.batteryStartingPct)}%\n" +
                         "${item.batteryEndingRange?.minus(item.batteryStartingRange)}mi"
             }
-            4 -> {
-                txtColor = if (isSystemInDarkTheme()) { md_theme_dark_onPrimaryContainer} else { md_theme_light_onPrimaryContainer }
-                "£${item.totalCost}\n@ ${item.kilowatt}kw"
-            }
             else -> ""
         }
         Text(
-
             text = value,
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
             color = txtColor,
-            modifier = Modifier.padding(8.dp).height(37.dp),
+            modifier = Modifier.padding(4.dp).height(39.dp),
             maxLines = 2
         )
     }
 
     Table(
-        columnCount = 5,
+        columnCount = 4,
         cellWidth = cellWidth,
         data = chargeEvents?.value ?: emptyList(),
         headerCellContent = headerCellTitle,

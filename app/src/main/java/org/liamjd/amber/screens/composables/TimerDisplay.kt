@@ -8,29 +8,32 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import org.liamjd.amber.screens.leadingZero
 import org.liamjd.amber.ui.theme.md_theme_dark_onPrimaryContainer
 import org.liamjd.amber.ui.theme.md_theme_dark_primaryContainer
 import org.liamjd.amber.ui.theme.md_theme_light_onPrimaryContainer
 import org.liamjd.amber.ui.theme.md_theme_light_primaryContainer
+import org.liamjd.amber.viewModels.TimerViewModel
 
-@OptIn(ExperimentalUnitApi::class)
 @Preview(showBackground = true)
 @Composable
-fun TimerDisplay(isActive: Boolean = false, startingSeconds: Long = 7653L) {
-    var timeTakenSeconds by remember {
-        mutableStateOf(startingSeconds)
-    }
+fun TimerDisplay(
+    isActive: Boolean = false,
+    startingSeconds: Long = 7653L,
+    viewModel: TimerViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    val timerValue by viewModel.timer.collectAsState()
     // timer function
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -40,26 +43,37 @@ fun TimerDisplay(isActive: Boolean = false, startingSeconds: Long = 7653L) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
-                .border(border = BorderStroke(2.dp, color = if (isSystemInDarkTheme()) { md_theme_dark_primaryContainer} else { md_theme_light_primaryContainer})),
+                .border(
+                    border = BorderStroke(
+                        2.dp, color = if (isSystemInDarkTheme()) {
+                            md_theme_dark_primaryContainer
+                        } else {
+                            md_theme_light_primaryContainer
+                        }
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = formatTime(timeTakenSeconds),
+                text = formatTime(timerValue),
                 textAlign = TextAlign.Center,
-                color = if (isSystemInDarkTheme()) { md_theme_dark_onPrimaryContainer} else { md_theme_light_onPrimaryContainer},
+                color = if (isSystemInDarkTheme()) {
+                    md_theme_dark_onPrimaryContainer
+                } else {
+                    md_theme_light_onPrimaryContainer
+                },
                 fontSize = TextUnit(
                     12f,
                     TextUnitType.Em
                 )
             )
         }
-
         LaunchedEffect(key1 = isActive) {
-            while (isActive) {
-                timeTakenSeconds++
-                delay(1_000)
+            if(isActive) {
+                viewModel.startTimer(startingSeconds)
             }
         }
+
     }
 }
 
