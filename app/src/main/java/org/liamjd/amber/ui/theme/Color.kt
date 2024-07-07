@@ -65,4 +65,8 @@ val md_theme_light_stopButtonBackground = Color(0xFF972727)
 val md_theme_light_disabledButtonBackground = Color(0xFF6B6B6B)
 val md_theme_light_txtIncrease = Color(0xFF257529)
 
+val md_theme_light_chargeBarLow = Color(0xFF972727)
+val md_theme_light_chargeBarStart = Color(0xFFFFC107)
+val md_theme_light_chargeBarEnd = Color(0xFF257529)
+
 val seed = Color(0xFF005AC6)

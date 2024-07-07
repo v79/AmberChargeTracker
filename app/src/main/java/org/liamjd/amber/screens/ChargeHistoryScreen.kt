@@ -4,6 +4,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -78,8 +79,6 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
         viewModel.vehicle
     }
     val filter = remember { viewModel.events }
-    // temporary for testing new layout
-    var bars by remember { mutableStateOf(false) }
 
     AmberChargeTrackerTheme {
         Scaffold(topBar = {
@@ -93,7 +92,7 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                         )
                     }
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = md_theme_light_surfaceTint
                 )
             )
@@ -113,9 +112,6 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                             TimeFilterMenu(
                                 timePeriod,
                                 onSelection = { timePeriod -> viewModel.changeTimeFilter(timePeriod) })
-                            Button(onClick = { bars = !bars }, shape = ShapeDefaults.Small) {
-                                Text("Old or new")
-                            }
                         }
                         Row(modifier = Modifier.padding(start = 12.dp)) {
                             Text("${filter.value.size} events")
@@ -126,21 +122,30 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                                 .fillMaxWidth()
                                 .padding(0.dp)
                         ) {
-                             if (bars) {
-                                ChargeHistoryList(filter = filter.value)
+                            if(viewModel.loading.value) {
+                                Text("Loading...")
                             } else {
-                                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                                    ChargeHistoryTable(filter)
+                                if (viewModel.bars.value) {
+                                    ChargeHistoryList(filter = filter.value)
+                                } else {
+                                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                        ChargeHistoryTable(filter)
+                                    }
                                 }
                             }
-
                         }
                     }
                 }
             },
             bottomBar = {
                 BottomAppBar {
-
+                    Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 8.dp)) {
+                        Text(text = stringResource(R.string.screen_chargeHistory_showAsBars), modifier = Modifier.padding(end = 4.dp))
+                        Switch(
+                            checked = viewModel.bars.value,
+                            enabled = !viewModel.loading.value,
+                            onCheckedChange = { viewModel.switchViewMode() })
+                    }
                 }
             }
         )

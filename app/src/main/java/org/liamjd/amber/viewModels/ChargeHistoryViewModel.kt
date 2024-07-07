@@ -23,27 +23,43 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
     var vehicle = mutableStateOf<Vehicle?>(null)
 
     var events = mutableStateOf<List<ChargeEvent>>(
-        emptyList())
+        emptyList()
+    )
 
     var timePeriod = mutableStateOf(0)
+
+    val bars = mutableStateOf(true)
+
+    val loading = mutableStateOf(true)
 
     init {
         refreshView()
     }
 
     private fun refreshView() {
-        Log.i("ChargeHistoryVM","refreshView()")
+        Log.i("ChargeHistoryVM", "refreshView()")
         viewModelScope.launch {
             selectedVehicleId = settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
             selectedVehicleId?.let { vehicleId ->
                 vehicle.value = vehicleRepository.getVehicleById(vehicleId)
-                chargeEventRepository.getEventsWithin(timePeriod.value,vehicleId).collect {
-                   response ->
-                   events.value = response
-                    Log.i("ChargeHistoryVM","refreshView() collecting events for vehicle $vehicleId - ${response.size} found")
-               }
+                chargeEventRepository.getEventsWithin(timePeriod.value, vehicleId)
+                    .collect { response ->
+                        events.value = response
+                        Log.i(
+                            "ChargeHistoryVM",
+                            "refreshView() collecting events for vehicle $vehicleId - ${response.size} found"
+                        )
+                        loading.value = false
+                    }
             }
         }
+    }
+
+    /**
+     * Switch between graphic bars and table display mode
+     */
+    fun switchViewMode() {
+        bars.value = !bars.value
     }
 
     /**
@@ -53,18 +69,23 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
         timePeriod.value = days
         viewModelScope.launch {
             selectedVehicleId?.let { vehicleId ->
-                chargeEventRepository.getEventsWithin(timePeriod.value, vehicleId).collect { response ->
-                    events.value = response
-                    Log.i("ChargeHistoryVM","changeTimeFilter($days) collecting events for vehicle $vehicleId - ${response.size} found")
-                }
+                chargeEventRepository.getEventsWithin(timePeriod.value, vehicleId)
+                    .collect { response ->
+                        events.value = response
+                        Log.i(
+                            "ChargeHistoryVM",
+                            "changeTimeFilter($days) collecting events for vehicle $vehicleId - ${response.size} found"
+                        )
+                    }
             }
         }
     }
 }
 
-class ChargeHistoryViewModelFactory(private val application: AmberApplication) : ViewModelProvider.NewInstanceFactory() {
+class ChargeHistoryViewModelFactory(private val application: AmberApplication) :
+    ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(ChargeHistoryViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(ChargeHistoryViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return ChargeHistoryViewModel(application) as T
         }

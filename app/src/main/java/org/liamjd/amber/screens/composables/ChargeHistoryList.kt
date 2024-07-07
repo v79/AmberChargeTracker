@@ -41,6 +41,7 @@ fun ChargeHistoryList(
 fun ChargeHistoryLivePreview(modifier: Modifier = Modifier) {
 
     val eventList: List<ChargeEvent> = listOf(
+        ChargeEvent(99, "0", "240", "0", "100", 1L, 22.0f, 174).apply { id = 99 },
         ChargeEvent(123, "85", "125", "43", "56", 1L, 22.0f, 174).apply { id = 123 },
         ChargeEvent(195, "94", "178", "48", "89", 1L, 50.0f, 257).apply { id = 234 },
     )

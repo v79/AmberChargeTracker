@@ -26,6 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.toLocalString
+import org.liamjd.amber.ui.theme.md_theme_light_chargeBarEnd
+import org.liamjd.amber.ui.theme.md_theme_light_chargeBarLow
+import org.liamjd.amber.ui.theme.md_theme_light_chargeBarStart
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -48,6 +51,7 @@ fun ChargeHistoryItem(modifier: Modifier = Modifier, event: ChargeEvent) {
         mutableStateOf(0.dp)
     }
     val density = LocalDensity.current
+    val startDrawColour = if(event.batteryStartingPct < 20) md_theme_light_chargeBarLow else md_theme_light_chargeBarStart
 
     Column(
         modifier = Modifier
@@ -69,9 +73,9 @@ fun ChargeHistoryItem(modifier: Modifier = Modifier, event: ChargeEvent) {
             } else {
                 this.size.width
             }
-            drawRect(color = Color.Yellow, size = Size(startWidth, 100f))
+            drawRect(color = startDrawColour, size = Size(startWidth, 100f))
             drawRect(
-                color = Color.Green,
+                color = md_theme_light_chargeBarEnd,
                 topLeft = Offset(startWidth, 0f),
                 size = Size(endWidth, 100f)
             )
@@ -106,7 +110,7 @@ fun ChargeHistoryItem(modifier: Modifier = Modifier, event: ChargeEvent) {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun ChargeHistoryItemPreview(modifier: Modifier = Modifier) {
     val startDate = LocalDateTime.of(2024, 5, 16, 19, 11, 23)
@@ -115,7 +119,27 @@ fun ChargeHistoryItemPreview(modifier: Modifier = Modifier) {
         odometer = 2344,
         batteryStartingRange = 52,
         batteryEndingRange = 167,
-        batteryStartingPct = 25,
+        batteryStartingPct = 24,
+        batteryEndingPct = 50,
+        vehicleId = 234,
+        kilowatt = 22.0f,
+        totalCost = 0,
+        startDateTime = startDate,
+        endDateTime = endDate
+    )
+    ChargeHistoryItem(event = event)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ChargeHistoryItemPreviewLow(modifier: Modifier = Modifier) {
+    val startDate = LocalDateTime.of(2024, 5, 16, 19, 11, 23)
+    val endDate = startDate.plusMinutes(192)
+    val event = ChargeEvent(
+        odometer = 2344,
+        batteryStartingRange = 52,
+        batteryEndingRange = 167,
+        batteryStartingPct = 18,
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
