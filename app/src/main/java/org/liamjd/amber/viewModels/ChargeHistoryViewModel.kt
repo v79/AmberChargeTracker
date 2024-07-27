@@ -26,7 +26,7 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
         emptyList()
     )
 
-    var timePeriod = mutableStateOf(0)
+    var timePeriod = mutableIntStateOf(30)
 
     val bars = mutableStateOf(true)
 
