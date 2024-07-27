@@ -1,8 +1,9 @@
 package org.liamjd.amber
 
+import android.icu.number.NumberFormatter
 import android.icu.text.NumberFormat
-import android.icu.util.Currency
 import androidx.annotation.StringRes
+import androidx.compose.ui.text.intl.Locale
 import androidx.navigation.NavController
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -35,4 +36,17 @@ fun LocalDateTime.toLocalString(): String {
 fun Int.toCurrencyString(): String {
     val numberFormat = NumberFormat.getCurrencyInstance()
     return numberFormat.format((this / 100).toLong())
+}
+
+/**
+ * Parse a currency string and convert it to an integer value, or null on failure
+ */
+fun String.currencyToIntOrNull(): Int? {
+    val numberFormat = NumberFormat.getCurrencyInstance()
+    try {
+        val value = numberFormat.parse(this)
+        return (value.toLong() * 100).toInt()
+    } catch (e: Exception) {
+        return null
+    }
 }

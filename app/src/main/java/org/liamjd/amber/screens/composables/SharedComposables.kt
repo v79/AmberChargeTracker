@@ -66,7 +66,6 @@ fun NumberTextField(
  * A currency text field is an [OutlinedTextField] refined for just numerical input
  * TODO: does nothing special yet, other than set the keyboard type
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview(showBackground = true)
 fun CurrencyTextField(

@@ -122,11 +122,13 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                                 .fillMaxWidth()
                                 .padding(0.dp)
                         ) {
-                            if(viewModel.loading.value) {
+                            if (viewModel.loading.value) {
                                 Text("Loading...")
                             } else {
                                 if (viewModel.bars.value) {
-                                    ChargeHistoryList(filter = filter.value)
+                                    ChargeHistoryList(
+                                        filter = filter.value,
+                                        updateEvent = { viewModel.updateChargeEvent(it) })
                                 } else {
                                     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                                         ChargeHistoryTable(filter)
@@ -139,8 +141,15 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
             },
             bottomBar = {
                 BottomAppBar {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 8.dp)) {
-                        Text(text = stringResource(R.string.screen_chargeHistory_showAsBars), modifier = Modifier.padding(end = 4.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.screen_chargeHistory_showAsBars),
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
                         Switch(
                             checked = viewModel.bars.value,
                             enabled = !viewModel.loading.value,

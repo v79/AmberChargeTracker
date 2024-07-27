@@ -30,6 +30,7 @@
     <string name="screen_chargeHistory_from">From</string>
     <string name="screen_chargeHistory_to">To</string>
     <string name="screen_chargeHistory_costs">Costs</string>
+    <string name="screen_chargeHistory_totalCost">Total cost</string>
     <string name="screen_chargeHistory_timeFilterDays">Past %d days</string>
     <string name="screen_chargeHistory_filterAllTime">All time</string>
     <string name="screen_chargeHistory_showAsBars">Show as bars</string>

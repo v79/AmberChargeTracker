@@ -1,15 +1,19 @@
 package org.liamjd.amber.screens.composables
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowLeft
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,13 +26,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.liamjd.amber.R
+import org.liamjd.amber.currencyToIntOrNull
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.toCurrencyString
 import org.liamjd.amber.toLocalString
@@ -41,17 +45,24 @@ import java.time.temporal.ChronoUnit
 
 
 @Composable
-fun ChargeHistoryItem(modifier: Modifier = Modifier, event: ChargeEvent) {
+fun ChargeHistoryItem(
+    modifier: Modifier = Modifier,
+    event: ChargeEvent,
+    updateEvent: (ChargeEvent) -> Unit = {}
+) {
     val now = LocalDateTime.now()
+
+    val expanded = remember { mutableStateOf(false) }
+    val arrowIcon = if (expanded.value) {
+        Icons.AutoMirrored.Filled.ArrowLeft
+    } else {
+        Icons.Filled.ArrowDropDown
+    }
 
     val duration =
         ChronoUnit.MINUTES.between(event.startDateTime, event.endDateTime ?: LocalDateTime.now())
 
-    val formattedCost = if (event.totalCost != null) {
-        event.totalCost.toCurrencyString()
-    } else {
-        ""
-    }
+    val formattedCost = remember { mutableStateOf(event.totalCost?.toCurrencyString()) }
     val dateTime = if (ChronoUnit.DAYS.between(event.startDateTime, now) > 7L) {
         "${event.startDateTime.toLocalString()} (${duration} mins) @${event.kilowatt}kw"
     } else {
@@ -67,18 +78,23 @@ fun ChargeHistoryItem(modifier: Modifier = Modifier, event: ChargeEvent) {
 
     Column(
         modifier = Modifier
-            .fillMaxWidth().padding(bottom = 2.dp)
+            .fillMaxWidth()
+            .padding(bottom = 2.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded.value = !expanded.value },
             horizontalArrangement = Arrangement.Absolute.SpaceBetween
         ) {
             Text(text = dateTime, fontWeight = FontWeight.Bold)
-            if (formattedCost.isBlank()) {
-                Text("x")
-            } else {
-                Text(text = formattedCost, fontWeight = FontWeight.Bold)
-            }
+            Text(
+                text = formattedCost.value ?: "",
+                fontWeight = FontWeight.Bold
+            )
+
+            Icon(arrowIcon, contentDescription = "Expand row")
+
         }
         Canvas(
             modifier = Modifier
@@ -125,6 +141,34 @@ fun ChargeHistoryItem(modifier: Modifier = Modifier, event: ChargeEvent) {
                     fontStyle = FontStyle.Italic
                 )
             }
+        }
+        if (expanded.value) {
+            EventCostRow(
+                event = event,
+                onSave = {
+                    event.totalCost = it.currencyToIntOrNull(); updateEvent(event); expanded.value =
+                    false; formattedCost.value = event.totalCost?.toCurrencyString()
+                })
+        }
+    }
+}
+
+@Composable
+fun EventCostRow(modifier: Modifier = Modifier, event: ChargeEvent, onSave: (String) -> Unit) {
+    val cost = remember { mutableStateOf(event.totalCost?.toCurrencyString() ?: "") }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 2.dp, end = 2.dp),
+        horizontalArrangement = Arrangement.Absolute.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CurrencyTextField(
+            value = cost.value,
+            label = R.string.screen_chargeHistory_totalCost,
+            onValueChange = { cost.value = it })
+        FilledIconButton(onClick = { onSave(cost.value) }) {
+            Icon(Icons.Filled.Save, "Save total cost")
         }
     }
 }
