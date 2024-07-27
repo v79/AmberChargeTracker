@@ -2,11 +2,14 @@ package org.liamjd.amber.screens.composables
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,12 +22,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.liamjd.amber.db.entities.ChargeEvent
+import org.liamjd.amber.toCurrencyString
 import org.liamjd.amber.toLocalString
 import org.liamjd.amber.ui.theme.md_theme_light_chargeBarEnd
 import org.liamjd.amber.ui.theme.md_theme_light_chargeBarLow
@@ -41,6 +47,11 @@ fun ChargeHistoryItem(modifier: Modifier = Modifier, event: ChargeEvent) {
     val duration =
         ChronoUnit.MINUTES.between(event.startDateTime, event.endDateTime ?: LocalDateTime.now())
 
+    val formattedCost = if (event.totalCost != null) {
+        event.totalCost.toCurrencyString()
+    } else {
+        ""
+    }
     val dateTime = if (ChronoUnit.DAYS.between(event.startDateTime, now) > 7L) {
         "${event.startDateTime.toLocalString()} (${duration} mins) @${event.kilowatt}kw"
     } else {
@@ -51,15 +62,23 @@ fun ChargeHistoryItem(modifier: Modifier = Modifier, event: ChargeEvent) {
         mutableStateOf(0.dp)
     }
     val density = LocalDensity.current
-    val startDrawColour = if(event.batteryStartingPct < 20) md_theme_light_chargeBarLow else md_theme_light_chargeBarStart
+    val startDrawColour =
+        if (event.batteryStartingPct < 20) md_theme_light_chargeBarLow else md_theme_light_chargeBarStart
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-
+            .fillMaxWidth().padding(bottom = 2.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Absolute.SpaceBetween
+        ) {
             Text(text = dateTime, fontWeight = FontWeight.Bold)
+            if (formattedCost.isBlank()) {
+                Text("x")
+            } else {
+                Text(text = formattedCost, fontWeight = FontWeight.Bold)
+            }
         }
         Canvas(
             modifier = Modifier
@@ -123,7 +142,7 @@ fun ChargeHistoryItemPreview(modifier: Modifier = Modifier) {
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
-        totalCost = 0,
+        totalCost = 1245,
         startDateTime = startDate,
         endDateTime = endDate
     )
@@ -143,7 +162,7 @@ fun ChargeHistoryItemPreviewLow(modifier: Modifier = Modifier) {
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
-        totalCost = 0,
+        totalCost = null,
         startDateTime = startDate,
         endDateTime = endDate
     )
