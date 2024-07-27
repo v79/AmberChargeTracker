@@ -3,14 +3,42 @@ package org.liamjd.amber.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,8 +55,15 @@ import org.liamjd.amber.screens.composables.NumberTextField
 import org.liamjd.amber.screens.composables.TimerDisplay
 import org.liamjd.amber.screens.state.UIState
 import org.liamjd.amber.toIntOrZero
-import org.liamjd.amber.ui.theme.*
-import org.liamjd.amber.viewModels.*
+import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
+import org.liamjd.amber.ui.theme.md_theme_light_disabledButtonBackground
+import org.liamjd.amber.ui.theme.md_theme_light_startButtonBackground
+import org.liamjd.amber.ui.theme.md_theme_light_stopButtonBackground
+import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
+import org.liamjd.amber.viewModels.ChargeEventViewModel
+import org.liamjd.amber.viewModels.EndingChargeEventModel
+import org.liamjd.amber.viewModels.RecordChargingStatus
+import org.liamjd.amber.viewModels.StartingChargeEventModel
 import java.time.LocalDateTime
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -49,7 +84,7 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                     navigationIcon = {
                         IconButton(onClick = { navController.navigate(Screen.StartScreen.route) }) {
                             Icon(
-                                Icons.Default.ArrowBack,
+                                Icons.AutoMirrored.Filled.ArrowBack,
                                 "Back to main menu"
                             )
                         }
@@ -104,8 +139,8 @@ fun ChargingScreenContent(
                 remember { mutableStateOf(startModel.value?.percentage.toString()) }
             val batteryEndPct = remember { mutableStateOf("80") }
             val batteryEndRange = remember { mutableStateOf("200") }
-            val totalCost = remember { mutableStateOf("1.50") }
-            var kw by remember { mutableStateOf(22) }
+            val totalCost = remember { mutableStateOf("") }
+            var kw by remember { mutableIntStateOf(22) }
 
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -234,7 +269,7 @@ fun ChargingScreenContent(
                                 batteryEndRange.value.toIntOrZero(),
                                 batteryEndPct.value.toIntOrZero(),
                                 kw.toFloat(),
-                                totalCost.value.toIntOrZero() // this can't work yet because input is "1.50" and this function won't do rounding
+                                totalCost.value.toIntOrNull()
                             )
                             viewModel.saveCharge(chargeEvent)
 

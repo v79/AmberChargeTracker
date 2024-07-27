@@ -37,19 +37,31 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         return dao.getAllForVehicle(vehicleId)
     }
 
+    /**
+     * Insert a new charge event
+     */
     suspend fun insert(chargeEvent: ChargeEvent) {
         dao.insert(chargeEvent)
     }
 
+    /**
+     * Delete all charge events for the given vehicle. Very destructive.
+     */
     suspend fun deleteEventsForVehicle(vehicleId: Long) {
         val count = dao.deleteEventsForVehicle(vehicleId)
         Log.i("ChargeEventRepo","deleteEventsForVehicle($vehicleId) deleted $count rows")
     }
 
+    /**
+     * Get the charge event with the given ID
+     */
     fun getLiveChargeEventWithId(id: Long): LiveData<ChargeEvent?> = dao.getChargeEventWithId(id)
 
     suspend fun getChargeEventWithId(id: Long) = dao.getExistingChargeEventWithId(id)
 
+    /**
+     * Start a charging event with new values
+     */
     suspend fun startChargeEvent(
         vehicleId: Long, startOdo: Int,
         startTime: LocalDateTime,
@@ -65,17 +77,23 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         )
     }
 
+    /**
+     * Complete a charge event, updating the final values
+     */
     suspend fun completeChargeEvent(
         id: Long,
         endTime: LocalDateTime,
         endBatteryPct: Int,
         endBatteryRange: Int,
         kw: Float,
-        cost: Int
+        cost: Int?
     ) {
         dao.updateChargeRecord(id, endTime, endBatteryPct, endBatteryRange, kw, cost)
     }
 
+    /**
+     * Delete the specified charge event
+     */
     suspend fun deleteChargeEvent(id: Long) {
         dao.delete(dao.getExistingChargeEventWithId(id))
     }
