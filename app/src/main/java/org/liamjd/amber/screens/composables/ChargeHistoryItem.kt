@@ -61,7 +61,6 @@ fun ChargeHistoryItem(
 
     val duration =
         ChronoUnit.MINUTES.between(event.startDateTime, event.endDateTime ?: LocalDateTime.now())
-
     val formattedCost = remember { mutableStateOf(event.totalCost?.toCurrencyString()) }
     val dateTime = if (ChronoUnit.DAYS.between(event.startDateTime, now) > 7L) {
         "${event.startDateTime.toLocalString()} (${duration} mins) @${event.kilowatt}kw"
@@ -146,8 +145,10 @@ fun ChargeHistoryItem(
             EventCostRow(
                 event = event,
                 onSave = {
-                    event.totalCost = it.currencyToIntOrNull(); updateEvent(event); expanded.value =
-                    false; formattedCost.value = event.totalCost?.toCurrencyString()
+                    event.totalCost = it.currencyToIntOrNull()
+                    updateEvent(event)
+                    expanded.value = false
+                    formattedCost.value = event.totalCost?.toCurrencyString()
                 })
         }
     }
