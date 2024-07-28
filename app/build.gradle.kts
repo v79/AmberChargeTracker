@@ -94,7 +94,8 @@ dependencies {
     testImplementation("androidx.room:room-testing:2.6.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 //    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
-
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 
 }
 

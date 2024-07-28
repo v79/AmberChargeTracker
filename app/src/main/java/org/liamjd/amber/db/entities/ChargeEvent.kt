@@ -18,7 +18,7 @@ data class ChargeEvent(
     val batteryEndingPct: Int?,
     val vehicleId: Long,
     val kilowatt: Float?,
-    val totalCost: Int? // in pence
+    var totalCost: Int? = null // in pence, or null if no value saved
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
@@ -31,7 +31,7 @@ data class ChargeEvent(
         batteryEndingPct: String,
         vehicleId: Long,
         kilowatt: Float,
-        totalCost: Int
+        totalCost: Int? = null
     ) : this(
         odometer = odometer,
         batteryStartingRange = batteryStartingRange.toIntOrZero(),
@@ -52,13 +52,13 @@ interface ChargeEventDao {
     @Insert
     suspend fun insert(chargeEvent: ChargeEvent)
 
-    @Query("INSERT INTO ChargeEvent (vehicleId, odometer, startDateTime, batteryStartingPct, batteryStartingRange) VALUES (:vehicleId, :startOdo, :startTime, :startBatteryPct, :startBatterRange)")
+    @Query("INSERT INTO ChargeEvent (vehicleId, odometer, startDateTime, batteryStartingPct, batteryStartingRange) VALUES (:vehicleId, :startOdo, :startTime, :startBatteryPct, :startBatteryRange)")
     suspend fun startChargeRecord(
         vehicleId: Long,
         startOdo: Int,
         startTime: LocalDateTime,
         startBatteryPct: Int,
-        startBatterRange: Int
+        startBatteryRange: Int
     ): Long
 
     @Query("UPDATE ChargeEvent SET endDateTime = :endDateTime, batteryEndingRange = :batteryEndingRange, batteryEndingPct = :batteryEndingPct, kilowatt = :kilowatt, totalCost = :totalCost WHERE id = :id")
@@ -68,7 +68,13 @@ interface ChargeEventDao {
         batteryEndingPct: Int,
         batteryEndingRange: Int,
         kilowatt: Float,
-        totalCost: Int
+        totalCost: Int?
+    )
+
+    @Query("UPDATE ChargeEvent SET totalCost = :totalCost WHERE id = :id")
+    suspend fun updateChargeCost(
+        id: Long,
+        totalCost: Int?
     )
 
     @Delete

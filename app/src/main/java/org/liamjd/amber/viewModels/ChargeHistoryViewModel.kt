@@ -26,7 +26,7 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
         emptyList()
     )
 
-    var timePeriod = mutableStateOf(0)
+    var timePeriod = mutableIntStateOf(30)
 
     val bars = mutableStateOf(true)
 
@@ -63,13 +63,13 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
     }
 
     /**
-     * Update the time period and requery the database to get the matching events
+     * Update the time period and re-query the database to get the matching events
      */
     fun changeTimeFilter(days: Int) {
-        timePeriod.value = days
+        timePeriod.intValue = days
         viewModelScope.launch {
             selectedVehicleId?.let { vehicleId ->
-                chargeEventRepository.getEventsWithin(timePeriod.value, vehicleId)
+                chargeEventRepository.getEventsWithin(timePeriod.intValue, vehicleId)
                     .collect { response ->
                         events.value = response
                         Log.i(
@@ -78,6 +78,16 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
                         )
                     }
             }
+        }
+    }
+
+    /**
+     * Update and save a charge event, most likely because the total cost has changed
+     */
+    fun updateChargeEvent(event: ChargeEvent) {
+        viewModelScope.launch {
+            Log.i("ChargeHistoryVM", "Request to update chargeEvent $event")
+            chargeEventRepository.updateEventCost(event)
         }
     }
 }

@@ -24,32 +24,44 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         val now = LocalDateTime.now()
         val xDaysAgo = now.minusDays(days.toLong())
         val xDaysAgoAsLong = xDaysAgo.toEpochSecond(ZoneOffset.UTC)
-        Log.i("ChargeEventRepo","getEventsWithin($days days, vehicle $vehicleId)")
+        Log.i("ChargeEventRepo", "getEventsWithin($days days, vehicle $vehicleId)")
 
-        return dao.getEventsSince(xDaysAgoAsLong,vehicleId)
+        return dao.getEventsSince(xDaysAgoAsLong, vehicleId)
     }
 
     /**
      * Get all the charge events for the currently selected vehicle, regardless of time
      */
     private fun getAllEventsForVehicle(vehicleId: Long): Flow<List<ChargeEvent>> {
-        Log.i("ChargeEventRepo","getAllEventsForVehicle($vehicleId)")
+        Log.i("ChargeEventRepo", "getAllEventsForVehicle($vehicleId)")
         return dao.getAllForVehicle(vehicleId)
     }
 
+    /**
+     * Insert a new charge event
+     */
     suspend fun insert(chargeEvent: ChargeEvent) {
         dao.insert(chargeEvent)
     }
 
+    /**
+     * Delete all charge events for the given vehicle. Very destructive.
+     */
     suspend fun deleteEventsForVehicle(vehicleId: Long) {
         val count = dao.deleteEventsForVehicle(vehicleId)
-        Log.i("ChargeEventRepo","deleteEventsForVehicle($vehicleId) deleted $count rows")
+        Log.i("ChargeEventRepo", "deleteEventsForVehicle($vehicleId) deleted $count rows")
     }
 
+    /**
+     * Get the charge event with the given ID
+     */
     fun getLiveChargeEventWithId(id: Long): LiveData<ChargeEvent?> = dao.getChargeEventWithId(id)
 
     suspend fun getChargeEventWithId(id: Long) = dao.getExistingChargeEventWithId(id)
 
+    /**
+     * Start a charging event with new values
+     */
     suspend fun startChargeEvent(
         vehicleId: Long, startOdo: Int,
         startTime: LocalDateTime,
@@ -65,17 +77,33 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
         )
     }
 
+    /**
+     * Complete a charge event, updating the final values
+     */
     suspend fun completeChargeEvent(
         id: Long,
         endTime: LocalDateTime,
         endBatteryPct: Int,
         endBatteryRange: Int,
         kw: Float,
-        cost: Int
+        cost: Int?
     ) {
         dao.updateChargeRecord(id, endTime, endBatteryPct, endBatteryRange, kw, cost)
     }
 
+    /**
+     * Update the total cost of a charge event
+     */
+    suspend fun updateEventCost(event: ChargeEvent) {
+        dao.updateChargeCost(
+            id = event.id,
+            totalCost = event.totalCost
+        )
+    }
+
+    /**
+     * Delete the specified charge event
+     */
     suspend fun deleteChargeEvent(id: Long) {
         dao.delete(dao.getExistingChargeEventWithId(id))
     }

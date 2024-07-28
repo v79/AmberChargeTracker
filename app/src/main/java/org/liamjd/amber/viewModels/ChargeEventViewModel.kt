@@ -49,7 +49,6 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
             0
         )
     )
-    var endModel = MutableLiveData(EndingChargeEventModel(LocalDateTime.now(), 0, 0, 0f, 0))
 
     /**
      * On init, fetch the currently selected vehicle from the database
@@ -231,12 +230,9 @@ class ChargeEventVMFactory(
     }
 }
 
-data class ChargeEventModel(
-    val batteryStartPct: MutableState<String>,
-    val batteryStartRange: MutableState<String>
-)
-
-
+/**
+ * Wrapper class for just the start of a charging event
+ */
 data class StartingChargeEventModel(
     val dateTime: LocalDateTime,
     val odometer: Int,
@@ -244,10 +240,13 @@ data class StartingChargeEventModel(
     val percentage: Int
 )
 
+/**
+ * Wrapper class for a completed charge event with the ending values
+ */
 data class EndingChargeEventModel(
     val dateTime: LocalDateTime,
     val range: Int,
     val percentage: Int,
     val kw: Float,
-    val cost: Int,
+    val cost: Int? = null,
 )
