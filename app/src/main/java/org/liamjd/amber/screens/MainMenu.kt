@@ -41,7 +41,6 @@ fun MainMenu(
     timerViewModel: TimerViewModel
 ) {
 
-    val lifecycleOwner = LocalLifecycleOwner.current
     val vehicleCount by viewModel.vehicleCount.observeAsState()
     Log.i("MainMenu comp", "vehicleCount: $vehicleCount")
     val activeChargeEvent by viewModel.activeChargeEvent.observeAsState()
