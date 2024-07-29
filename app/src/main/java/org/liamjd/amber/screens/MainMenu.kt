@@ -28,13 +28,18 @@ import org.liamjd.amber.ui.theme.AmberChargeTrackerTheme
 import org.liamjd.amber.ui.theme.md_theme_light_surfaceTint
 import org.liamjd.amber.viewModels.MainMenuViewModel
 import org.liamjd.amber.viewModels.RecordChargingStatus
+import org.liamjd.amber.viewModels.TimerViewModel
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
+fun MainMenu(
+    navController: NavController,
+    viewModel: MainMenuViewModel,
+    timerViewModel: TimerViewModel
+) {
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val vehicleCount by viewModel.vehicleCount.observeAsState()
@@ -72,7 +77,7 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                 if (hasVehicles.value && !isCharging.value) {
                     StartChargeFab(navController)
                 }
-                if(!hasVehicles.value) {
+                if (!hasVehicles.value) {
                     // TODO: Add a fab which navigates to the VehicleDetailsScreen into ADD mode
                 }
             },
@@ -103,7 +108,11 @@ fun MainMenu(navController: NavController, viewModel: MainMenuViewModel) {
                                         event.startDateTime,
                                         LocalDateTime.now()
                                     )
-                                TimerDisplay(isActive = true, startingSeconds = timeSoFar)
+                                TimerDisplay(
+                                    isActive = true,
+                                    startingSeconds = timeSoFar,
+                                    viewModel = timerViewModel
+                                )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
                                     navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))

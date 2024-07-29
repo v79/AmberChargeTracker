@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.liamjd.amber.screens.leadingZero
 import org.liamjd.amber.ui.theme.md_theme_dark_onPrimaryContainer
 import org.liamjd.amber.ui.theme.md_theme_dark_primaryContainer
@@ -26,12 +27,18 @@ import org.liamjd.amber.ui.theme.md_theme_light_onPrimaryContainer
 import org.liamjd.amber.ui.theme.md_theme_light_primaryContainer
 import org.liamjd.amber.viewModels.TimerViewModel
 
+
 @Preview(showBackground = true)
+@Composable
+fun TimerDisplayPreview() {
+    TimerDisplay(viewModel = viewModel())
+}
+
 @Composable
 fun TimerDisplay(
     isActive: Boolean = false,
     startingSeconds: Long = 7653L,
-    viewModel: TimerViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: TimerViewModel
 ) {
     val timerValue by viewModel.timer.collectAsState()
     // timer function
@@ -69,7 +76,7 @@ fun TimerDisplay(
             )
         }
         LaunchedEffect(key1 = isActive) {
-            if(isActive) {
+            if (isActive) {
                 viewModel.startTimer(startingSeconds)
             }
         }
