@@ -1,6 +1,7 @@
 package org.liamjd.amber.viewModels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -37,5 +38,16 @@ class TimerViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
+    }
+}
+
+class TimerViewModelFactory :
+    ViewModelProvider.NewInstanceFactory() {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(TimerViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return TimerViewModel() as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
 }

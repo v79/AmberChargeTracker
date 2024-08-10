@@ -64,12 +64,17 @@ import org.liamjd.amber.viewModels.ChargeEventViewModel
 import org.liamjd.amber.viewModels.EndingChargeEventModel
 import org.liamjd.amber.viewModels.RecordChargingStatus
 import org.liamjd.amber.viewModels.StartingChargeEventModel
+import org.liamjd.amber.viewModels.TimerViewModel
 import java.time.LocalDateTime
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel) {
+fun ChargingScreen(
+    navController: NavController,
+    viewModel: ChargeEventViewModel,
+    timerViewModel: TimerViewModel
+) {
 
     val context = LocalContext.current
 
@@ -100,7 +105,8 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
                     ChargingScreenContent(
                         viewModel = viewModel,
                         navController = navController,
-                        context
+                        context = context,
+                        timerViewModel = timerViewModel
                     )
                 }
             }
@@ -112,7 +118,8 @@ fun ChargingScreen(navController: NavController, viewModel: ChargeEventViewModel
 fun ChargingScreenContent(
     viewModel: ChargeEventViewModel,
     navController: NavController,
-    context: Context
+    context: Context,
+    timerViewModel: TimerViewModel
 ) {
     val inputEnabled by remember { derivedStateOf { viewModel.uiState.value != UIState.Saving && viewModel.chargingStatus != RecordChargingStatus.CHARGING } }
     val startModel = viewModel.startModel.observeAsState()
@@ -120,6 +127,7 @@ fun ChargingScreenContent(
         is UIState.Loading -> {
             LoadingMessage()
         }
+
         is UIState.Navigating -> {
             // because navigating is a "side effect", we wrap it in a LaunchedEffect. It seems.
             LaunchedEffect(key1 = viewModel.uiState.value) {
@@ -131,6 +139,7 @@ fun ChargingScreenContent(
                 }
             }
         }
+
         else -> {
             val odometer = remember { mutableStateOf(startModel.value?.odometer.toString()) }
             val batteryStartRange =
@@ -194,6 +203,7 @@ fun ChargingScreenContent(
                             )
                         )
                     } else {
+                        timerViewModel.pauseTimer()
                         viewModel.stopCharging()
                     }
                 }
@@ -202,7 +212,8 @@ fun ChargingScreenContent(
                 if (viewModel.chargingStatus == RecordChargingStatus.CHARGING || viewModel.chargingStatus == RecordChargingStatus.FINISHED) {
                     TimerDisplay(
                         isActive = (viewModel.chargingStatus == RecordChargingStatus.CHARGING),
-                        startingSeconds = viewModel.chargingSeconds.value
+                        startingSeconds = viewModel.chargingSeconds.value,
+                        viewModel = timerViewModel
                     )
                 }
             }
@@ -335,7 +346,7 @@ fun Number.leadingZero(): String = this.toString().padStart(2, '0')
 @Composable
 fun KWMenu(kw: Int = 22, onSelection: (Int) -> Unit = {}) {
 
-    val kwList = listOf(3,7,11,22,50,100,150,180,300,350)
+    val kwList = listOf(3, 7, 11, 22, 50, 100, 150, 180, 300, 350)
     var kwMenuExpanded by remember { mutableStateOf(false) }
 
     Box {

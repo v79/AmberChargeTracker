@@ -10,6 +10,7 @@ import org.liamjd.amber.screens.vehicles.VehicleDetailsScreen
 import org.liamjd.amber.viewModels.ChargeEventVMFactory
 import org.liamjd.amber.viewModels.ChargeHistoryViewModelFactory
 import org.liamjd.amber.viewModels.MainMenuViewModelFactory
+import org.liamjd.amber.viewModels.TimerViewModelFactory
 import org.liamjd.amber.viewModels.VehicleDetailsViewModelFactory
 
 @Composable
@@ -21,15 +22,10 @@ fun Navigation(application: AmberApplication) {
         composable(route = Screen.StartScreen.route) {
             MainMenu(
                 navController = navController,
-                viewModel(factory = MainMenuViewModelFactory(application))
+                viewModel = viewModel(factory = MainMenuViewModelFactory(application)),
+                timerViewModel = viewModel(factory = TimerViewModelFactory())
             )
         }
-        /*composable(route = Screen.RecordJourneyScreen.route) {
-            RecordChargeScreen(
-                navController = navController,
-                viewModel(factory = ChargeEventVMFactory(application))
-            )
-        }*/
         composable(route = Screen.ChargeHistoryScreen.route) {
             ChargeHistoryScreen(
                 navController = navController,
@@ -45,14 +41,16 @@ fun Navigation(application: AmberApplication) {
         composable(route = Screen.StartChargingScreen.route) {
             ChargingScreen(
                 navController = navController,
-                viewModel(factory = ChargeEventVMFactory(application, null))
+                viewModel = viewModel(factory = ChargeEventVMFactory(application, null)),
+                timerViewModel = viewModel(factory = TimerViewModelFactory())
             )
         }
         composable(route = Screen.StartChargingScreen.buildRoute("{eventId}")) { backStackEntry ->
             val activeChargeID = backStackEntry.arguments?.getString("eventId")
             ChargingScreen(
                 navController = navController,
-                viewModel(factory = ChargeEventVMFactory(application, activeChargeID))
+                viewModel = viewModel(factory = ChargeEventVMFactory(application, activeChargeID)),
+                timerViewModel = viewModel(factory = TimerViewModelFactory())
             )
         }
     }
