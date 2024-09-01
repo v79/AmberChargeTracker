@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("org.sonarqube") version "3.5.0.2730"
 }
@@ -18,11 +18,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
-        }
-        kapt {
-            arguments {
-                arg("room.schemaLocation","$projectDir/schemas")
-            }
         }
     }
 
@@ -48,7 +43,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.3"
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -57,9 +52,8 @@ android {
 
 dependencies {
 
-    val composeBom = platform("androidx.compose:compose-bom:2022.10.00")
-    implementation("androidx.compose:compose-bom:2024.06.00")
-    androidTestImplementation("androidx.compose:compose-bom:2024.06.00")
+    implementation(platform("androidx.compose:compose-bom:2024.08.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.08.00"))
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
@@ -79,12 +73,12 @@ dependencies {
 
     // Hilt DI
     implementation("com.google.dagger:hilt-android:2.52")
-    kapt("com.google.dagger:hilt-compiler:2.52")
+    ksp("com.google.dagger:hilt-compiler:2.52")
 
     // room DB
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.room:room-common:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
     //testing
     testImplementation("junit:junit:4.13.2")
@@ -94,12 +88,9 @@ dependencies {
     testImplementation("androidx.room:room-testing:2.6.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
 //    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
-    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.mockito:mockito-core:5.13.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 
 }
 
 // Allow references to generated code
-kapt {
-    correctErrorTypes = true
-}
