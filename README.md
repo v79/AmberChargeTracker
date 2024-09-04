@@ -12,11 +12,10 @@ It's been a while since I tried Android development.
 - [X] Prevent editing of starting values on active charge event
 - [X] Fix main menu still showing charge event after it's finished
 - [X] Correctly handle startup if vehicles exist but SharedPreferences does not - or maybe **store selected vehicle etc in DB instead**?
-- [ ] Saving total cost of a charge event
-  - need to parse input string like "1.50" correctly, currently it fails and returns 0
+- [X] Saving total cost of a charge event
+  - There's no currency support, assumes UK£ only
 - [X] Text styling on real device - black on black is hard to read...
 - [ ] Very inconsistent behaviour moving between screens when charging
-- [X] Remove all references to costs; it's not always practical to know what the cost will be, chargers often don't report this
 
 ### Technical improvements
 
@@ -40,10 +39,12 @@ It's been a while since I tried Android development.
   - [X] Should persist across process death
   - [X] Check if charge is in progress on startup
   - [-] Restore the timer correctly based on the charge start time
-- [ ] charge history table improvements
+- [X] charge history table improvements
 - [ ] charge history graphs
 - [ ] Journey recording screens and model
 - [ ] Android Auto integration
 - [X] Add a photograph of the cars for easy identification
 - [X] Edit car details
 - [X] Delete vehicle and all associated events, images etc
+- [ ] A decent icon
+
