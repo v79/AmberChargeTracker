@@ -70,8 +70,8 @@ fun TimerDisplay(
                     md_theme_light_onPrimaryContainer
                 },
                 fontSize = TextUnit(
-                    12f,
-                    TextUnitType.Em
+                    48f,
+                    TextUnitType.Sp
                 )
             )
         }
