@@ -107,6 +107,7 @@ fun MainMenu(
                                         event.startDateTime,
                                         LocalDateTime.now()
                                     )
+                                Spacer(modifier = Modifier.height(8.dp))
                                 TimerDisplay(
                                     isActive = true,
                                     startingSeconds = timeSoFar,
@@ -116,6 +117,7 @@ fun MainMenu(
                                 BigRoundChargingButton(status = RecordChargingStatus.CHARGING) {
                                     navController.navigate(Screen.StartChargingScreen.buildRoute("${event.id}"))
                                 }
+                                // TODO: Extract this as a function so I can repeat it on the charging screen
                                 TextButton(onClick = { showAbortChargeDialog.value = true }) {
                                     Text(text = stringResource(id = R.string.screen_menu_abortCharge))
                                 }
