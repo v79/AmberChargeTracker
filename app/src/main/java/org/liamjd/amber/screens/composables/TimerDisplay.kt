@@ -19,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import org.liamjd.amber.screens.leadingZero
 import org.liamjd.amber.ui.theme.md_theme_dark_onPrimaryContainer
 import org.liamjd.amber.ui.theme.md_theme_dark_primaryContainer
@@ -31,7 +30,19 @@ import org.liamjd.amber.viewModels.TimerViewModel
 @Preview(showBackground = true)
 @Composable
 fun TimerDisplayPreview() {
-    TimerDisplay(viewModel = viewModel())
+    // Use a fake timer value for preview
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Text(
+            text = formatTime(7653L),
+            textAlign = TextAlign.Center,
+            color = if (isSystemInDarkTheme()) {
+                md_theme_dark_onPrimaryContainer
+            } else {
+                md_theme_light_onPrimaryContainer
+            },
+            fontSize = TextUnit(48f, TextUnitType.Sp)
+        )
+    }
 }
 
 @Composable
@@ -41,7 +52,15 @@ fun TimerDisplay(
     viewModel: TimerViewModel
 ) {
     val timerValue by viewModel.timer.collectAsState()
-    // timer function
+
+    LaunchedEffect(key1 = isActive, key2 = startingSeconds) {
+        if (isActive) {
+            viewModel.startTimer(startingSeconds)
+        } else {
+            viewModel.pauseTimer()
+        }
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -75,25 +94,12 @@ fun TimerDisplay(
                 )
             )
         }
-        LaunchedEffect(key1 = isActive) {
-            if (isActive) {
-                viewModel.startTimer(startingSeconds)
-            }
-        }
-
     }
 }
 
-/**
- * Format count of seconds as an hours/minutes/seconds string
- * @param time number of seconds
- * @return string in format "hh:mm:ss"
- */
 fun formatTime(time: Long): String {
-    val hours: Double = time / 3600.0
-    val wholeHours: Int = hours.toInt()
-    val minutes: Double = (hours - wholeHours) * 60
-    val wholeMinutes = minutes.toInt()
-    val seconds: Int = ((minutes - wholeMinutes) * 60).toInt()
-    return "${wholeHours.leadingZero()}h${wholeMinutes.leadingZero()}m:${seconds.leadingZero()}s"
+    val hours = (time / 3600).toInt()
+    val minutes = ((time % 3600) / 60).toInt()
+    val seconds = (time % 60).toInt()
+    return "${hours.leadingZero()}h${minutes.leadingZero()}m:${seconds.leadingZero()}s"
 }

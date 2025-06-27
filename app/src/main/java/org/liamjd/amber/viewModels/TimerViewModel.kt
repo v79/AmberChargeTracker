@@ -1,5 +1,6 @@
 package org.liamjd.amber.viewModels
 
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -14,25 +15,36 @@ class TimerViewModel : ViewModel() {
     val timer = _timer.asStateFlow()
 
     private var timerJob: Job? = null
+    private var startTime: Long? = null
+    private var pausedTime: Long? = null
+    private var offsetSeconds: Long = 0L
 
     fun startTimer(startingSeconds: Long) {
         timerJob?.cancel()
+        offsetSeconds = startingSeconds
+        startTime = SystemClock.elapsedRealtime()
         timerJob = viewModelScope.launch {
-            _timer.value = startingSeconds
             while (true) {
+                val elapsed = ((SystemClock.elapsedRealtime() - (startTime ?: SystemClock.elapsedRealtime())) / 1000) + offsetSeconds
+                _timer.value = elapsed
                 delay(1000)
-                _timer.value++
             }
         }
     }
 
     fun pauseTimer() {
         timerJob?.cancel()
+        pausedTime = SystemClock.elapsedRealtime()
+        // Save the current timer value as offset
+        offsetSeconds = _timer.value
     }
 
     fun stopTimer() {
         _timer.value = 0
         timerJob?.cancel()
+        startTime = null
+        pausedTime = null
+        offsetSeconds = 0L
     }
 
     override fun onCleared() {
