@@ -15,7 +15,7 @@ It's been a while since I tried Android development.
 - [X] Saving total cost of a charge event
   - There's no currency support, assumes UK£ only
 - [X] Text styling on real device - black on black is hard to read...
-- [ ] Very inconsistent behaviour moving between screens when charging
+- [X] Very inconsistent behaviour moving between screens when charging
 
 ### Technical improvements
 
@@ -38,9 +38,9 @@ It's been a while since I tried Android development.
 - [ ] Charging screen improvements
   - [X] Should persist across process death
   - [X] Check if charge is in progress on startup
-  - [-] Restore the timer correctly based on the charge start time
+  - [X] Restore the timer correctly based on the charge start time
 - [X] charge history table improvements
-- [ ] charge history graphs
+- [X] charge history graphs
 - [ ] Journey recording screens and model
 - [ ] Android Auto integration
 - [X] Add a photograph of the cars for easy identification
