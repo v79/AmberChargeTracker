@@ -26,7 +26,8 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
 
     var vehicle = mutableStateOf<Vehicle?>(null)
 
-    private var _activeChargeEvent: LiveData<ChargeEvent?> = MutableLiveData()
+    // Use a MediatorLiveData to observe the ChargeEvent from the database
+    private val _activeChargeEvent = MediatorLiveData<ChargeEvent?>()
     val activeChargeEvent: LiveData<ChargeEvent?>
         get() = _activeChargeEvent
 
@@ -46,8 +47,14 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
             val activeChargeId =
                 settingsRepository.getSettingLongValue(SettingsKey.CURRENT_CHARGE_EVENT)
             Log.i("MainMenuViewModel", "activeChargeId = $activeChargeId")
-            activeChargeId?.let {
-                _activeChargeEvent = chargeEventRepository.getLiveChargeEventWithId(it)
+            if (activeChargeId != null) {
+                // Observe the ChargeEvent from the database and update the MediatorLiveData
+                val dbLiveData = chargeEventRepository.getLiveChargeEventWithId(activeChargeId)
+                _activeChargeEvent.addSource(dbLiveData) { event ->
+                    _activeChargeEvent.value = event
+                }
+            } else {
+                _activeChargeEvent.value = null
             }
         }
     }
@@ -62,6 +69,7 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
             _activeChargeEvent.value?.apply {
                 chargeEventRepository.deleteChargeEvent(this.id)
                 settingsRepository.clear(SettingsKey.CURRENT_CHARGE_EVENT)
+                _activeChargeEvent.value = null
             }
         }
     }
