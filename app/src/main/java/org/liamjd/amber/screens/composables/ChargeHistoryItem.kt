@@ -134,12 +134,9 @@ fun ChargeHistoryItem(
                     previousEvent?.let {
                         val miles = event.milesSince(previousEvent = it)
                         val milesPerPercent = event.milesPerPercent(previousEvent = it)
+                        //  (${String.format(locale = Locale.getDefault(), format = "%.2f", milesPerPercent)}mi/%)
                         Text(
-                            text = "🔻${miles}mi (${
-                                String.format(
-                                    locale = Locale.getDefault(), format = "%.2f", milesPerPercent
-                                )
-                            }mi/%)",
+                            text = "🛞${miles}mi over ${it.batteryEndingPct?.minus(event.batteryStartingPct)}% ",
                             color = Color.Red,
                             fontStyle = FontStyle.Italic
                         )
