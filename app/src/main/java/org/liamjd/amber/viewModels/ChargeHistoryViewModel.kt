@@ -42,7 +42,7 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
             selectedVehicleId = settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
             selectedVehicleId?.let { vehicleId ->
                 vehicle.value = vehicleRepository.getVehicleById(vehicleId)
-                chargeEventRepository.getEventsWithin(timePeriod.value, vehicleId)
+                chargeEventRepository.getEventsWithin(timePeriod.intValue, vehicleId)
                     .collect { response ->
                         events.value = response
                         Log.i(

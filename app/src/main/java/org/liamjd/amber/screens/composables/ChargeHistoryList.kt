@@ -11,13 +11,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.liamjd.amber.db.entities.ChargeEvent
 
+/**
+ * A vertical list of charge history items, displayed as bars
+ */
 @Composable
 fun ChargeHistoryList(
     modifier: Modifier = Modifier,
     filter: List<ChargeEvent>,
-    updateEvent: (ChargeEvent) -> Unit = {}
+    updateEventFn: (ChargeEvent) -> Unit = {}
 ) {
     if (filter.isNotEmpty()) {
+        val listSize = filter.size
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -30,7 +34,16 @@ fun ChargeHistoryList(
                     event.id
                 }
             ) { event ->
-                ChargeHistoryItem(event = event, updateEvent = updateEvent)
+                val prevEvent = if (filter.indexOf(event) < listSize - 1) {
+                    filter[filter.indexOf(event) + 1]
+                } else {
+                    null
+                }
+                ChargeHistoryItem(
+                    event = event,
+                    previousEvent = prevEvent,
+                    updateEvent = updateEventFn
+                )
             }
 
         }
@@ -44,9 +57,9 @@ fun ChargeHistoryList(
 fun ChargeHistoryLivePreview(modifier: Modifier = Modifier) {
 
     val eventList: List<ChargeEvent> = listOf(
-        ChargeEvent(99, "0", "240", "0", "100", 1L, 22.0f, 174).apply { id = 99 },
-        ChargeEvent(123, "85", "125", "43", "56", 1L, 22.0f, null).apply { id = 123 },
-        ChargeEvent(195, "94", "178", "48", "89", 1L, 50.0f, 257).apply { id = 234 },
+        ChargeEvent(0, "0", "240", "0", "100", 1L, 22.0f, 174).apply { id = 99 },
+        ChargeEvent(67, "83", "245", "39", "80", 1L, 22.0f, null).apply { id = 123 },
+        ChargeEvent(192, "46", "223", "22", "80", 1L, 50.0f, 257).apply { id = 234 },
     )
 
     ChargeHistoryList(filter = eventList)

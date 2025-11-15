@@ -44,6 +44,26 @@ data class ChargeEvent(
         kilowatt = kilowatt,
         totalCost = totalCost
     )
+
+    /**
+     * Calculate the number of miles driven since the previous charge event
+     */
+    fun milesSince(previousEvent: ChargeEvent): Int {
+        return this.odometer - previousEvent.odometer
+    }
+
+    fun milesPerPercent(previousEvent: ChargeEvent): Float {
+        val milesDriven = milesSince(previousEvent)
+        val pctUsed = previousEvent.batteryEndingPct?.let {
+           it - this.batteryStartingPct
+        } ?: return 0f
+
+        return if (pctUsed > 0) {
+            milesDriven.toFloat() / pctUsed.toFloat()
+        } else {
+            999f
+        }
+    }
 }
 
 @Dao
