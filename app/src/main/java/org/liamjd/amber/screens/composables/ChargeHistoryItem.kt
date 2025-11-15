@@ -126,6 +126,7 @@ fun ChargeHistoryItem(
             horizontalArrangement = Arrangement.Absolute.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            /** ============ Start and ending values ============ **/
             Column {
                 Text(
                     text = "${event.batteryStartingPct}% ➡ ${event.batteryEndingPct}%",
@@ -141,6 +142,7 @@ fun ChargeHistoryItem(
                 )
             }
         }
+        /** ============ Cost Row ============ **/
         if (expanded.value) {
             EventCostRow(
                 event = event,
@@ -160,7 +162,7 @@ fun EventCostRow(modifier: Modifier = Modifier, event: ChargeEvent, onSave: (Str
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 2.dp, end = 2.dp),
+            .padding(start = 2.dp, top = 2.dp, end = 2.dp),
         horizontalArrangement = Arrangement.Absolute.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
