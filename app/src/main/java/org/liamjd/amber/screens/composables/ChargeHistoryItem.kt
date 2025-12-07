@@ -197,12 +197,12 @@ fun EventCostRow(modifier: Modifier = Modifier, event: ChargeEvent, onSave: (Str
         verticalAlignment = Alignment.CenterVertically
     ) {
         CurrencyTextField(
-            modifier = Modifier.weight(0.3f),
+            modifier = Modifier.weight(0.2f),
             value = "0.0",
             label = R.string.screen_chargeHistory_costPerKwH
         )
         CurrencyTextField(
-            modifier = Modifier.weight(0.3f),
+            modifier = Modifier.weight(0.4f),
             value = cost.value,
             label = R.string.screen_chargeHistory_totalCost,
             onValueChange = { cost.value = it })
