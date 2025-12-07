@@ -52,3 +52,5 @@ fun String.currencyToIntOrNull(): Int? {
         return null
     }
 }
+
+fun Float.format(digits: Int = 0) = "%.${digits}f".format(this)

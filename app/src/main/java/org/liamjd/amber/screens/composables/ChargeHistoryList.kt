@@ -2,6 +2,9 @@ package org.liamjd.amber.screens.composables
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -24,7 +27,7 @@ fun ChargeHistoryList(
         val listSize = filter.size
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
 
             items(
@@ -61,6 +64,11 @@ fun ChargeHistoryLivePreview(modifier: Modifier = Modifier) {
         ChargeEvent(67, "83", "245", "39", "80", 1L, 22.0f, null).apply { id = 123 },
         ChargeEvent(192, "46", "223", "22", "80", 1L, 50.0f, 257).apply { id = 234 },
     )
-
-    ChargeHistoryList(filter = eventList)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp)
+    ) {
+        ChargeHistoryList(filter = eventList)
+    }
 }
