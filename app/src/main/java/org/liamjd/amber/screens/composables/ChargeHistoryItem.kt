@@ -42,12 +42,14 @@ import org.liamjd.amber.ui.theme.md_theme_light_chargeBarStart
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 
 @Composable
 fun ChargeHistoryItem(
     modifier: Modifier = Modifier,
     event: ChargeEvent,
+    previousEvent: ChargeEvent? = null,
     updateEvent: (ChargeEvent) -> Unit = {}
 ) {
     val now = LocalDateTime.now()
@@ -126,21 +128,35 @@ fun ChargeHistoryItem(
             horizontalArrangement = Arrangement.Absolute.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            /** ============ Start and ending values ============ **/
             Column {
-                Text(
-                    text = "${event.batteryStartingPct}% ➡ ${event.batteryEndingPct}%",
-                    color = Color.Black,
-                    fontStyle = FontStyle.Italic
-                )
+                Row(modifier = Modifier.padding(end = 2.dp)) {
+                    previousEvent?.let {
+                        val miles = event.milesSince(previousEvent = it)
+                        val milesPerPercent = event.milesPerPercent(previousEvent = it)
+                        //  (${String.format(locale = Locale.getDefault(), format = "%.2f", milesPerPercent)}mi/%)
+                        Text(
+                            text = "🛞${miles}mi over ${it.batteryEndingPct?.minus(event.batteryStartingPct)}% ",
+                            color = Color.Red,
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
+                    Text(
+                        text = "${event.batteryStartingPct}% ➡ ${event.batteryEndingPct}%",
+                        color = Color.Black,
+                        fontStyle = FontStyle.Italic
+                    )
+                }
             }
             Column {
                 Text(
                     text = "${event.batteryStartingRange}mi ➡ ${event.batteryEndingRange}mi",
-                    color = Color.White,
+                    color = Color.LightGray,
                     fontStyle = FontStyle.Italic
                 )
             }
         }
+        /** ============ Cost Row ============ **/
         if (expanded.value) {
             EventCostRow(
                 event = event,
@@ -160,7 +176,7 @@ fun EventCostRow(modifier: Modifier = Modifier, event: ChargeEvent, onSave: (Str
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 2.dp, end = 2.dp),
+            .padding(start = 2.dp, top = 2.dp, end = 2.dp),
         horizontalArrangement = Arrangement.Absolute.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

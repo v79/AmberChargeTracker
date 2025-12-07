@@ -128,7 +128,7 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                                 if (viewModel.bars.value) {
                                     ChargeHistoryList(
                                         filter = filter.value,
-                                        updateEvent = { viewModel.updateChargeEvent(it) })
+                                        updateEventFn = { viewModel.updateChargeEvent(it) })
                                 } else {
                                     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                                         ChargeHistoryTable(filter)
