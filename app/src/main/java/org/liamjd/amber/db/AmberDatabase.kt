@@ -12,7 +12,7 @@ import java.time.ZoneOffset
 
 @Database(
     entities = [ChargeEvent::class, Vehicle::class, Setting::class],
-    version = 18,
+    version = 19,
     exportSchema = true
 )
 @TypeConverters(DBConverters::class)
@@ -33,7 +33,7 @@ abstract class AmberDatabase : RoomDatabase() {
                     AmberDatabase::class.java,
                     "amber_database"
                 )
-                    .addMigrations(MIGRATION_15_16_addVehicleReg, MIGRATION_16_17_addVehicleUpdateDateTime, MIGRATION_17_18_addVehiclePhotoPath)
+                    .addMigrations(MIGRATION_15_16_addVehicleReg, MIGRATION_16_17_addVehicleUpdateDateTime, MIGRATION_17_18_addVehiclePhotoPath, MIGRATION_18_19_addCostPerKwH)
                     .addCallback(
                         AmberDatabaseCallback(scope)
                     ).build()
@@ -57,6 +57,12 @@ abstract class AmberDatabase : RoomDatabase() {
         private val MIGRATION_17_18_addVehiclePhotoPath = object : Migration(17,18) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE Vehicle ADD COLUMN photoPath TEXT DEFAULT NULL")
+            }
+        }
+        // New migration: add costPerKwH nullable float to ChargeEvent
+        private val MIGRATION_18_19_addCostPerKwH = object : Migration(18,19) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE ChargeEvent ADD COLUMN costPerKwH REAL DEFAULT NULL")
             }
         }
     }

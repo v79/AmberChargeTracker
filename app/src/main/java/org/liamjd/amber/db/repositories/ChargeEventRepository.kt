@@ -102,6 +102,27 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
     }
 
     /**
+     * Update the cost per kWh for a charge event
+     */
+    suspend fun updateEventCostPerKwH(event: ChargeEvent) {
+        dao.updateChargeCostPerKwH(
+            id = event.id,
+            costPerKwH = event.costPerKwH
+        )
+    }
+
+    /**
+     * New: Atomically update both totalCost and costPerKwH in one DB operation
+     */
+    suspend fun updateEventCosts(event: ChargeEvent) {
+        dao.updateChargeCosts(
+            id = event.id,
+            totalCost = event.totalCost,
+            costPerKwH = event.costPerKwH
+        )
+    }
+
+    /**
      * Delete the specified charge event
      */
     suspend fun deleteChargeEvent(id: Long) {

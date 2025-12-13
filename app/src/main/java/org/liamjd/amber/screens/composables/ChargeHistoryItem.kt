@@ -46,7 +46,6 @@ import org.liamjd.amber.ui.theme.md_theme_light_chargeBarStart
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Locale
 
 
 @Composable
@@ -161,7 +160,7 @@ fun ChargeHistoryItem(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             previousEvent?.let {
                 val miles = event.milesSince(previousEvent = it)
-                val milesPerPercent = event.milesPerPercent(previousEvent = it)
+                // val milesPerPercent = event.milesPerPercent(previousEvent = it)
                 //  (${String.format(locale = Locale.getDefault(), format = "%.2f", milesPerPercent)}mi/%)
                 Text(
                     modifier = Modifier.background(color = Color(1.0f, 1.0f, 1.0f, 0.5f))
@@ -176,8 +175,10 @@ fun ChargeHistoryItem(
         /** ============ Cost Row ============ **/
         if (expanded.value) {
             EventCostRow(
-                event = event, onSave = {
-                    event.totalCost = it.currencyToIntOrNull()
+                event = event, onSave = { costPerKwHText, totalCostText ->
+                    // parse total cost (currency) and costPerKwH (float)
+                    event.totalCost = totalCostText.currencyToIntOrNull()
+                    event.costPerKwH = costPerKwHText.toFloatOrNull()
                     updateEvent(event)
                     expanded.value = false
                     formattedCost.value = event.totalCost?.toCurrencyString()
@@ -187,7 +188,8 @@ fun ChargeHistoryItem(
 }
 
 @Composable
-fun EventCostRow(modifier: Modifier = Modifier, event: ChargeEvent, onSave: (String) -> Unit) {
+fun EventCostRow(modifier: Modifier = Modifier, event: ChargeEvent, onSave: (String, String) -> Unit) {
+    val costPerKwHText = remember { mutableStateOf(event.costPerKwH?.toString() ?: "") }
     val cost = remember { mutableStateOf(event.totalCost?.toCurrencyString() ?: "") }
     Row(
         modifier = Modifier
@@ -198,15 +200,16 @@ fun EventCostRow(modifier: Modifier = Modifier, event: ChargeEvent, onSave: (Str
     ) {
         CurrencyTextField(
             modifier = Modifier.weight(0.2f),
-            value = "0.0",
-            label = R.string.screen_chargeHistory_costPerKwH
+            value = costPerKwHText.value,
+            label = R.string.screen_chargeHistory_costPerKwH,
+            onValueChange = { costPerKwHText.value = it }
         )
         CurrencyTextField(
             modifier = Modifier.weight(0.4f),
             value = cost.value,
             label = R.string.screen_chargeHistory_totalCost,
             onValueChange = { cost.value = it })
-        FilledIconButton(onClick = { onSave(cost.value) }) {
+        FilledIconButton(onClick = { onSave(costPerKwHText.value, cost.value) }) {
             Icon(Icons.Filled.Save, "Save total cost")
         }
     }
@@ -219,15 +222,16 @@ fun ChargeHistoryItemPreview(modifier: Modifier = Modifier) {
     val endDate = startDate.plusMinutes(192)
     val event = ChargeEvent(
         odometer = 2344,
+        startDateTime = startDate,
+        endDateTime = endDate,
         batteryStartingRange = 52,
         batteryEndingRange = 167,
         batteryStartingPct = 24,
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
-        totalCost = 1245,
-        startDateTime = startDate,
-        endDateTime = endDate
+        costPerKwH = null,
+        totalCost = 1245
     )
     ChargeHistoryItem(event = event)
 }
@@ -239,15 +243,16 @@ fun ChargeHistoryItemPreviewLow(modifier: Modifier = Modifier) {
     val endDate = startDate.plusMinutes(192)
     val event = ChargeEvent(
         odometer = 2344,
+        startDateTime = startDate,
+        endDateTime = endDate,
         batteryStartingRange = 52,
         batteryEndingRange = 167,
         batteryStartingPct = 18,
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
-        totalCost = null,
-        startDateTime = startDate,
-        endDateTime = endDate
+        costPerKwH = null,
+        totalCost = null
     )
     ChargeHistoryItem(event = event)
 }
@@ -259,15 +264,16 @@ fun EventCostRowPreview() {
     val endDate = startDate.plusMinutes(192)
     val event = ChargeEvent(
         odometer = 2344,
+        startDateTime = startDate,
+        endDateTime = endDate,
         batteryStartingRange = 52,
         batteryEndingRange = 167,
         batteryStartingPct = 24,
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
-        totalCost = 1245,
-        startDateTime = startDate,
-        endDateTime = endDate
+        costPerKwH = null,
+        totalCost = 1245
     )
-    EventCostRow(event = event, onSave = {})
+    EventCostRow(event = event, onSave = { _, _ -> })
 }
