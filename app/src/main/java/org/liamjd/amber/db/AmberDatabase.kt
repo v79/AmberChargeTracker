@@ -12,7 +12,7 @@ import java.time.ZoneOffset
 
 @Database(
     entities = [ChargeEvent::class, Vehicle::class, Setting::class],
-    version = 19,
+    version = 20,
     exportSchema = true
 )
 @TypeConverters(DBConverters::class)
@@ -33,10 +33,15 @@ abstract class AmberDatabase : RoomDatabase() {
                     AmberDatabase::class.java,
                     "amber_database"
                 )
-                    .addMigrations(MIGRATION_15_16_addVehicleReg, MIGRATION_16_17_addVehicleUpdateDateTime, MIGRATION_17_18_addVehiclePhotoPath, MIGRATION_18_19_addCostPerKwH)
-                    .addCallback(
-                        AmberDatabaseCallback(scope)
-                    ).build()
+                    .addMigrations(
+                        MIGRATION_15_16_addVehicleReg,
+                        MIGRATION_16_17_addVehicleUpdateDateTime,
+                        MIGRATION_17_18_addVehiclePhotoPath,
+                        MIGRATION_18_19_addCostPerKwH,
+                        MIGRATION_19_20_addCostPerKwHPence
+                    )
+                    .addCallback(AmberDatabaseCallback(scope))
+                    .build()
                 INSTANCE = instance
                 instance
             }
@@ -48,21 +53,87 @@ abstract class AmberDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE Vehicle ADD COLUMN registration TEXT NOT NULL DEFAULT '' ")
             }
         }
-        private val MIGRATION_16_17_addVehicleUpdateDateTime = object : Migration(16,17) {
+        private val MIGRATION_16_17_addVehicleUpdateDateTime = object : Migration(16, 17) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
                 database.execSQL("ALTER TABLE Vehicle ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT $now")
             }
         }
-        private val MIGRATION_17_18_addVehiclePhotoPath = object : Migration(17,18) {
+        private val MIGRATION_17_18_addVehiclePhotoPath = object : Migration(17, 18) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE Vehicle ADD COLUMN photoPath TEXT DEFAULT NULL")
             }
         }
-        // New migration: add costPerKwH nullable float to ChargeEvent
-        private val MIGRATION_18_19_addCostPerKwH = object : Migration(18,19) {
+        // 18 -> 19: add costPerKwH REAL column
+        private val MIGRATION_18_19_addCostPerKwH = object : Migration(18, 19) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE ChargeEvent ADD COLUMN costPerKwH REAL DEFAULT NULL")
+            }
+        }
+        // 19 -> 20: move from costPerKwH REAL to costPerKwHPence INTEGER and drop old column
+        private val MIGRATION_19_20_addCostPerKwHPence = object : Migration(19, 20) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // 1. Create new table with the exact schema Room expects at version 20
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `ChargeEvent_new` (
+                      `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                      `odometer` INTEGER NOT NULL,
+                      `startDateTime` INTEGER NOT NULL,
+                      `endDateTime` INTEGER,
+                      `batteryStartingRange` INTEGER NOT NULL,
+                      `batteryEndingRange` INTEGER,
+                      `batteryStartingPct` INTEGER NOT NULL,
+                      `batteryEndingPct` INTEGER,
+                      `vehicleId` INTEGER NOT NULL,
+                      `kilowatt` REAL,
+                      `costPerKwHPence` INTEGER,
+                      `totalCost` INTEGER
+                    )
+                    """.trimIndent()
+                )
+
+                // 2. Copy data from old table into new, computing pence from costPerKwH
+                // Live devices at v19 only have costPerKwH (REAL) and no costPerKwHPence column
+                database.execSQL(
+                    """
+                    INSERT INTO ChargeEvent_new (
+                        id,
+                        odometer,
+                        startDateTime,
+                        endDateTime,
+                        batteryStartingRange,
+                        batteryEndingRange,
+                        batteryStartingPct,
+                        batteryEndingPct,
+                        vehicleId,
+                        kilowatt,
+                        costPerKwHPence,
+                        totalCost
+                    )
+                    SELECT
+                        id,
+                        odometer,
+                        startDateTime,
+                        endDateTime,
+                        batteryStartingRange,
+                        batteryEndingRange,
+                        batteryStartingPct,
+                        batteryEndingPct,
+                        vehicleId,
+                        kilowatt,
+                        CASE
+                            WHEN costPerKwH IS NOT NULL THEN CAST(ROUND(costPerKwH * 100.0) AS INTEGER)
+                            ELSE NULL
+                        END AS costPerKwHPence,
+                        totalCost
+                    FROM ChargeEvent;
+                    """.trimIndent()
+                )
+
+                // 3. Drop old table and rename new to original name
+                database.execSQL("DROP TABLE ChargeEvent")
+                database.execSQL("ALTER TABLE ChargeEvent_new RENAME TO ChargeEvent")
             }
         }
     }
@@ -72,8 +143,8 @@ abstract class AmberDatabase : RoomDatabase() {
             super.onCreate(db)
             INSTANCE?.let { database ->
                 scope.launch {
-                    // populate database with fake data? Or other data setup tasks
-//                    database.vehicleDao().insert(Vehicle("Volkswagen", "iD.3", 275))
+                    // Initial data setup can go here if needed
+                    // database.vehicleDao().insert(Vehicle("Volkswagen", "iD.3", 275))
                 }
             }
         }

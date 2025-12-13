@@ -4,6 +4,8 @@ import android.icu.text.NumberFormat
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.navigation.NavController
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -41,6 +43,7 @@ fun Int.toCurrencyString(): String {
 
 /**
  * Parse a currency string and convert it to an integer value, or null on failure
+ * This uses NumberFormat (locale-aware) and falls back to a BigDecimal parse via parseToPenceOrNull
  */
 fun String.currencyToIntOrNull(): Int? {
     val numberFormat = NumberFormat.getCurrencyInstance()
@@ -48,7 +51,34 @@ fun String.currencyToIntOrNull(): Int? {
         val value: Double = numberFormat.parse(this).toDouble()
         return (value * 100L).toInt()
     } catch (e: Exception) {
-        Log.e("Extension currencyIntONull", "Unable to parse $this to a number")
+        // fallback to BigDecimal parser for free-form input like "0.79" or "0,79"
+        return this.parseToPenceOrNull()
+    }
+}
+
+/**
+ * Parse a decimal string to pence using BigDecimal for exactness.
+ * Accepts inputs like "0.79", "£0.79", "0,79" (comma decimal), and returns pence as Int
+ */
+fun String.parseToPenceOrNull(): Int? {
+    try {
+        var cleaned = this.trim()
+        // remove currency symbol and spaces
+        cleaned = cleaned.replace(Regex("[^0-9,.-]"), "")
+        if (cleaned.isBlank()) return null
+        // normalize comma to dot
+        cleaned = cleaned.replace(',', '.')
+        val bd = BigDecimal(cleaned)
+        val pence = bd.multiply(BigDecimal(100)).setScale(0, RoundingMode.HALF_UP)
+        return try {
+            pence.intValueExact()
+        } catch (e: ArithmeticException) {
+            // If it's too large for Int, log and return null
+            Log.e("parseToPenceOrNull", "Value too large to fit in Int: $pence")
+            null
+        }
+    } catch (e: Exception) {
+        Log.e("parseToPenceOrNull", "Unable to parse '$this' to pence: ${e.message}")
         return null
     }
 }

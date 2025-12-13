@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.liamjd.amber.R
 import org.liamjd.amber.currencyToIntOrNull
+import org.liamjd.amber.parseToPenceOrNull
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.format
 import org.liamjd.amber.toCurrencyString
@@ -176,9 +177,10 @@ fun ChargeHistoryItem(
         if (expanded.value) {
             EventCostRow(
                 event = event, onSave = { costPerKwHText, totalCostText ->
-                    // parse total cost (currency) and costPerKwH (float)
+                    // parse total cost (currency) and costPerKwH (pounds) into pence
                     event.totalCost = totalCostText.currencyToIntOrNull()
-                    event.costPerKwH = costPerKwHText.toFloatOrNull()
+                    // Use BigDecimal-based precise parser for cost-per-kWh
+                    event.costPerKwHPence = costPerKwHText.parseToPenceOrNull()
                     updateEvent(event)
                     expanded.value = false
                     formattedCost.value = event.totalCost?.toCurrencyString()
@@ -189,7 +191,7 @@ fun ChargeHistoryItem(
 
 @Composable
 fun EventCostRow(modifier: Modifier = Modifier, event: ChargeEvent, onSave: (String, String) -> Unit) {
-    val costPerKwHText = remember { mutableStateOf(event.costPerKwH?.toString() ?: "") }
+    val costPerKwHText = remember { mutableStateOf(event.costPerKwHPence?.let { (it.toFloat() / 100f).format(2) } ?: "") }
     val cost = remember { mutableStateOf(event.totalCost?.toCurrencyString() ?: "") }
     Row(
         modifier = Modifier
@@ -230,7 +232,7 @@ fun ChargeHistoryItemPreview(modifier: Modifier = Modifier) {
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
-        costPerKwH = null,
+        costPerKwHPence = null,
         totalCost = 1245
     )
     ChargeHistoryItem(event = event)
@@ -251,7 +253,7 @@ fun ChargeHistoryItemPreviewLow(modifier: Modifier = Modifier) {
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
-        costPerKwH = null,
+        costPerKwHPence = null,
         totalCost = null
     )
     ChargeHistoryItem(event = event)
@@ -272,7 +274,7 @@ fun EventCostRowPreview() {
         batteryEndingPct = 50,
         vehicleId = 234,
         kilowatt = 22.0f,
-        costPerKwH = null,
+        costPerKwHPence = null,
         totalCost = 1245
     )
     EventCostRow(event = event, onSave = { _, _ -> })

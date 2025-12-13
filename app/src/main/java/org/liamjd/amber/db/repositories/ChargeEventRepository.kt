@@ -2,13 +2,11 @@ package org.liamjd.amber.db.repositories
 
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.sqlite.db.SimpleSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import org.liamjd.amber.db.entities.ChargeEvent
 import org.liamjd.amber.db.entities.ChargeEventDao
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.util.logging.Logger
 
 class ChargeEventRepository(private val dao: ChargeEventDao) {
 
@@ -102,23 +100,23 @@ class ChargeEventRepository(private val dao: ChargeEventDao) {
     }
 
     /**
-     * Update the cost per kWh for a charge event
+     * Update the cost per kWh (in pence) for a charge event
      */
-    suspend fun updateEventCostPerKwH(event: ChargeEvent) {
-        dao.updateChargeCostPerKwH(
+    suspend fun updateEventCostPerKwHPence(event: ChargeEvent) {
+        dao.updateChargeCostPerKwHPence(
             id = event.id,
-            costPerKwH = event.costPerKwH
+            costPerKwHPence = event.costPerKwHPence
         )
     }
 
     /**
-     * New: Atomically update both totalCost and costPerKwH in one DB operation
+     * New: Atomically update both totalCost and costPerKwHPence in one DB operation
      */
     suspend fun updateEventCosts(event: ChargeEvent) {
         dao.updateChargeCosts(
             id = event.id,
             totalCost = event.totalCost,
-            costPerKwH = event.costPerKwH
+            costPerKwHPence = event.costPerKwHPence
         )
     }
 
