@@ -13,6 +13,7 @@ import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.repositories.ChargeEventRepository
 import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
+import org.liamjd.amber.notifications.ChargingNotificationHelper
 import org.liamjd.amber.screens.Screen
 import org.liamjd.amber.screens.state.UIState
 import java.time.LocalDateTime
@@ -27,6 +28,8 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
     private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
     private val vehicleRepository: VehicleRepository = application.vehicleRepo
     private val settingsRepository: SettingsRepository = application.settingsRepo
+    private val notificationHelper = ChargingNotificationHelper(application.applicationContext)
+
 
 
     private var _selectedVehicleId: Long? = -1L
@@ -131,6 +134,7 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
      * - set chargingActive to true
      * - save the interim charging event to the database
      * - display timer
+     * - show notification
      */
     fun startCharging(startModel: StartingChargeEventModel) {
         chargingStatus = RecordChargingStatus.CHARGING
@@ -159,6 +163,7 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
                         lValue = eventId
                     )
                 )
+                notificationHelper.showChargingNotification()
                 _uiState.value = UIState.Active
             }
         }
@@ -175,7 +180,7 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
     }
 
     /**
-     * Save the final charge event into the database
+     * Save the final charge event into the database and cancel notification
      */
     fun saveCharge(endModel: EndingChargeEventModel) = viewModelScope.launch {
         _uiState.value = UIState.Saving
@@ -198,6 +203,7 @@ class ChargeEventViewModel(application: AmberApplication, private val activeChar
                 cost = endModel.cost
             )
             settingsRepository.clear(SettingsKey.CURRENT_CHARGE_EVENT)
+            notificationHelper.cancelChargingNotification()
         }
         _uiState.value = UIState.Navigating(Screen.ChargeHistoryScreen)
     }

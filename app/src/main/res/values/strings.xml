@@ -50,4 +50,8 @@ You can us the \'Record Historical Charge\' function to manually enter a chargin
     <string name="screen_menu_chargeHistory">Charging history</string>
     <string name="screen_menu_recordJourney">Record Journey</string>
     <string name="screen_menu_navDesc">Navigation menu</string>
+    <string name="notification_channel_name">Charging Session</string>
+    <string name="notification_channel_description">Notifications for active charging sessions</string>
+    <string name="notification_title">Charging in progress</string>
+    <string name="notification_text">Tap to view or stop charging session</string>
 </resources>
