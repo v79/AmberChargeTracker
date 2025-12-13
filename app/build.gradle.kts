@@ -86,6 +86,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    // Ensure room testing is available to instrumentation tests
+    androidTestImplementation("androidx.room:room-testing:2.8.3")
 //    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     testImplementation("androidx.room:room-testing:2.8.3")
     debugImplementation("androidx.compose.ui:ui-tooling")

@@ -18,6 +18,7 @@ data class ChargeEvent(
     val batteryEndingPct: Int?,
     val vehicleId: Long,
     val kilowatt: Float?,
+    var costPerKwHPence: Int?,
     var totalCost: Int? = null // in pence, or null if no value saved
 ) {
     @PrimaryKey(autoGenerate = true)
@@ -42,6 +43,7 @@ data class ChargeEvent(
         startDateTime = LocalDateTime.now(),
         endDateTime = LocalDateTime.now(),
         kilowatt = kilowatt,
+        costPerKwHPence = null,
         totalCost = totalCost
     )
 
@@ -95,6 +97,21 @@ interface ChargeEventDao {
     suspend fun updateChargeCost(
         id: Long,
         totalCost: Int?
+    )
+
+    // New: update costPerKwH pence column
+    @Query("UPDATE ChargeEvent SET costPerKwHPence = :costPerKwHPence WHERE id = :id")
+    suspend fun updateChargeCostPerKwHPence(
+        id: Long,
+        costPerKwHPence: Int?
+    )
+
+    // New combined atomic update for both cost columns
+    @Query("UPDATE ChargeEvent SET totalCost = :totalCost, costPerKwHPence = :costPerKwHPence WHERE id = :id")
+    suspend fun updateChargeCosts(
+        id: Long,
+        totalCost: Int?,
+        costPerKwHPence: Int?
     )
 
     @Delete

@@ -81,22 +81,23 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
     val filter = remember { viewModel.events }
 
     AmberChargeTrackerTheme {
-        Scaffold(topBar = {
-            TopAppBar(
-                title = { Text(stringResource(id = R.string.screen_chargeHistory_title)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigate(Screen.StartScreen.route) }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            "Back to main menu"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = md_theme_light_surfaceTint
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(id = R.string.screen_chargeHistory_title)) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.navigate(Screen.StartScreen.route) }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                "Back to main menu"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = md_theme_light_surfaceTint
+                    )
                 )
-            )
-        },
+            },
             content = { innerPadding ->
                 Column(modifier = Modifier.padding(innerPadding)) {
                     currentVehicle.value?.let { vehicle ->
@@ -109,12 +110,12 @@ fun ChargeHistoryScreen(navController: NavController, viewModel: ChargeHistoryVi
                                 vehicle,
                                 isSelected = true,
                                 onClickAction = {})
-                            TimeFilterMenu(
-                                timePeriod,
-                                onSelection = { timePeriod -> viewModel.changeTimeFilter(timePeriod) })
-                        }
-                        Row(modifier = Modifier.padding(start = 12.dp)) {
-                            Text("${filter.value.size} events")
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                TimeFilterMenu(
+                                    timePeriod,
+                                    onSelection = { timePeriod -> viewModel.changeTimeFilter(timePeriod) })
+                                Text("${filter.value.size} events")
+                            }
                         }
                         // table data
                         Row(

@@ -88,7 +88,8 @@ class ChargeHistoryViewModel(application: AmberApplication) : ViewModel() {
     fun updateChargeEvent(event: ChargeEvent) {
         viewModelScope.launch {
             Log.i("ChargeHistoryVM", "Request to update chargeEvent $event")
-            chargeEventRepository.updateEventCost(event)
+            // Persist both totalCost and costPerKwH atomically
+            chargeEventRepository.updateEventCosts(event)
         }
     }
 }
