@@ -3,7 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
-    id("org.sonarqube") version "7.0.1.6134"
+    id("org.sonarqube") version "7.2.1.6560"
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.21" // this version matches your Kotlin version
 }
 
@@ -15,7 +15,7 @@ android {
         minSdk = 31
         targetSdk = 36
         versionCode = 1
-        versionName = "1.2"
+        versionName = "1.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -54,23 +54,23 @@ android {
 
 dependencies {
 
-    implementation(platform("androidx.compose:compose-bom:2025.11.00"))
-    androidTestImplementation(platform("androidx.compose:compose-bom:2025.11.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.12.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2025.12.00"))
 
     implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
-    implementation("androidx.activity:activity-compose:1.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+    implementation("androidx.activity:activity-compose:1.12.1")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.4.0")
     implementation("androidx.navigation:navigation-compose:2.9.6")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.10.0")
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation("androidx.compose.material:material-icons-extended")
 
     // images
-    implementation("androidx.activity:activity-ktx:1.11.0")
+    implementation("androidx.activity:activity-ktx:1.12.1")
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Hilt DI
@@ -78,21 +78,21 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.57.2")
 
     // room DB
-    implementation("androidx.room:room-ktx:2.8.3")
-    implementation("androidx.room:room-common:2.8.3")
-    ksp("androidx.room:room-compiler:2.8.3")
+    implementation("androidx.room:room-ktx:2.8.4")
+    implementation("androidx.room:room-common:2.8.4")
+    ksp("androidx.room:room-compiler:2.8.4")
 
     //testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     // Ensure room testing is available to instrumentation tests
-    androidTestImplementation("androidx.room:room-testing:2.8.3")
+    androidTestImplementation("androidx.room:room-testing:2.8.4")
 //    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
-    testImplementation("androidx.room:room-testing:2.8.3")
+    testImplementation("androidx.room:room-testing:2.8.4")
     debugImplementation("androidx.compose.ui:ui-tooling")
 //    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
-    testImplementation("org.mockito:mockito-core:5.20.0")
+    testImplementation("org.mockito:mockito-core:5.21.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
 
 }
