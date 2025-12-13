@@ -1,11 +1,14 @@
 package org.liamjd.amber.notifications
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import org.liamjd.amber.MainActivity
 import org.liamjd.amber.R
 
@@ -43,8 +46,17 @@ class ChargingNotificationHelper(private val context: Context) {
      * Show a notification indicating that a charging session is active
      */
     fun showChargingNotification() {
+        // Check for notification permission on Android 13+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+        }
+
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
             context,
@@ -60,7 +72,6 @@ class ChargingNotificationHelper(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
-            .setAutoCancel(false)
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
