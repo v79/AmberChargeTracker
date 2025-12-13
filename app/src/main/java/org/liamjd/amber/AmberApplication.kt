@@ -5,10 +5,13 @@ import android.content.Context
 import androidx.annotation.StringRes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.liamjd.amber.db.AmberDatabase
+import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.repositories.ChargeEventRepository
 import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
+import org.liamjd.amber.notifications.ChargingNotificationHelper
 
 class AmberApplication : Application() {
 
@@ -19,6 +22,24 @@ class AmberApplication : Application() {
     val chargeEventRepo by lazy { ChargeEventRepository(database.chargeEventDao()) }
     val vehicleRepo by lazy { VehicleRepository(database.vehicleDao()) }
     val settingsRepo by lazy { SettingsRepository(database.settingsDao()) }
+
+    override fun onCreate() {
+        super.onCreate()
+        checkAndShowActiveChargingNotification()
+    }
+
+    /**
+     * Check if there's an active charging session and show notification if needed
+     */
+    private fun checkAndShowActiveChargingNotification() {
+        applicationScope.launch {
+            val activeChargeId = settingsRepo.getSettingLongValue(SettingsKey.CURRENT_CHARGE_EVENT)
+            if (activeChargeId != null) {
+                val notificationHelper = ChargingNotificationHelper(applicationContext)
+                notificationHelper.showChargingNotification()
+            }
+        }
+    }
 
     /**
      * Get a Long value from the shared preferences with the given key

@@ -11,12 +11,14 @@ import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.repositories.ChargeEventRepository
 import org.liamjd.amber.db.repositories.SettingsRepository
 import org.liamjd.amber.db.repositories.VehicleRepository
+import org.liamjd.amber.notifications.ChargingNotificationHelper
 
 class MainMenuViewModel(application: AmberApplication) : ViewModel() {
 
     private val vehicleRepository: VehicleRepository = application.vehicleRepo
     private val settingsRepository: SettingsRepository = application.settingsRepo
     private val chargeEventRepository: ChargeEventRepository = application.chargeEventRepo
+    private val notificationHelper = ChargingNotificationHelper(application.applicationContext)
 
     var selectedVehicleId: Long? = null
 
@@ -61,7 +63,7 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
 
     /**
      * Abort the current charge event, deleting the row from the ChargeEvent table, and clearing the
-     * CURRENT_CHARGE_EVENT setting
+     * CURRENT_CHARGE_EVENT setting, and canceling the notification
      */
     fun abortCharging() {
         Log.i("ChargeEventViewModel", "Aborting charge event ${_activeChargeEvent.value}")
@@ -69,6 +71,7 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
             _activeChargeEvent.value?.apply {
                 chargeEventRepository.deleteChargeEvent(this.id)
                 settingsRepository.clear(SettingsKey.CURRENT_CHARGE_EVENT)
+                notificationHelper.cancelChargingNotification()
                 _activeChargeEvent.value = null
             }
         }
