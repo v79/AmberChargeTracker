@@ -3,9 +3,11 @@ package org.liamjd.amber.viewModels
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.*
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.liamjd.amber.AmberApplication
 import org.liamjd.amber.db.entities.ChargeEvent
+import org.liamjd.amber.db.entities.Setting
 import org.liamjd.amber.db.entities.SettingsKey
 import org.liamjd.amber.db.entities.Vehicle
 import org.liamjd.amber.db.repositories.ChargeEventRepository
@@ -41,9 +43,19 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
             _vehicleCount = vehicleRepository.getVehicleCount()
             selectedVehicleId = settingsRepository.getSettingLongValue(SettingsKey.SELECTED_VEHICLE)
 
+            vehicle.value = getSelectedVehicle(selectedVehicleId)
+
             selectedVehicleId?.let {
-                vehicle.value = vehicleRepository.getVehicleById(it)
-                Log.i("MainMenuViewModel","looked for vehicle with id=$it, found $vehicle")
+                try {
+                    vehicle.value = vehicleRepository.getVehicleById(it)
+                    Log.i("MainMenuViewModel", "looked for vehicle with id=$it, found $vehicle")
+                } catch (ise: IllegalStateException) {
+                    Log.e(
+                        "MainMenuViewModel",
+                        "Tried to load vehicle $it but the vehicle was not found"
+                    )
+                    Log.e("MainMenuViewModel", ise.message ?: "")
+                }
             }
 
             val activeChargeId =
@@ -77,14 +89,50 @@ class MainMenuViewModel(application: AmberApplication) : ViewModel() {
         }
     }
 
+    /**
+     * Load the currently selected vehicle. There's additional logic to handle error conditions, such as the selected vehicle
+     * not existing in the database. In which case, it just tries to load the first vehicle in the database.
+     * If it does, it will update the SELECTED_VEHICLE setting to that vehicle, or NULL if there are no vehicles at all.
+     */
+    private suspend fun getSelectedVehicle(id: Long?): Vehicle? {
+        if (id == null) {
+            return null
+        }
+        var vehicle: Vehicle?
+        try {
+            vehicle = vehicleRepository.getVehicleById(id)
+            Log.i("MainMenuViewModel", "looked for vehicle with id=$id, found $vehicle")
+        } catch (ise: IllegalStateException) {
+            Log.e(
+                "MainMenuViewModel",
+                "Tried to load vehicle $id but the vehicle was not found. Finding the first vehicle."
+            )
+            Log.e("MainMenuViewModel", ise.message ?: "")
+            val vehicleCount = vehicleRepository.getVehicleCount().value
+            try {
+                vehicle = vehicleRepository.getAllVehicles().first().first()
+            } catch (nse: NoSuchFileException) {
+                Log.e(
+                    "MainMenuViewModel",
+                    "Tried to find any active vehicle but none found. This is unexpected as there are $vehicleCount vehicles."
+                )
+                vehicle = null
+            }
+        }
+        // Update the SELECTED_VEHICLE value as it might have changed in the error conditions above
+        vehicle?.let {
+            settingsRepository.update(Setting(key = SettingsKey.SELECTED_VEHICLE, lValue = it.id))
+        }
+        return vehicle
+    }
+
 }
 
 class MainMenuViewModelFactory(private val application: AmberApplication) :
     ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainMenuViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return MainMenuViewModel(application) as T
+            @Suppress("UNCHECKED_CAST") return MainMenuViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class ${modelClass.canonicalName}")
     }
