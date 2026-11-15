@@ -130,6 +130,7 @@ fun VehicleDetailsScreen(navController: NavController, viewModel: VehicleDetails
                                     "OK, really ready to delete ${vehicle.id} now"
                                 )
                                 viewModel.deleteVehicle(vehicle.id)
+                                // TODO: clear or reset the currentlySelectedVehicle
                                 showDeleteDialog = false
                             })
                     }
@@ -272,7 +273,7 @@ fun ShowAllVehicles(
     onLongPress: (Long) -> Unit = {}
 ) {
     var chosenVehicleId by remember {
-        mutableStateOf(selectedVehicleId)
+        mutableLongStateOf(selectedVehicleId)
     }
     val selectButtonEnabled by remember(chosenVehicleId) { derivedStateOf { chosenVehicleId != selectedVehicleId } }
     val onItemClick =
